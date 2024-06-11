@@ -1,7 +1,9 @@
 package io.getunleash.unleashandroid
 
-import io.getunleash.unleashandroid.data.Context
+import io.getunleash.unleashandroid.data.DataStrategy
+import io.getunleash.unleashandroid.data.UnleashContext
 import io.getunleash.unleashandroid.data.Variant
+import io.getunleash.unleashandroid.events.UnleashEventListener
 
 interface Unleash {
 
@@ -9,5 +11,13 @@ interface Unleash {
 
     fun getVariant(toggleName: String, defaultValue: Variant);
 
-    fun setContext(context: Context);
+    fun setContext(context: UnleashContext);
+
+    fun getContext(): UnleashContext;
+
+    fun setMetricsStrategy(strategy: DataStrategy)
+
+    fun setFlagFetchStrategy(strategy: DataStrategy)
+
+    fun addUnleashEventListener(listener: UnleashEventListener)
 }
