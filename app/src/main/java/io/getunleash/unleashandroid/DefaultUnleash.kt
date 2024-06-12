@@ -5,7 +5,16 @@ import io.getunleash.unleashandroid.data.UnleashContext
 import io.getunleash.unleashandroid.data.Variant
 import io.getunleash.unleashandroid.events.UnleashEventListener
 
-class DefaultUnleash : Unleash {
+class DefaultUnleash() : Unleash {
+
+    init {
+
+    }
+
+    fun initialize() {
+
+    }
+
     override fun isEnabled(toggleName: String, defaultValue: Boolean): Boolean {
         TODO("Haven't yet done the thing")
     }
@@ -16,6 +25,9 @@ class DefaultUnleash : Unleash {
 
     override fun setContext(context: UnleashContext) {
         TODO("Not yet implemented")
+        //eventBus.rehydrateData(context)
+        // important, this should not force an HTTP call but put an event to do
+        // that at some point in the nearish future so we don't get DDoS'd
     }
 
     override fun getContext(): UnleashContext {
