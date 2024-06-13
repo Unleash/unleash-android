@@ -1,0 +1,140 @@
+{
+  "toggles": [
+    {
+      "name": "asdasd",
+      "enabled": true,
+      "variant": {
+        "name": "123",
+        "payload": {
+          "type": "string",
+          "value": "11"
+        },
+        "enabled": true
+      }
+    },
+    {
+      "name": "atrxrmnqwe",
+      "enabled": true,
+      "variant": {
+        "name": "disabled",
+        "enabled": false
+      }
+    },
+    {
+      "name": "cache.buster",
+      "enabled": true,
+      "variant": {
+        "name": "disabled",
+        "enabled": false
+      }
+    },
+    {
+      "name": "clint.testToggle",
+      "enabled": true,
+      "variant": {
+        "name": "disabled",
+        "enabled": false
+      }
+    },
+    {
+      "name": "demoApp.step2",
+      "enabled": true,
+      "variant": {
+        "name": "disabled",
+        "enabled": false
+      }
+    },
+    {
+      "name": "demoApp.step3",
+      "enabled": true,
+      "variant": {
+        "name": "disabled",
+        "enabled": false
+      }
+    },
+    {
+      "name": "demoApp.step4",
+      "enabled": true,
+      "variant": {
+        "name": "red",
+        "payload": {
+          "type": "string",
+          "value": "red"
+        },
+        "enabled": true
+      }
+    },
+    {
+      "name": "demounleash.cheque",
+      "enabled": true,
+      "variant": {
+        "name": "disabled",
+        "enabled": false
+      }
+    },
+    {
+      "name": "demounleash.inversiones",
+      "enabled": true,
+      "variant": {
+        "name": "disabled",
+        "enabled": false
+      }
+    },
+    {
+      "name": "demounleash.movimientosenriquecidos",
+      "enabled": true,
+      "variant": {
+        "name": "disabled",
+        "enabled": false
+      }
+    },
+    {
+      "name": "EnableAt",
+      "enabled": true,
+      "variant": {
+        "name": "disabled",
+        "enabled": false
+      }
+    },
+    {
+      "name": "novosite",
+      "enabled": true,
+      "variant": {
+        "name": "disabled",
+        "enabled": false
+      }
+    },
+    {
+      "name": "testing-a",
+      "enabled": true,
+      "variant": {
+        "name": "disabled",
+        "enabled": false
+      }
+    },
+    {
+      "name": "Test_release",
+      "enabled": true,
+      "variant": {
+        "name": "disabled",
+        "enabled": false
+      }
+    },
+    {
+      "name": "Tete.teste",
+      "enabled": true,
+      "variant": {
+        "name": "disabled",
+        "enabled": false
+      }
+    },
+    {
+      "name": "unleash_android_sdk_demo",
+      "enabled": true,
+      "variant": {
+        "name": "HelloJupiter",
+        "enabled": true
+      }
+    }
+  ]
+}
