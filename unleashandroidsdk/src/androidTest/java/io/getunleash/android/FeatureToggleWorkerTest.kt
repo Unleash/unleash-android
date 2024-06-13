@@ -4,8 +4,6 @@ import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.work.Configuration
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import androidx.work.impl.utils.SynchronousExecutor
 import androidx.work.testing.TestListenableWorkerBuilder
 import androidx.work.testing.WorkManagerTestInitHelper
@@ -46,7 +44,7 @@ class FeatureToggleWorkerTest {
             .build()
         runBlocking {
             val result = worker.doWork()
-            assertThat(result).isEqualTo(Result.success("s"))
+            assertThat(result).isEqualTo(Result.success(Unit))
         }
     }
 }
