@@ -52,6 +52,7 @@ class FeatureToggleWorker(
                     // FIXME broadcastTogglesUpdated()
                 } else if (response.isFailed()) {
                     // FIXME response?.error?.let(::broadcastTogglesErrored)
+                    Result.failure()
                 }
 
                 Result.success()

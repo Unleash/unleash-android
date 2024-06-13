@@ -39,7 +39,7 @@ class FeatureToggleWorkerTest {
     fun testFeatureToggleWorker() {
         val server = MockWebServer()
         server.enqueue(MockResponse().setBody(
-            this::class.java.classLoader?.getResource("proxyresponse.json")!!.readText()))
+            this::class.java.classLoader?.getResource("edgeresponse.json")!!.readText()))
         val input = workDataOf("proxyUrl" to server.url("").toString(), "clientKey" to "2")
         val worker = TestListenableWorkerBuilder<FeatureToggleWorker>(context)
             .setInputData(input)
