@@ -46,16 +46,18 @@ class FeatureToggleWorker(
         return withContext(Dispatchers.IO) {
             try {
                 val response = unleashFetcher.getToggles(unleashContext)
-                val cached = readToggleCache()
-                if (response.isFetched() && cached != response.toggles) {
-                    writeToggleCache(response.toggles)
-                    // FIXME broadcastTogglesUpdated()
-                } else if (response.isFailed()) {
+                if (response.isFailed()) {
                     // FIXME response?.error?.let(::broadcastTogglesErrored)
-                    Result.failure()
-                } else {
-                    Result.success()
+                    return@withContext Result.failure()
+                } else if (response.isFetched()) {
+                    val cached = readToggleCache()
+                    if (cached != response.toggles) {
+                        writeToggleCache(response.toggles)
+                        // FIXME broadcastTogglesUpdated()
+                    }
+                    // TODO else broadcast not modified? Question from Gastón
                 }
+
                 Result.success()
             } catch (e: Exception) {
                 // FIXME broadcastTogglesUpdated()
@@ -75,12 +77,12 @@ class FeatureToggleWorker(
     }
 
     fun writeToggleCache(value: Map<String, Toggle>) {
-/*        try {
-            this.inMemoryConfig = value
-            this.cache.write(cacheKey, value)
-            // FIXME broadcastTogglesUpdated()
-        } catch (e: Exception) {
-        }*/
+        /*        try {
+                    this.inMemoryConfig = value
+                    this.cache.write(cacheKey, value)
+                    // FIXME broadcastTogglesUpdated()
+                } catch (e: Exception) {
+                }*/
     }
 }
 

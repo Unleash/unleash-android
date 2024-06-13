@@ -76,6 +76,7 @@ open class UnleashFetcher(
             Request.Builder().url(contextUrl).header("Authorization", clientKey)
                 .build()
         try {
+            // TODO should we migrate to POST over GET?
             val response = this.httpClient.newCall(request).await()
             response.use { res ->
                 return when {
@@ -93,8 +94,7 @@ open class UnleashFetcher(
                                     // If we fail to parse, just keep data
                                     FetchResponse(Status.FAILED)
                                 }
-                            }
-                            FetchResponse(Status.FAILED, error = NoBodyException())
+                            } ?: FetchResponse(Status.FAILED, error = NoBodyException())
                         }
                     }
 

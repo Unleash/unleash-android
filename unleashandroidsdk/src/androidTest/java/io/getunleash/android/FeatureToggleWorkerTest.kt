@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.work.Configuration
+import androidx.work.ListenableWorker
 import androidx.work.impl.utils.SynchronousExecutor
 import androidx.work.testing.TestListenableWorkerBuilder
 import androidx.work.testing.WorkManagerTestInitHelper
@@ -44,7 +45,21 @@ class FeatureToggleWorkerTest {
             .build()
         runBlocking {
             val result = worker.doWork()
-            assertThat(result).isEqualTo(Result.success(Unit))
+            assertThat(result).isEqualTo(ListenableWorker.Result.success())
+        }
+    }
+
+    @Test
+    fun testFeatureToggleWorker_withInvalidBody_resultsInFailure() {
+        val server = MockWebServer()
+        server.enqueue(MockResponse().setBody("Invalid json"))
+        val input = workDataOf("proxyUrl" to server.url("").toString(), "clientKey" to "2")
+        val worker = TestListenableWorkerBuilder<FeatureToggleWorker>(context)
+            .setInputData(input)
+            .build()
+        runBlocking {
+            val result = worker.doWork()
+            assertThat(result).isEqualTo(ListenableWorker.Result.failure())
         }
     }
 }
