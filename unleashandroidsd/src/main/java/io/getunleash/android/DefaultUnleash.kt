@@ -1,9 +1,9 @@
-package io.getunleash.unleashandroid
+package io.getunleash.android
 
-import io.getunleash.unleashandroid.data.DataStrategy
-import io.getunleash.unleashandroid.data.UnleashContext
-import io.getunleash.unleashandroid.data.Variant
-import io.getunleash.unleashandroid.events.UnleashEventListener
+import io.getunleash.android.data.DataStrategy
+import io.getunleash.android.data.UnleashContext
+import io.getunleash.android.data.Variant
+import io.getunleash.android.events.UnleashEventListener
 
 class DefaultUnleash() : Unleash {
 

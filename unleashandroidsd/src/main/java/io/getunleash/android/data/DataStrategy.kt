@@ -1,4 +1,4 @@
-package io.getunleash.unleashandroid.data
+package io.getunleash.android.data
 
 
 data class DataStrategy(

@@ -1,4 +1,4 @@
-package io.getunleash.unleashandroid.io
+package io.getunleash.android.io
 
 import android.content.Context
 

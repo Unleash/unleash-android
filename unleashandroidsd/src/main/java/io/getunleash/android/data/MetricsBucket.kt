@@ -1,4 +1,4 @@
-package io.getunleash.unleashandroid.data
+package io.getunleash.android.data
 
 import java.util.Date
 import java.util.concurrent.ConcurrentHashMap

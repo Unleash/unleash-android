@@ -1,6 +1,6 @@
-package io.getunleash.unleashandroid.io
+package io.getunleash.android.io
 
-import io.getunleash.unleashandroid.data.Variant
+import io.getunleash.android.data.Variant
 
 class MetricsSender : MetricsHandler {
 
