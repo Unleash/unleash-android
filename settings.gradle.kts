@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "UnleashAndroid"
 include(":app")
-include(":unleashandroidsd")
+include(":unleashandroidsdk")
