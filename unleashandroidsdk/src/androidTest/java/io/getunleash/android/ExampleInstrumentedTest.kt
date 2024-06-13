@@ -29,7 +29,7 @@ class ExampleInstrumentedTest {
  * See [testing documentation](http://d.android.com/tools/testing).
  */
 @RunWith(AndroidJUnit4::class)
-class ExampleInstrumentedTest {
+class ExampleInstrumentedAndroidTest {
     @Test
     fun useAppContext() {
         // Context of the app under test.

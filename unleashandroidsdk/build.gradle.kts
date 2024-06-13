@@ -38,7 +38,16 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.work.ktx)
     implementation(libs.material)
+    implementation(libs.jackson.databind)
+    implementation(libs.jackson.core)
+    implementation(libs.jackson.module.kotlin)
+    implementation(libs.jackson.datatype.jsr310)
+    implementation(libs.androidx.work.testing)
+    api(libs.okhttp)
+
     testImplementation(libs.junit)
+    androidTestImplementation(libs.assertj)
+    androidTestImplementation(libs.androidx.work.testing)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 }
