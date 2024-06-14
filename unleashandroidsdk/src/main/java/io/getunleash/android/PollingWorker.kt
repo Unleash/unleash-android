@@ -46,12 +46,13 @@ class FeatureToggleWorker(
                 val response = unleashFetcher.getToggles(unleashContext)
                 if (response.isFailed()) {
                     // FIXME response?.error?.let(::broadcastTogglesErrored)
+                    Events.broadcastTogglesFetchFailed(response.error!!)
                     return@withContext Result.failure()
                 } else if (response.isFetched()) {
                     val cached = readToggleCache()
                     if (cached != response.toggles) {
                         writeToggleCache(response.toggles)
-                        Events.broacastTogglesReceived(response.toggles)
+                        Events.broadcastTogglesReceived(response.toggles)
                     }
                     // TODO else broadcast not modified? Question from Gastón
                 }

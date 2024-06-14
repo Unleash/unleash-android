@@ -9,7 +9,6 @@ import androidx.work.impl.utils.SynchronousExecutor
 import androidx.work.testing.TestListenableWorkerBuilder
 import androidx.work.testing.WorkManagerTestInitHelper
 import androidx.work.workDataOf
-import io.getunleash.android.cache.TogglesUpdatedListener
 import io.getunleash.android.polling.TogglesReceivedListener
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse

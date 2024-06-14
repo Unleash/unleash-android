@@ -1,25 +1,26 @@
 package io.getunleash.android
 
-import io.getunleash.android.cache.TogglesUpdatedListener
+import io.getunleash.android.cache.ToggleStoreListener
 import io.getunleash.android.data.Toggle
-import io.getunleash.android.polling.TogglesErroredListener
 import io.getunleash.android.polling.TogglesReceivedListener
+import io.getunleash.android.polling.FetchTogglesErrorListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.CopyOnWriteArrayList
 
 object Events {
 
-    private val togglesUpdatedListeners: MutableList<TogglesUpdatedListener> = mutableListOf()
-    private val errorListeners: MutableList<TogglesErroredListener> = mutableListOf()
-    private val togglesReceivedListeners: MutableList<TogglesReceivedListener> = mutableListOf()
-    private val readyListeners: MutableList<ReadyListener> = mutableListOf()
+    private val toggleStoreListeners: MutableList<ToggleStoreListener> = CopyOnWriteArrayList()
+    private val fetchTogglesErrorListeners: MutableList<FetchTogglesErrorListener> = CopyOnWriteArrayList()
+    private val togglesReceivedListeners: MutableList<TogglesReceivedListener> = CopyOnWriteArrayList()
+    private val readyListeners: MutableList<ReadyListener> = CopyOnWriteArrayList()
 
-    suspend fun broacastTogglesReceived(toggles: Map<String, Toggle>) {
+    suspend fun broadcastTogglesReceived(flags: Map<String, Toggle>) {
         togglesReceivedListeners.forEach { listener ->
             withContext(Dispatchers.IO) {
                 launch {
-                    listener.onTogglesReceived(toggles)
+                    listener.onTogglesReceived(flags)
                 }
             }
         }
@@ -33,8 +34,18 @@ object Events {
      * For testing
      */
     fun clear() {
-        arrayOf(togglesUpdatedListeners, errorListeners, togglesReceivedListeners, readyListeners).forEach {
+        arrayOf(toggleStoreListeners, fetchTogglesErrorListeners, togglesReceivedListeners, readyListeners).forEach {
             it.clear()
+        }
+    }
+
+    suspend fun broadcastTogglesFetchFailed(error: Exception) {
+        fetchTogglesErrorListeners.forEach { listener ->
+            withContext(Dispatchers.IO) {
+                launch {
+                    listener.onError(error)
+                }
+            }
         }
     }
 }
