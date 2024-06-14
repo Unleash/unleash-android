@@ -4,25 +4,23 @@ import android.content.Context
 import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import io.getunleash.android.cache.ToggleCache
 import io.getunleash.android.data.Toggle
 import io.getunleash.android.data.UnleashContext
 import io.getunleash.android.polling.UnleashFetcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import java.math.BigInteger
-import java.security.MessageDigest
 
 class FeatureToggleWorker(
     appContext: Context,
     params: WorkerParameters
 ) : CoroutineWorker(appContext, params) {
-    val TAG = "FeatureToggleWorker"
-    val unleashFetcher = UnleashFetcher(
+    private val tag = "FeatureToggleWorker"
+    private val unleashFetcher = UnleashFetcher(
         proxyUrl = params.inputData.getString("proxyUrl")?.toHttpUrl()!!,
         clientKey = params.inputData.getString("clientKey")!!
     )
+
     val unleashContext = UnleashContext()
     /*var unleashFetcher: UnleashFetcher
     var unleashContext: UnleashContext
@@ -48,12 +46,13 @@ class FeatureToggleWorker(
                 val response = unleashFetcher.getToggles(unleashContext)
                 if (response.isFailed()) {
                     // FIXME response?.error?.let(::broadcastTogglesErrored)
+                    Events.broadcastTogglesFetchFailed(response.error!!)
                     return@withContext Result.failure()
                 } else if (response.isFetched()) {
                     val cached = readToggleCache()
                     if (cached != response.toggles) {
                         writeToggleCache(response.toggles)
-                        // FIXME broadcastTogglesUpdated()
+                        Events.broadcastTogglesReceived(response.toggles)
                     }
                     // TODO else broadcast not modified? Question from Gastón
                 }
@@ -61,7 +60,7 @@ class FeatureToggleWorker(
                 Result.success()
             } catch (e: Exception) {
                 // FIXME broadcastTogglesUpdated()
-                Log.w(TAG, "Exception in AutoPollingCachePolicy", e)
+                Log.w(tag, "Exception in AutoPollingCachePolicy", e)
                 Result.failure()
             }
         }
