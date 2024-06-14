@@ -18,7 +18,6 @@ import okhttp3.Cache
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.HttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -41,7 +40,7 @@ open class UnleashFetcher(
     httpClientReadTimeout: Long = 5000,
     httpClientConnectionTimeout: Long = 2000,
     httpClientCacheSize: Long = 1024 * 1024 * 10,
-    val httpClient: OkHttpClient = OkHttpClient.Builder()
+    private val httpClient: OkHttpClient = OkHttpClient.Builder()
         .readTimeout(httpClientReadTimeout, TimeUnit.MILLISECONDS)
         .connectTimeout(httpClientConnectionTimeout, TimeUnit.MILLISECONDS)
         .cache(
@@ -52,11 +51,7 @@ open class UnleashFetcher(
         ).build()
 ) : Closeable {
 
-    val TAG = "UnleashFetcher"
-
-    companion object {
-        const val TOGGLE_BACKUP_NAME = "unleash_proxy_toggles"
-    }
+    private val tag = "UnleashFetcher"
 
     suspend fun getToggles(ctx: UnleashContext): ToggleResponse {
         val response = fetchToggles(ctx);
@@ -90,7 +85,7 @@ open class UnleashFetcher(
                                         Parser.jackson.readValue(b.string())
                                     FetchResponse(Status.FETCHED, proxyResponse)
                                 } catch (e: Exception) {
-                                    Log.w(TAG, "Couldn't parse data", e)
+                                    Log.w(tag, "Couldn't parse data", e)
                                     // If we fail to parse, just keep data
                                     FetchResponse(Status.FAILED)
                                 }
@@ -103,7 +98,7 @@ open class UnleashFetcher(
                     }
 
                     res.code == 401 -> {
-                        Log.e(TAG, "Double check your SDK key")
+                        Log.e(tag, "Double check your SDK key")
                         FetchResponse(Status.FAILED, error = NotAuthorizedException())
                     }
 
@@ -113,7 +108,7 @@ open class UnleashFetcher(
                 }
             }
         } catch (e: IOException) {
-            Log.w(TAG, "An error occurred when fetching the latest configuration.", e)
+            Log.w(tag, "An error occurred when fetching the latest configuration.", e)
             return FetchResponse(status = Status.FAILED, error = e)
         }
     }

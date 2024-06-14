@@ -1,5 +1,7 @@
 package io.getunleash.android
 
+import io.getunleash.android.cache.InMemoryToggleCache
+import io.getunleash.android.cache.ToggleCache
 import io.getunleash.android.data.DataStrategy
 import io.getunleash.android.data.UnleashContext
 import io.getunleash.android.data.Variant
@@ -12,6 +14,8 @@ class DefaultUnleash() : Unleash {
     }
 
     fun initialize() {
+        val cache = InMemoryToggleCache()
+        Events.addTogglesReceivedListener(cache)
 
     }
 
