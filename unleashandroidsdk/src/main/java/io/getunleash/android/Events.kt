@@ -4,6 +4,9 @@ import io.getunleash.android.cache.TogglesUpdatedListener
 import io.getunleash.android.data.Toggle
 import io.getunleash.android.polling.TogglesErroredListener
 import io.getunleash.android.polling.TogglesReceivedListener
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 object Events {
 
@@ -12,10 +15,13 @@ object Events {
     private val togglesReceivedListeners: MutableList<TogglesReceivedListener> = mutableListOf()
     private val readyListeners: MutableList<ReadyListener> = mutableListOf()
 
-    // TODO how do we send this into a background thread?
-    fun togglesReceived(toggles: Map<String, Toggle>) {
-        togglesReceivedListeners.forEach {
-            it.onTogglesReceived(toggles)
+    suspend fun broacastTogglesReceived(toggles: Map<String, Toggle>) {
+        togglesReceivedListeners.forEach { listener ->
+            withContext(Dispatchers.IO) {
+                launch {
+                    listener.onTogglesReceived(toggles)
+                }
+            }
         }
     }
 

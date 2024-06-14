@@ -51,8 +51,7 @@ class FeatureToggleWorker(
                     val cached = readToggleCache()
                     if (cached != response.toggles) {
                         writeToggleCache(response.toggles)
-                        // FIXME broadcastTogglesUpdated()
-                        Events.togglesReceived(response.toggles)
+                        Events.broacastTogglesReceived(response.toggles)
                     }
                     // TODO else broadcast not modified? Question from Gastón
                 }
