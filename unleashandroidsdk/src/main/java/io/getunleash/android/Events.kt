@@ -4,6 +4,7 @@ import io.getunleash.android.cache.ToggleStoreListener
 import io.getunleash.android.data.Toggle
 import io.getunleash.android.polling.TogglesReceivedListener
 import io.getunleash.android.polling.FetchTogglesErrorListener
+import io.getunleash.android.polling.TogglesUnchangedListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -14,6 +15,7 @@ object Events {
     private val toggleStoreListeners: MutableList<ToggleStoreListener> = CopyOnWriteArrayList()
     private val fetchTogglesErrorListeners: MutableList<FetchTogglesErrorListener> = CopyOnWriteArrayList()
     private val togglesReceivedListeners: MutableList<TogglesReceivedListener> = CopyOnWriteArrayList()
+    private val togglesUnchangedListeners: MutableList<TogglesUnchangedListener> = CopyOnWriteArrayList()
     private val readyListeners: MutableList<ReadyListener> = CopyOnWriteArrayList()
 
     suspend fun broadcastTogglesReceived(flags: Map<String, Toggle>) {
@@ -60,7 +62,7 @@ object Events {
     }
 
     suspend fun broadcastTogglesReceivedButNoChangesDetected() {
-        togglesReceivedListeners.forEach { listener ->
+        togglesUnchangedListeners.forEach { listener ->
             withContext(Dispatchers.IO) {
                 launch {
                     listener.onTogglesReceivedWithoutChanges()
