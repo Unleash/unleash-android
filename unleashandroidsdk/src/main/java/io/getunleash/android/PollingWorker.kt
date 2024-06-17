@@ -54,6 +54,7 @@ class FeatureToggleWorker(
                         writeToggleCache(response.toggles)
                         Events.broadcastTogglesReceived(response.toggles)
                     }
+                    Events.broadcastTogglesReceivedButNoChangesDetected()
                     // TODO else broadcast not modified? Question from Gastón
                 }
 

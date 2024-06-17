@@ -43,7 +43,27 @@ object Events {
         fetchTogglesErrorListeners.forEach { listener ->
             withContext(Dispatchers.IO) {
                 launch {
-                    listener.onError(error)
+                    listener.onFetchTogglesError(error)
+                }
+            }
+        }
+    }
+
+    suspend fun broadcastToggleStoreUpdated(value: Map<String, Toggle>) {
+        toggleStoreListeners.forEach { listener ->
+            withContext(Dispatchers.IO) {
+                launch {
+                    listener.onTogglesStored(value)
+                }
+            }
+        }
+    }
+
+    suspend fun broadcastTogglesReceivedButNoChangesDetected() {
+        togglesReceivedListeners.forEach { listener ->
+            withContext(Dispatchers.IO) {
+                launch {
+                    listener.onTogglesReceivedWithoutChanges()
                 }
             }
         }
