@@ -1,5 +1,6 @@
 package io.getunleash.android
 
+import android.content.Context
 import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -10,10 +11,16 @@ import androidx.work.testing.TestListenableWorkerBuilder
 import androidx.work.testing.WorkManagerTestInitHelper
 import androidx.work.workDataOf
 import io.getunleash.android.polling.TogglesReceivedListener
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.After
 
 import org.junit.Before
 import org.junit.Test
@@ -23,6 +30,9 @@ import org.junit.runner.RunWith
 
 class FeatureToggleWorkerTest {
     val context = InstrumentationRegistry.getInstrumentation().targetContext
+    private val testDispatcher = StandardTestDispatcher()
+    private val testScope = TestScope(testDispatcher)
+
     @Before
     fun setup() {
         Events.clear()
@@ -65,7 +75,7 @@ class FeatureToggleWorkerTest {
     }
 
     @Test
-    fun testFeatureToggleWorker_notifiesFeatureUpdateListeners() {
+    fun testFeatureToggleWorker_notifiesFeatureUpdateListeners() = testScope.runTest {
         var numberOfToggles = 0
         val listener = TogglesReceivedListener { toggles ->
             // Implementation here
@@ -82,14 +92,11 @@ class FeatureToggleWorkerTest {
         val worker = TestListenableWorkerBuilder<FeatureToggleWorker>(context)
             .setInputData(input)
             .build()
-        runBlocking {
-            val result = worker.doWork()
-            assertThat(result).isEqualTo(ListenableWorker.Result.success())
 
-            // wait for 50ms until numberOfToggles is greater than zero
-            Thread.sleep(50)
-            assertThat(numberOfToggles).isGreaterThan(0)
-        }
+        val result = worker.doWork()
 
+        // Check the result
+        assertThat(result).isEqualTo(ListenableWorker.Result.success())
+        assertThat(numberOfToggles).isGreaterThan(0)
     }
 }

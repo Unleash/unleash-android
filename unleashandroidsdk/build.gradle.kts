@@ -46,9 +46,11 @@ dependencies {
     api(libs.okhttp)
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlin.test)
+    testImplementation(libs.androidx.work.testing)
     androidTestImplementation(libs.assertj)
-    androidTestImplementation(libs.androidx.work.testing)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.okhttp.mockserver)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
 }

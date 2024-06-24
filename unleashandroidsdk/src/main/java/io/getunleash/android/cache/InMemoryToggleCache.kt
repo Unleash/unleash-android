@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.ConcurrentHashMap
 
-class InMemoryToggleCache : ToggleCache, TogglesReceivedListener, CoroutineScope by CoroutineScope(
+class InMemoryToggleCache : ToggleCache, CoroutineScope by CoroutineScope(
     Dispatchers.Default + SupervisorJob())  {
     private val internalCache = ConcurrentHashMap<String, Map<String, Toggle>>()
 
