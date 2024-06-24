@@ -1,7 +1,5 @@
 package io.getunleash.android.polling
 
-import io.getunleash.android.data.Toggle
-
 /**
  * Listener for receiving flags from the Unleash server.
  *

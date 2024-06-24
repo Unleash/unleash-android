@@ -2,13 +2,11 @@ package io.getunleash.android.cache
 
 import io.getunleash.android.Events
 import io.getunleash.android.data.Toggle
-import io.getunleash.android.polling.TogglesReceivedListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import java.util.concurrent.ConcurrentHashMap
 
 class InMemoryToggleCache : ToggleCache, CoroutineScope by CoroutineScope(

@@ -2,8 +2,8 @@ package io.getunleash.android
 
 import io.getunleash.android.cache.ToggleStoreListener
 import io.getunleash.android.data.Toggle
-import io.getunleash.android.polling.TogglesReceivedListener
 import io.getunleash.android.polling.FetchTogglesErrorListener
+import io.getunleash.android.polling.TogglesReceivedListener
 import io.getunleash.android.polling.TogglesUnchangedListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
