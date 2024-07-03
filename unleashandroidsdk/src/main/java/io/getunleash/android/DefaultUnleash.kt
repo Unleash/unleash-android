@@ -41,8 +41,6 @@ class DefaultUnleash(
     init {
         try {
             cache.subscribeTo(taskManager.getFeaturesReceivedFlow())
-
-            taskManager.startForegroundJobs()
         } catch (e: Exception) {
             Log.e(tag, "Error initializing Unleash", e)
         }
