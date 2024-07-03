@@ -30,11 +30,11 @@ class ObservableCache(private val cache: ToggleCache) : ObservableToggleCache {
     }
 
     override fun subscribeTo(featuresReceived: Flow<Map<String, Toggle>>) {
-        Log.d(tag, "Subscribing cache, subscribers: ${events.subscriptionCount.value}")
+        Log.d(tag, "Subscribing to cache, subscribers: ${events.subscriptionCount.value}")
         unleashScope.launch {
             featuresReceived.collect { toggles ->
                 withContext(Dispatchers.IO) {
-                    Log.d(tag, "Received new state with ${toggles.size} toggles $toggles")
+                    Log.d(tag, "Storing new state with ${toggles.size} toggles")
                     write(toggles)
                 }
             }
