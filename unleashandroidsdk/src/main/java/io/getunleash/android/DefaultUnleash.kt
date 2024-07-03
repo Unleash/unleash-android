@@ -14,6 +14,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -22,10 +23,11 @@ private const val tag = "Unleash"
 const val supportedSpecVersion = "4.3.0"
 
 val unleashExceptionHandler = CoroutineExceptionHandler { _, exception ->
-    Log.e(tag, "Caught exception at cache updater: ${exception.message}", exception)
+    Log.e(tag, "Caught unhandled exception: ${exception.message}", exception)
 }
 
-val unleashScope = CoroutineScope(Dispatchers.Default + SupervisorJob() + unleashExceptionHandler)
+private val job = SupervisorJob()
+val unleashScope = CoroutineScope(Dispatchers.Default + job + unleashExceptionHandler)
 
 class DefaultUnleash(
     unleashConfig: UnleashConfig,
@@ -94,5 +96,9 @@ class DefaultUnleash(
                 listener.onRefresh()
             }
         }
+    }
+
+    override fun close() {
+        job.cancel("Unleash received closed signal")
     }
 }

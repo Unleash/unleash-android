@@ -39,10 +39,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val unleash = (application as TestApplication).unleash
-        Log.i("MAIN","MainActivity.onCreate")
         enableEdgeToEdge()
         Log.i("MAIN","MainActivity.onCreate | lifecycle ${lifecycle.currentState}")
-
 
         setContent {
             unleashAndroidTheme {
@@ -100,8 +98,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-
-
 class IsEnabledViewModel(initialFlag: String): ViewModel() {
     private var unleash: Unleash? = null
     private val _flagName = MutableLiveData(initialFlag)
@@ -139,7 +135,6 @@ class IsEnabledViewModel(initialFlag: String): ViewModel() {
         this.unleash = unleash
     }
 }
-
 
 @Composable
 fun Greeting(name: String, isEnabledViewModel: IsEnabledViewModel, modifier: Modifier = Modifier) {
