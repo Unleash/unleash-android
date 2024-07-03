@@ -5,11 +5,12 @@ import io.getunleash.android.data.UnleashContext
 import io.getunleash.android.data.Variant
 import io.getunleash.android.events.UnleashEventListener
 
-interface Unleash {
+val disabledVariant = Variant("disabled")
 
+interface Unleash {
     fun isEnabled(toggleName: String, defaultValue: Boolean = false): Boolean
 
-    fun getVariant(toggleName: String, defaultValue: Variant);
+    fun getVariant(toggleName: String, defaultValue: Variant = disabledVariant): Variant
 
     fun setContext(context: UnleashContext);
 

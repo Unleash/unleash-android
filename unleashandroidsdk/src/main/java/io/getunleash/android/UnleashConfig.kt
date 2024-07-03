@@ -23,11 +23,13 @@ data class ReportMetrics(
 data class UnleashConfig(
     val proxyUrl: String,
     val clientKey: String,
-    val appName: String? = null,
+    val appName: String? = "unleash-android-sdk",
     val instanceId: String? = UUID.randomUUID().toString(),
     val httpClientConnectionTimeout: Long = 2000,
     val httpClientReadTimeout: Long = 5000,
     val httpClientCacheSize: Long = 1024 * 1024 * 10,
+    val httpClientCustomHeaders: Map<String, String> = emptyMap(),
+    val pollingIntervalInMs: Long = 60000,
     val reportMetrics: ReportMetrics? = null
 ) {
     /**
@@ -45,6 +47,17 @@ data class UnleashConfig(
             enableMetrics = reportMetrics != null,
             metricsInterval = reportMetrics?.metricsInterval
         )
+
+    fun getApplicationHeaders(): Map<String, String> {
+        return httpClientCustomHeaders.plus(mapOf(
+            "Authorization" to clientKey,
+            "Content-Type" to "application/json",
+            "UNLEASH-APPNAME" to appName!!,
+            "User-Agent" to appName,
+            "UNLEASH-INSTANCEID" to instanceId!!,
+            "Unleash-Client-Spec" to supportedSpecVersion,
+        ))
+    }
 
     companion object {
         /**

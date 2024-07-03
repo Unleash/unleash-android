@@ -2,7 +2,6 @@ package io.getunleash.android.polling
 
 import android.util.Log
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.getunleash.android.UnleashConfig
 import io.getunleash.android.cache.CacheDirectoryProvider
 import io.getunleash.android.data.FetchResponse
 import io.getunleash.android.data.Parser
@@ -17,6 +16,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import okhttp3.Cache
 import okhttp3.Call
 import okhttp3.Callback
+import okhttp3.Headers.Companion.toHeaders
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -31,12 +31,11 @@ import kotlin.coroutines.resumeWithException
 /**
  * Http Client for fetching data from Unleash Proxy.
  * By default creates an OkHttpClient with readTimeout set to 2 seconds and a cache of 10 MBs
- * @param unleashConfig - Configuration for unleash - see docs for [io.getunleash.UnleashConfig]
  * @param httpClient - the http client to use for fetching toggles from Unleash proxy
  */
 open class UnleashFetcher(
-    val proxyUrl: HttpUrl,
-    val clientKey: String,
+    private val proxyUrl: HttpUrl,
+    private val applicationHeaders: Map<String, String> = emptyMap(),
     httpClientReadTimeout: Long = 5000,
     httpClientConnectionTimeout: Long = 2000,
     httpClientCacheSize: Long = 1024 * 1024 * 10,
@@ -52,9 +51,11 @@ open class UnleashFetcher(
 ) : Closeable {
 
     private val tag = "UnleashFetcher"
+    private var etag: String? = null
 
     suspend fun getToggles(ctx: UnleashContext): ToggleResponse {
-        val response = fetchToggles(ctx);
+        Log.d(tag, "Fetching toggles with $ctx")
+        val response = fetchToggles(ctx)
         return if (response.isFetched()) {
             ToggleResponse(
                 status = response.status,
@@ -67,18 +68,23 @@ open class UnleashFetcher(
 
     private suspend fun fetchToggles(ctx: UnleashContext): FetchResponse {
         val contextUrl = buildContextUrl(ctx)
-        val request =
-            Request.Builder().url(contextUrl).header("Authorization", clientKey)
-                .build()
+        val request = Request.Builder().url(contextUrl)
+                .headers(applicationHeaders.toHeaders())
+        if (etag != null) {
+            request.header("If-None-Match", etag!!)
+        }
         try {
-            // TODO should we migrate to POST over GET?
-            val response = this.httpClient.newCall(request).await()
+            val response = this.httpClient.newCall(request.build()).await()
             response.use { res ->
+                Log.d(tag, "Received status code ${res.code} from $contextUrl")
                 return when {
                     res.isSuccessful -> {
-                        if (res.cacheResponse != null && res.networkResponse?.code == 304) {
-                            return FetchResponse(Status.NOTMODIFIED)
-                        } else {
+
+                        //TODO check why this, seems to be an internal cache, should still return the body
+                        /*if (res.cacheResponse != null && res.networkResponse?.code == 304) {
+                            //return FetchResponse(Status.NOTMODIFIED)
+                        } else {*/
+                            etag = res.header("ETag")
                             res.body?.use { b ->
                                 try {
                                     val proxyResponse: ProxyResponse =
@@ -90,7 +96,7 @@ open class UnleashFetcher(
                                     FetchResponse(Status.FAILED)
                                 }
                             } ?: FetchResponse(Status.FAILED, error = NoBodyException())
-                        }
+                        //}
                     }
 
                     res.code == 304 -> {
@@ -113,8 +119,7 @@ open class UnleashFetcher(
         }
     }
 
-    suspend fun Call.await(): Response {
-
+    private suspend fun Call.await(): Response {
         return suspendCancellableCoroutine { continuation ->
             enqueue(object : Callback {
                 override fun onResponse(call: Call, response: Response) {
@@ -139,10 +144,19 @@ open class UnleashFetcher(
     }
 
     private fun buildContextUrl(ctx: UnleashContext): HttpUrl {
-        var contextUrl = proxyUrl.newBuilder().addQueryParameter("appName", ctx.appName)
-            .addQueryParameter("userId", ctx.userId)
-            .addQueryParameter("remoteAddress", ctx.remoteAddress)
-            .addQueryParameter("sessionId", ctx.sessionId)
+        var contextUrl = proxyUrl.newBuilder()
+        if (ctx.appName != null) {
+            contextUrl.addQueryParameter("appName", ctx.appName)
+        }
+        if (ctx.userId != null) {
+            contextUrl.addQueryParameter("userId", ctx.userId)
+        }
+        if (ctx.remoteAddress != null) {
+            contextUrl.addQueryParameter("remoteAddress", ctx.remoteAddress)
+        }
+        if (ctx.sessionId != null) {
+            contextUrl.addQueryParameter("sessionId", ctx.sessionId)
+        }
         ctx.properties.entries.forEach {
             contextUrl = contextUrl.addQueryParameter("properties[${it.key}]", it.value)
         }
