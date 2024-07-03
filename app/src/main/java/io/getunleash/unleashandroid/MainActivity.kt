@@ -47,10 +47,8 @@ class MainActivity : ComponentActivity() {
                 var userId by remember { mutableStateOf(initialUserId) }
                 val flag by isEnabledViewModel.flagName.observeAsState()
                 if (!initialized) {
-                    unleash.setContext(unleash.getContext().copy(userId = userId))
                     isEnabledViewModel.initialize(unleash)
                 }
-                unleash.getContext()
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Column(modifier = Modifier
