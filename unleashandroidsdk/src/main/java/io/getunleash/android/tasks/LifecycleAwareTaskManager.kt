@@ -8,6 +8,7 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.Constraints
 import androidx.work.NetworkType
 import io.getunleash.android.UnleashConfig
+import io.getunleash.android.data.DataStrategy
 import io.getunleash.android.data.Toggle
 import io.getunleash.android.data.UnleashContext
 import io.getunleash.android.polling.UnleashFetcher
@@ -24,6 +25,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import kotlin.coroutines.CoroutineContext
 
 private const val TAG = "TaskManager"
 
@@ -67,26 +69,37 @@ class LifecycleAwareTaskManager(
         isRunning = true
         println("Starting foreground jobs")
 
-        if (unleashConfig.reportMetrics != null) {
-            foregroundMetricsSender = unleashScope.launch {
-                withContext(Dispatchers.IO) {
+        foregroundMetricsSender = startWithStrategy(unleashConfig.metricsStrategy) {
+            doSendMetrics()
+        }
+        featureTogglesPoller = startWithStrategy(unleashConfig.pollingStrategy) {
+            doFetchToggles()
+        }
+    }
+
+    private fun startWithStrategy(
+        strategy: DataStrategy,
+        context: CoroutineContext = Dispatchers.IO,
+        action: suspend () -> Unit
+    ): Job? {
+        if (strategy.enabled) {
+            return unleashScope.launch {
+                withContext(context) {
                     while (isActive) {
-                        //MetricsSender.getInstance().sendMetrics()
-                        println("TODO: MetricsSender.getInstance().sendMetrics()")
-                        delay(timeMillis = unleashConfig.reportMetrics.metricsInterval)
+                        if (strategy.delay > 0) {
+                            delay(strategy.delay)
+                        }
+                        action()
+                        delay(timeMillis = strategy.interval)
                     }
                 }
             }
         }
+        return null
+    }
 
-        featureTogglesPoller = unleashScope.launch {
-            withContext(Dispatchers.IO) {
-                while (isActive) {
-                    doFetchToggles()
-                    delay(timeMillis = unleashConfig.pollingIntervalInMs)
-                }
-            }
-        }
+    private fun doSendMetrics() {
+        Log.d(TAG, "TODO send metrics")
     }
 
     private suspend fun doFetchToggles() {

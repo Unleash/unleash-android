@@ -1,13 +1,8 @@
 package io.getunleash.android
 
+import io.getunleash.android.data.DataStrategy
 import okhttp3.OkHttpClient
 import java.util.UUID
-import java.util.concurrent.TimeUnit
-
-data class ReportMetrics(
-    val metricsInterval: Long,
-    val httpClient: OkHttpClient,
-)
 
 /**
  * Represents configuration for Unleash.
@@ -29,8 +24,12 @@ data class UnleashConfig(
     val httpClientReadTimeout: Long = 5000,
     val httpClientCacheSize: Long = 1024 * 1024 * 10,
     val httpClientCustomHeaders: Map<String, String> = emptyMap(),
-    val pollingIntervalInMs: Long = 60000,
-    val reportMetrics: ReportMetrics? = null
+    val pollingStrategy: DataStrategy = DataStrategy(60000,
+        respectHibernation = true,
+    ),
+    val metricsStrategy: DataStrategy = DataStrategy(60000,
+        respectHibernation = true,
+    ),
 ) {
     /**
      * Get a [io.getunleash.UnleashConfig.Builder] with all fields set to the value of
@@ -44,8 +43,8 @@ data class UnleashConfig(
             httpClientConnectionTimeout = httpClientConnectionTimeout,
             httpClientReadTimeout = httpClientReadTimeout,
             httpClientCacheSize = httpClientCacheSize,
-            enableMetrics = reportMetrics != null,
-            metricsInterval = reportMetrics?.metricsInterval
+            enableMetrics = metricsStrategy.enabled,
+            metricsInterval = metricsStrategy.interval
         )
 
     fun getApplicationHeaders(): Map<String, String> {
@@ -106,17 +105,10 @@ data class UnleashConfig(
             httpClientConnectionTimeout = httpClientConnectionTimeout ?: 2000,
             httpClientReadTimeout = httpClientReadTimeout ?: 5000,
             httpClientCacheSize = httpClientCacheSize ?: (1024 * 1024 * 10),
-            reportMetrics = if (enableMetrics) {
-                ReportMetrics(
-                    metricsInterval = metricsInterval ?: 60000,
-                    httpClient = metricsHttpClient ?: OkHttpClient.Builder()
-                        .connectTimeout(httpClientConnectionTimeout ?: 2000, TimeUnit.MILLISECONDS)
-                        .readTimeout(httpClientReadTimeout ?: 5000, TimeUnit.MILLISECONDS)
-                        .build(),
-                )
-            } else {
-                null
-            },
+            metricsStrategy = DataStrategy(
+                interval = metricsInterval ?: 60000,
+                enabled = enableMetrics
+            ),
             instanceId = instanceId
         )
 
