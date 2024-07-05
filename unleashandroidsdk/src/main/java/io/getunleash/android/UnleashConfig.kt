@@ -1,13 +1,8 @@
 package io.getunleash.android
 
+import io.getunleash.android.data.DataStrategy
 import okhttp3.OkHttpClient
 import java.util.UUID
-import java.util.concurrent.TimeUnit
-
-data class ReportMetrics(
-    val metricsInterval: Long,
-    val httpClient: OkHttpClient,
-)
 
 /**
  * Represents configuration for Unleash.
@@ -23,12 +18,18 @@ data class ReportMetrics(
 data class UnleashConfig(
     val proxyUrl: String,
     val clientKey: String,
-    val appName: String? = null,
+    val appName: String,
     val instanceId: String? = UUID.randomUUID().toString(),
     val httpClientConnectionTimeout: Long = 2000,
     val httpClientReadTimeout: Long = 5000,
     val httpClientCacheSize: Long = 1024 * 1024 * 10,
-    val reportMetrics: ReportMetrics? = null
+    val httpClientCustomHeaders: Map<String, String> = emptyMap(),
+    val pollingStrategy: DataStrategy = DataStrategy(60000,
+        respectHibernation = true,
+    ),
+    val metricsStrategy: DataStrategy = DataStrategy(60000,
+        respectHibernation = true,
+    ),
 ) {
     /**
      * Get a [io.getunleash.UnleashConfig.Builder] with all fields set to the value of
@@ -42,24 +43,34 @@ data class UnleashConfig(
             httpClientConnectionTimeout = httpClientConnectionTimeout,
             httpClientReadTimeout = httpClientReadTimeout,
             httpClientCacheSize = httpClientCacheSize,
-            enableMetrics = reportMetrics != null,
-            metricsInterval = reportMetrics?.metricsInterval
+            enableMetrics = metricsStrategy.enabled,
+            metricsInterval = metricsStrategy.interval
         )
+
+    fun getApplicationHeaders(): Map<String, String> {
+        return httpClientCustomHeaders.plus(mapOf(
+            "Authorization" to clientKey,
+            "Content-Type" to "application/json",
+            "UNLEASH-APPNAME" to appName!!,
+            "User-Agent" to appName,
+            "UNLEASH-INSTANCEID" to instanceId!!,
+        ))
+    }
 
     companion object {
         /**
          * Get a [io.getunleash.UnleashConfig.Builder] with no fields set.
          */
-        fun newBuilder(): Builder = Builder()
+        fun newBuilder(appName: String): Builder = Builder(appName)
     }
 
     /**
      * Builder for [io.getunleash.UnleashConfig]
      */
     data class Builder(
+        var appName: String,
         var proxyUrl: String? = null,
         var clientKey: String? = null,
-        var appName: String? = null,
         var httpClientConnectionTimeout: Long? = null,
         var httpClientReadTimeout: Long? = null,
         var httpClientCacheSize: Long? = null,
@@ -93,17 +104,10 @@ data class UnleashConfig(
             httpClientConnectionTimeout = httpClientConnectionTimeout ?: 2000,
             httpClientReadTimeout = httpClientReadTimeout ?: 5000,
             httpClientCacheSize = httpClientCacheSize ?: (1024 * 1024 * 10),
-            reportMetrics = if (enableMetrics) {
-                ReportMetrics(
-                    metricsInterval = metricsInterval ?: 60000,
-                    httpClient = metricsHttpClient ?: OkHttpClient.Builder()
-                        .connectTimeout(httpClientConnectionTimeout ?: 2000, TimeUnit.MILLISECONDS)
-                        .readTimeout(httpClientReadTimeout ?: 5000, TimeUnit.MILLISECONDS)
-                        .build(),
-                )
-            } else {
-                null
-            },
+            metricsStrategy = DataStrategy(
+                interval = metricsInterval ?: 60000,
+                enabled = enableMetrics
+            ),
             instanceId = instanceId
         )
 

@@ -4,12 +4,12 @@ import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.work.Configuration
+import androidx.work.CoroutineWorker
 import androidx.work.ListenableWorker
 import androidx.work.impl.utils.SynchronousExecutor
 import androidx.work.testing.TestListenableWorkerBuilder
 import androidx.work.testing.WorkManagerTestInitHelper
 import androidx.work.workDataOf
-import io.getunleash.android.polling.TogglesReceivedListener
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -21,7 +21,7 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 
-class FeatureToggleWorkerTest {
+class FeatureTogglesFetcherTest {
     val context = InstrumentationRegistry.getInstrumentation().targetContext
     @Before
     fun setup() {
@@ -41,7 +41,7 @@ class FeatureToggleWorkerTest {
         server.enqueue(MockResponse().setBody(
             this::class.java.classLoader?.getResource("edgeresponse.json")!!.readText()))
         val input = workDataOf("proxyUrl" to server.url("").toString(), "clientKey" to "2")
-        val worker = TestListenableWorkerBuilder<FeatureToggleWorker>(context)
+        val worker = TestListenableWorkerBuilder<CoroutineWorker>(context)
             .setInputData(input)
             .build()
         runBlocking {
@@ -55,7 +55,7 @@ class FeatureToggleWorkerTest {
         val server = MockWebServer()
         server.enqueue(MockResponse().setBody("Invalid json"))
         val input = workDataOf("proxyUrl" to server.url("").toString(), "clientKey" to "2")
-        val worker = TestListenableWorkerBuilder<FeatureToggleWorker>(context)
+        val worker = TestListenableWorkerBuilder<CoroutineWorker>(context)
             .setInputData(input)
             .build()
         runBlocking {
@@ -67,19 +67,13 @@ class FeatureToggleWorkerTest {
     @Test
     fun testFeatureToggleWorker_notifiesFeatureUpdateListeners() {
         var numberOfToggles = 0
-        val listener = TogglesReceivedListener { toggles ->
-            // Implementation here
-            println("Toggles have been updated (${toggles.size}): $toggles")
-            numberOfToggles = toggles.size
-        }
-        Events.addTogglesReceivedListener(listener)
 
         val server = MockWebServer()
         server.enqueue(MockResponse().setBody(
             this::class.java.classLoader?.getResource("edgeresponse.json")!!.readText()))
         val input = workDataOf("proxyUrl" to server.url("").
             toString(), "clientKey" to "2")
-        val worker = TestListenableWorkerBuilder<FeatureToggleWorker>(context)
+        val worker = TestListenableWorkerBuilder<CoroutineWorker>(context)
             .setInputData(input)
             .build()
         runBlocking {
