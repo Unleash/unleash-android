@@ -18,7 +18,7 @@ import java.util.UUID
 data class UnleashConfig(
     val proxyUrl: String,
     val clientKey: String,
-    val appName: String? = "unleash-android-sdk",
+    val appName: String,
     val instanceId: String? = UUID.randomUUID().toString(),
     val httpClientConnectionTimeout: Long = 2000,
     val httpClientReadTimeout: Long = 5000,
@@ -61,16 +61,16 @@ data class UnleashConfig(
         /**
          * Get a [io.getunleash.UnleashConfig.Builder] with no fields set.
          */
-        fun newBuilder(): Builder = Builder()
+        fun newBuilder(appName: String): Builder = Builder(appName)
     }
 
     /**
      * Builder for [io.getunleash.UnleashConfig]
      */
     data class Builder(
+        var appName: String,
         var proxyUrl: String? = null,
         var clientKey: String? = null,
-        var appName: String? = null,
         var httpClientConnectionTimeout: Long? = null,
         var httpClientReadTimeout: Long? = null,
         var httpClientCacheSize: Long? = null,

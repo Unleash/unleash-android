@@ -14,6 +14,7 @@ class TestApplication: Application() {
     val unleash: Unleash by lazy {
         DefaultUnleash(
             UnleashConfig(
+                appName = "test-android-app",
                 proxyUrl = "https://sandbox.getunleash.io/enterprise/api/frontend",
                 clientKey = "gaston:development.8c5d8ce0fd7233c268b74da276eb3c110caf8d2c67eb8dc5b29b4644",
                 pollingStrategy = DataStrategy(
