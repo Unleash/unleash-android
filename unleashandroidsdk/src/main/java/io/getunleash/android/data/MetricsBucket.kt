@@ -12,9 +12,20 @@ data class EvaluationCount(
 data class Bucket(
     val start: Date,
     var stop: Date? = null,
-    val toggles: ConcurrentHashMap<String, EvaluationCount> = ConcurrentHashMap()
+    val toggles: ConcurrentHashMap<String, EvaluationCount> = ConcurrentHashMap(),
+    val yes: ConcurrentHashMap<String, Int> = ConcurrentHashMap(),
+    val no: ConcurrentHashMap<String, Int> = ConcurrentHashMap(),
+    val variants: ConcurrentHashMap<Pair<String, String>, Int> = ConcurrentHashMap()
+)
+
+data class CountBucket(
+    val start: Date,
+    var stop: Date? = null,
+    val yes: ConcurrentHashMap<String, Int> = ConcurrentHashMap(),
+    val no: ConcurrentHashMap<String, Int> = ConcurrentHashMap(),
+    val variants: ConcurrentHashMap<Pair<String, String>, Int> = ConcurrentHashMap()
 )
 
 data class MetricsPayload(
-    val appName: String, val instanceId: String, val environment: String, val bucket: Bucket
+    val appName: String, val instanceId: String, val bucket: Bucket
 )
