@@ -54,7 +54,6 @@ data class UnleashConfig(
             "UNLEASH-APPNAME" to appName!!,
             "User-Agent" to appName,
             "UNLEASH-INSTANCEID" to instanceId!!,
-            "Unleash-Client-Spec" to supportedSpecVersion,
         ))
     }
 

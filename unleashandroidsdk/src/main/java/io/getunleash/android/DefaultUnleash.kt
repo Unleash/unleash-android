@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 private const val tag = "Unleash"
-const val supportedSpecVersion = "4.3.0"
 
 val unleashExceptionHandler = CoroutineExceptionHandler { _, exception ->
     Log.e(tag, "Caught unhandled exception: ${exception.message}", exception)
