@@ -50,7 +50,7 @@ class MetricsSender(
         ).build()
         httpClient.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                Log.i(tag, "Failed to report metrics for interval")
+                Log.i(tag, "Failed to report metrics for interval", e)
             }
 
             override fun onResponse(call: Call, response: Response) {

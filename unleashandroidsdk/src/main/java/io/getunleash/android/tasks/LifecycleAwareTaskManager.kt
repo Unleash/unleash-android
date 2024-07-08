@@ -33,7 +33,7 @@ private const val TAG = "TaskManager"
 class LifecycleAwareTaskManager(
     private val unleashConfig: UnleashConfig,
     private val unleashContext: StateFlow<UnleashContext>,
-    private val metricsSender: MetricsReporter,
+    private val metricsReporter: MetricsReporter,
     private val coroutineContextForContextChange: CoroutineContext = Dispatchers.IO,
     private val fetcher: UnleashFetcher = UnleashFetcher(
         unleashConfig.proxyUrl.toHttpUrl(),
@@ -103,7 +103,7 @@ class LifecycleAwareTaskManager(
     }
 
     private fun doSendMetrics() {
-        metricsSender.sendMetrics()
+        metricsReporter.sendMetrics()
     }
 
     private suspend fun doFetchToggles() {

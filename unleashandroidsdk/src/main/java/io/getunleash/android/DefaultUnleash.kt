@@ -12,6 +12,7 @@ import io.getunleash.android.events.UnleashEventListener
 import io.getunleash.android.metrics.MetricsCollector
 import io.getunleash.android.metrics.MetricsReporter
 import io.getunleash.android.metrics.MetricsSender
+import io.getunleash.android.metrics.NoOpMetrics
 import io.getunleash.android.tasks.LifecycleAwareTaskManager
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -42,7 +43,7 @@ class DefaultUnleash(
     private val cache: ObservableToggleCache = ObservableCache(cacheImpl)
 
     init {
-        val metricsSender = MetricsSender(unleashConfig)
+        val metricsSender = if (unleashConfig.metricsStrategy.enabled) MetricsSender(unleashConfig) else NoOpMetrics()
         metrics = metricsSender
         taskManager = LifecycleAwareTaskManager(unleashConfig, unleashContextState,
             metricsSender
