@@ -36,16 +36,13 @@ import kotlin.coroutines.resumeWithException
 open class UnleashFetcher(
     private val proxyUrl: HttpUrl,
     private val applicationHeaders: Map<String, String> = emptyMap(),
-    httpClientReadTimeout: Long = 5000,
-    httpClientConnectionTimeout: Long = 2000,
-    httpClientCacheSize: Long = 1024 * 1024 * 10,
     private val httpClient: OkHttpClient = OkHttpClient.Builder()
-        .readTimeout(httpClientReadTimeout, TimeUnit.MILLISECONDS)
-        .connectTimeout(httpClientConnectionTimeout, TimeUnit.MILLISECONDS)
+        .readTimeout(5000, TimeUnit.MILLISECONDS)
+        .connectTimeout(2000, TimeUnit.MILLISECONDS)
         .cache(
             Cache(
                 directory = CacheDirectoryProvider().getCacheDirectory(),
-                maxSize = httpClientCacheSize
+                maxSize = 1024 * 1024 * 10
             )
         ).build()
 ) : Closeable {

@@ -16,5 +16,5 @@ data class Bucket(
 )
 
 data class MetricsPayload(
-    val appName: String, val instanceId: String, val environment: String, val bucket: Bucket
+    val appName: String, val instanceId: String, val bucket: Bucket
 )

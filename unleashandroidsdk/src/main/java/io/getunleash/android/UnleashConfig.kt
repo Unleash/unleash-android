@@ -9,7 +9,6 @@ import java.util.UUID
  * @property proxyUrl HTTP(s) URL to the Unleash Proxy (Required).
  * @property clientKey the key added as the Authorization header sent to the unleash-proxy (Required)
  * @property appName: name of the underlying application. Will be used as default in the [io.getunleash.UnleashContext] call (Required).
- * @property instanceId instance id of your client
  * @property httpClientReadTimeout How long to wait for HTTP reads in milliseconds. (Optional - Defaults to 5000)
  * @property httpClientConnectionTimeout How long to wait for HTTP connection in milliseconds. (Optional - Defaults to 2000)
  * @property httpClientCacheSize Disk space (in bytes) set aside for http cache. (Optional - Defaults to 10MB)
@@ -19,7 +18,6 @@ data class UnleashConfig(
     val proxyUrl: String,
     val clientKey: String,
     val appName: String,
-    val instanceId: String? = UUID.randomUUID().toString(),
     val httpClientConnectionTimeout: Long = 2000,
     val httpClientReadTimeout: Long = 5000,
     val httpClientCacheSize: Long = 1024 * 1024 * 10,
@@ -31,6 +29,17 @@ data class UnleashConfig(
         respectHibernation = true,
     ),
 ) {
+    companion object {
+        val instanceId: String = UUID.randomUUID().toString()
+        /**
+         * Get a [io.getunleash.UnleashConfig.Builder] with no fields set.
+         */
+        fun newBuilder(appName: String): Builder = Builder(appName)
+    }
+
+    val instanceId: String get() = Companion.instanceId
+
+
     /**
      * Get a [io.getunleash.UnleashConfig.Builder] with all fields set to the value of
      * this instance of the class.
@@ -51,17 +60,10 @@ data class UnleashConfig(
         return httpClientCustomHeaders.plus(mapOf(
             "Authorization" to clientKey,
             "Content-Type" to "application/json",
-            "UNLEASH-APPNAME" to appName!!,
+            "UNLEASH-APPNAME" to appName,
             "User-Agent" to appName,
-            "UNLEASH-INSTANCEID" to instanceId!!,
+            "UNLEASH-INSTANCEID" to instanceId,
         ))
-    }
-
-    companion object {
-        /**
-         * Get a [io.getunleash.UnleashConfig.Builder] with no fields set.
-         */
-        fun newBuilder(appName: String): Builder = Builder(appName)
     }
 
     /**
@@ -77,7 +79,6 @@ data class UnleashConfig(
         var enableMetrics: Boolean = false,
         var metricsHttpClient: OkHttpClient? = null,
         var metricsInterval: Long? = null,
-        var instanceId: String? = null,
     ) {
         fun proxyUrl(proxyUrl: String) = apply { this.proxyUrl = proxyUrl }
 
@@ -95,7 +96,6 @@ data class UnleashConfig(
         fun metricsHttpClient(client: OkHttpClient) = apply { this.metricsHttpClient = client }
         fun metricsInterval(intervalInMs: Long) = apply { this.metricsInterval = intervalInMs }
         fun metricsIntervalInSeconds(seconds: Long) = apply { this.metricsInterval = seconds * 1000 }
-        fun instanceId(id: String) = apply { this.instanceId = id }
         fun build(): UnleashConfig = UnleashConfig(
             proxyUrl = proxyUrl ?: throw IllegalStateException("You have to set proxy url in your UnleashConfig"),
             clientKey = clientKey
@@ -108,7 +108,6 @@ data class UnleashConfig(
                 interval = metricsInterval ?: 60000,
                 enabled = enableMetrics
             ),
-            instanceId = instanceId
         )
 
     }

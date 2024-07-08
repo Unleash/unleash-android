@@ -25,7 +25,6 @@ class FeatureTogglesFetcherTest {
     val context = InstrumentationRegistry.getInstrumentation().targetContext
     @Before
     fun setup() {
-        Events.clear()
         val config = Configuration.Builder()
             .setMinimumLoggingLevel(Log.DEBUG)
             .setExecutor(SynchronousExecutor())
