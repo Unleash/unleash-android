@@ -73,7 +73,7 @@ class MetricsSender(
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
-    fun log(featureName: String, enabled: Boolean): Boolean {
+    fun count(featureName: String, enabled: Boolean): Boolean {
         val count = if (enabled) {
             EvaluationCount(1, 0)
         } else {
@@ -86,7 +86,7 @@ class MetricsSender(
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
-    fun logVariant(featureName: String, variant: Variant): Variant {
+    fun countVariant(featureName: String, variant: Variant): Variant {
         bucket.toggles.compute(featureName) { _, count ->
             val evaluationCount = count ?: EvaluationCount(0, 0)
             evaluationCount.variants.merge(variant.name, 1) { old, value ->
