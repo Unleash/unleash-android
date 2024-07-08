@@ -12,7 +12,7 @@ data class EvaluationCount(
 
 data class Bucket(
     val start: Date,
-    var stop: Date? = null,
+    val stop: Date,
     val toggles: ConcurrentHashMap<String, EvaluationCount> = ConcurrentHashMap()
 )
 
@@ -23,7 +23,6 @@ interface UnleashMetricsBucket {
 
 data class CountBucket(
     val start: Date = Date(),
-    var stop: Date? = null,
     val yes: ConcurrentHashMap<String, AtomicInteger> = ConcurrentHashMap(),
     val no: ConcurrentHashMap<String, AtomicInteger> = ConcurrentHashMap(),
     val variants: ConcurrentHashMap<Pair<String, String>, AtomicInteger> = ConcurrentHashMap()
@@ -43,8 +42,8 @@ data class CountBucket(
         return variant
     }
 
-    fun toBucket(): Bucket {
-        val bucket = Bucket(start, stop)
+    fun toBucket(until: Date = Date()): Bucket {
+        val bucket = Bucket(start, until)
         for ((feature, count) in yes) {
             bucket.toggles[feature] = EvaluationCount(count.get(), 0)
         }
