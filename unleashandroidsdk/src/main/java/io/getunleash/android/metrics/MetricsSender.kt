@@ -53,7 +53,7 @@ class MetricsSender(
         bucket = Bucket(start = stop)
         val clonedMetrics = bucketRef.copy(stop = stop)
         val payload = MetricsPayload(
-            appName = config.appName ?: "unknown",
+            appName = config.appName,
             instanceId = config.instanceId ?: "not-set",
             bucket = clonedMetrics
         )
