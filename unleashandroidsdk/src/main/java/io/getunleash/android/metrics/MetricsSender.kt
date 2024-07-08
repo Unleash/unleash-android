@@ -74,17 +74,6 @@ class MetricsSender(
 
     @RequiresApi(Build.VERSION_CODES.N)
     fun log(featureName: String, enabled: Boolean): Boolean {
-        /*
-        if (enabled) {
-            bucket.yes.compute(featureName) { _, value ->
-                (value ?: 0) + 1
-            }
-        } else {
-            bucket.no.compute(featureName) { _, value ->
-                (value ?: 0) + 1
-            }
-        }
-         */
         val count = if (enabled) {
             EvaluationCount(1, 0)
         } else {
