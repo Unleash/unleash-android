@@ -12,14 +12,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.junit.Test
 import java.util.concurrent.Executors
 
 class CoroutineTest {
     private val testDispatcher = StandardTestDispatcher()
-    private val testScope = TestScope(testDispatcher)
 
     val customIODispatcher: CoroutineDispatcher = Executors.newSingleThreadExecutor { r ->
         Thread(r, "Custom-IO-Thread").apply { isDaemon = true }
