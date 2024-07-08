@@ -11,6 +11,7 @@ import io.getunleash.android.UnleashConfig
 import io.getunleash.android.data.DataStrategy
 import io.getunleash.android.data.Toggle
 import io.getunleash.android.data.UnleashContext
+import io.getunleash.android.metrics.MetricsReporter
 import io.getunleash.android.polling.UnleashFetcher
 import io.getunleash.android.unleashScope
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +33,12 @@ private const val TAG = "TaskManager"
 class LifecycleAwareTaskManager(
     private val unleashConfig: UnleashConfig,
     private val unleashContext: StateFlow<UnleashContext>,
-    private val coroutineContextForContextChange: CoroutineContext = Dispatchers.IO
+    private val metricsReporter: MetricsReporter,
+    private val coroutineContextForContextChange: CoroutineContext = Dispatchers.IO,
+    private val fetcher: UnleashFetcher = UnleashFetcher(
+        unleashConfig.proxyUrl.toHttpUrl(),
+        unleashConfig.getApplicationHeaders()
+    )
 ) : LifecycleEventObserver {
     private var foregroundMetricsSender: Job? = null
     private var featureTogglesPoller: Job? = null
@@ -41,11 +47,6 @@ class LifecycleAwareTaskManager(
     private val featuresReceivedFlow = MutableSharedFlow<Map<String, Toggle>>(
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
-    )
-
-    private val fetcher = UnleashFetcher(
-        unleashConfig.proxyUrl.toHttpUrl(),
-        unleashConfig.getApplicationHeaders()
     )
 
     fun getFeaturesReceivedFlow(): SharedFlow<Map<String, Toggle>> = featuresReceivedFlow.asSharedFlow()
@@ -102,7 +103,7 @@ class LifecycleAwareTaskManager(
     }
 
     private fun doSendMetrics() {
-        Log.d(TAG, "TODO send metrics")
+        metricsReporter.sendMetrics()
     }
 
     private suspend fun doFetchToggles() {

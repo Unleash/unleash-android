@@ -20,6 +20,10 @@ class TestApplication: Application() {
                 pollingStrategy = DataStrategy(
                     interval = 3000, // this is just for testing purposes
                     respectHibernation = true
+                ),
+                metricsStrategy = DataStrategy(
+                    interval = 5000, // this is just for testing purposes
+                    respectHibernation = true
                 )
             ),
             UnleashContext(userId = initialUserId, appName = "test-android-app")

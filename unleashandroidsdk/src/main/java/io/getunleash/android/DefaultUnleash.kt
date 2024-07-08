@@ -9,6 +9,10 @@ import io.getunleash.android.data.DataStrategy
 import io.getunleash.android.data.UnleashContext
 import io.getunleash.android.data.Variant
 import io.getunleash.android.events.UnleashEventListener
+import io.getunleash.android.metrics.MetricsCollector
+import io.getunleash.android.metrics.MetricsReporter
+import io.getunleash.android.metrics.MetricsSender
+import io.getunleash.android.metrics.NoOpMetrics
 import io.getunleash.android.tasks.LifecycleAwareTaskManager
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -34,20 +38,24 @@ class DefaultUnleash(
     cacheImpl: ToggleCache = InMemoryToggleCache()
 ) : Unleash {
     private val unleashContextState = MutableStateFlow(unleashContext)
-    private val taskManager = LifecycleAwareTaskManager(unleashConfig, unleashContextState)
+    private val metrics: MetricsCollector
+    private val taskManager: LifecycleAwareTaskManager
     private val cache: ObservableToggleCache = ObservableCache(cacheImpl)
 
     init {
-        try {
-            cache.subscribeTo(taskManager.getFeaturesReceivedFlow())
-        } catch (e: Exception) {
-            Log.e(tag, "Error initializing Unleash", e)
-        }
+        val metricsSender = if (unleashConfig.metricsStrategy.enabled) MetricsSender(unleashConfig) else NoOpMetrics()
+        metrics = metricsSender
+        taskManager = LifecycleAwareTaskManager(unleashConfig, unleashContextState,
+            metricsSender
+        )
+        cache.subscribeTo(taskManager.getFeaturesReceivedFlow())
     }
 
     override fun isEnabled(toggleName: String, defaultValue: Boolean): Boolean {
         Log.d(tag, "UNLEASH Checking if $toggleName is enabled")
-        return cache.get(toggleName)?.enabled ?: defaultValue // TODO metricsReporter.log(toggleName,  enabled ?: defaultValue)
+        val enabled = cache.get(toggleName)?.enabled ?: defaultValue
+        metrics.count(toggleName, enabled)
+        return enabled
     }
 
     override fun getVariant(toggleName: String, defaultValue: Variant) : Variant {
@@ -57,7 +65,8 @@ class DefaultUnleash(
             } else {
                 defaultValue
             }
-        return variant // TODO metricsReporter.logVariant(toggleName, variant)
+        metrics.countVariant(toggleName, variant)
+        return variant
     }
 
     override fun setContext(context: UnleashContext) {
