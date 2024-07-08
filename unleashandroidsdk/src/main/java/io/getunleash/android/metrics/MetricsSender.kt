@@ -54,6 +54,7 @@ class MetricsSender(
             }
 
             override fun onResponse(call: Call, response: Response) {
+                Log.d(tag, "Received status code ${response.code} from ${request.method} $metricsUrl")
                 response.body.use { //Need to consume body to ensure we don't keep connection open
                 }
             }
