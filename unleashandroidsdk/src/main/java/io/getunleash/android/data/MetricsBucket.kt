@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import java.util.Date
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
 
 data class EvaluationCount(
     var yes: Int,
@@ -53,49 +54,36 @@ interface UnleashMetricsBucket {
 data class CountBucket(
     val start: Date = Date(),
     var stop: Date? = null,
-    val yes: ConcurrentHashMap<String, Int> = ConcurrentHashMap(),
-    val no: ConcurrentHashMap<String, Int> = ConcurrentHashMap(),
-    val variants: ConcurrentHashMap<Pair<String, String>, Int> = ConcurrentHashMap()
+    val yes: ConcurrentHashMap<String, AtomicInteger> = ConcurrentHashMap(),
+    val no: ConcurrentHashMap<String, AtomicInteger> = ConcurrentHashMap(),
+    val variants: ConcurrentHashMap<Pair<String, String>, AtomicInteger> = ConcurrentHashMap()
 ): UnleashMetricsBucket {
 
-    @RequiresApi(Build.VERSION_CODES.N)
     override fun count(featureName: String, enabled: Boolean): Boolean {
         if (enabled) {
-            yes.compute(featureName) { _, value ->
-                (value ?: 0) + 1
-            }
+            yes.getOrPut(featureName) { AtomicInteger(0) }.incrementAndGet()
         } else {
-            no.compute(featureName) { _, value ->
-                (value ?: 0) + 1
-            }
+            no.getOrPut(featureName) { AtomicInteger(0) }.incrementAndGet()
         }
         return enabled
     }
 
-    @RequiresApi(Build.VERSION_CODES.N)
     override fun countVariant(featureName: String, variant: Variant): Variant {
-        variants.compute(Pair(featureName, variant.name)) {_, value ->
-            (value ?: 0) + 1
-        }
+        variants.getOrPut(Pair(featureName, variant.name)) { AtomicInteger(0) }.incrementAndGet()
         return variant
     }
 
-    @RequiresApi(Build.VERSION_CODES.N)
     fun toBucket(): Bucket {
         val bucket = Bucket(start, stop)
         for ((feature, count) in yes) {
-            bucket.toggles[feature] = EvaluationCount(count, 0)
+            bucket.toggles[feature] = EvaluationCount(count.get(), 0)
         }
         for ((feature, count) in no) {
-            bucket.toggles.getOrPut(feature) { EvaluationCount(0, 0) }.no = count
+            bucket.toggles.getOrPut(feature) { EvaluationCount(0, 0) }.no = count.get()
 
         }
         for ((pair, count) in variants) {
-            bucket.toggles.compute(pair.first) { _, evaluationCount ->
-                val evaluation = evaluationCount ?: EvaluationCount(0, 0)
-                evaluation.variants[pair.second] = count
-                evaluation
-            }
+            bucket.toggles.getOrPut(pair.first) { EvaluationCount(0, 0) }.variants[pair.second] = count.get()
         }
         return bucket
     }

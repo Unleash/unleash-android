@@ -1,11 +1,9 @@
 package io.getunleash.android.metrics
 
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import io.getunleash.android.UnleashConfig
 import io.getunleash.android.cache.CacheDirectoryProvider
-import io.getunleash.android.data.Bucket
+import io.getunleash.android.data.CountBucket
 import io.getunleash.android.data.MetricsPayload
 import io.getunleash.android.data.Parser
 import io.getunleash.android.data.Variant
@@ -36,14 +34,14 @@ class MetricsSender(
 ): MetricsCollector, MetricsReporter {
     private val tag: String = "MetricsSender"
     private val metricsUrl = config.proxyUrl.toHttpUrl().newBuilder().addPathSegment("client").addPathSegment("metrics").build()
-    private var bucket: Bucket = Bucket(start = Date())
+    private var bucket: CountBucket = CountBucket(start = Date())
 
     override fun sendMetrics() {
         val toReport = swapMetrics()
         val payload = MetricsPayload(
             appName = config.appName,
             instanceId = config.instanceId,
-            bucket = toReport
+            bucket = toReport.toBucket()
         )
         val request = Request.Builder().header("Authorization", config.clientKey).url(metricsUrl).post(
             Parser.jackson.writeValueAsString(payload).toRequestBody("application/json".toMediaType())
@@ -61,20 +59,18 @@ class MetricsSender(
         })
     }
 
-    private fun swapMetrics(): Bucket {
+    private fun swapMetrics(): CountBucket {
         val stop = Date()
         val bucketRef = bucket
-        bucket = Bucket(start = stop)
+        bucket = CountBucket(start = stop)
         val clonedMetrics = bucketRef.copy(stop = stop)
         return clonedMetrics
     }
 
-    @RequiresApi(Build.VERSION_CODES.N)
     override fun count(featureName: String, enabled: Boolean): Boolean {
         return bucket.count(featureName, enabled)
     }
 
-    @RequiresApi(Build.VERSION_CODES.N)
     override fun countVariant(featureName: String, variant: Variant): Variant {
         return bucket.countVariant(featureName, variant)
     }
