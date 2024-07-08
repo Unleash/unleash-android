@@ -10,7 +10,6 @@ import io.getunleash.android.data.UnleashContext
 import io.getunleash.android.data.Variant
 import io.getunleash.android.events.UnleashEventListener
 import io.getunleash.android.metrics.MetricsCollector
-import io.getunleash.android.metrics.MetricsReporter
 import io.getunleash.android.metrics.MetricsSender
 import io.getunleash.android.metrics.NoOpMetrics
 import io.getunleash.android.tasks.LifecycleAwareTaskManager
@@ -23,11 +22,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-private const val tag = "Unleash"
-
 val unleashExceptionHandler = CoroutineExceptionHandler { _, exception ->
-    Log.e(tag, "Caught unhandled exception: ${exception.message}", exception)
-}
+    Log.e("UnleashHandler", "Caught unhandled exception: ${exception.message}", exception)
+    }
 
 private val job = SupervisorJob()
 val unleashScope = CoroutineScope(Dispatchers.Default + job + unleashExceptionHandler)
@@ -37,6 +34,9 @@ class DefaultUnleash(
     unleashContext: UnleashContext = UnleashContext(),
     cacheImpl: ToggleCache = InMemoryToggleCache()
 ) : Unleash {
+    companion object {
+        private const val TAG = "Unleash"
+    }
     private val unleashContextState = MutableStateFlow(unleashContext)
     private val metrics: MetricsCollector
     private val taskManager: LifecycleAwareTaskManager
@@ -52,7 +52,7 @@ class DefaultUnleash(
     }
 
     override fun isEnabled(toggleName: String, defaultValue: Boolean): Boolean {
-        Log.d(tag, "UNLEASH Checking if $toggleName is enabled")
+        Log.d(TAG, "UNLEASH Checking if $toggleName is enabled")
         val enabled = cache.get(toggleName)?.enabled ?: defaultValue
         metrics.count(toggleName, enabled)
         return enabled
@@ -91,14 +91,14 @@ class DefaultUnleash(
         // TODO split into different listener methods
         unleashScope.launch {
             cache.getUpdatesFlow().collect {
-                Log.i(tag, "Cache updated, telling listeners to refresh")
+                Log.i(TAG, "Cache updated, telling listeners to refresh")
                 listener.onRefresh()
             }
         }
 
         unleashScope.launch {
             unleashContextState.asStateFlow().collect {
-                Log.i(tag, "Context updated, telling listeners to refresh")
+                Log.i(TAG, "Context updated, telling listeners to refresh")
                 listener.onRefresh()
             }
         }

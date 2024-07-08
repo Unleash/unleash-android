@@ -11,7 +11,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class ObservableCache(private val cache: ToggleCache) : ObservableToggleCache {
-    private val tag = "ObservableCache"
+    companion object {
+        private const val TAG = "ObservableCache"
+    }
 
     private var events = MutableSharedFlow<Unit>()
     override fun read(): Map<String, Toggle> {
@@ -30,11 +32,11 @@ class ObservableCache(private val cache: ToggleCache) : ObservableToggleCache {
     }
 
     override fun subscribeTo(featuresReceived: Flow<Map<String, Toggle>>) {
-        Log.d(tag, "Subscribing to cache, subscribers: ${events.subscriptionCount.value}")
+        Log.d(TAG, "Subscribing to cache, subscribers: ${events.subscriptionCount.value}")
         unleashScope.launch {
             featuresReceived.collect { toggles ->
                 withContext(Dispatchers.IO) {
-                    Log.d(tag, "Storing new state with ${toggles.size} toggles")
+                    Log.d(TAG, "Storing new state with ${toggles.size} toggles")
                     write(toggles)
                 }
             }

@@ -2,7 +2,6 @@ package io.getunleash.android.polling
 
 import android.util.Log
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.getunleash.android.cache.CacheDirectoryProvider
 import io.getunleash.android.data.FetchResponse
 import io.getunleash.android.data.Parser
 import io.getunleash.android.data.ProxyResponse
@@ -13,7 +12,6 @@ import io.getunleash.android.errors.NoBodyException
 import io.getunleash.android.errors.NotAuthorizedException
 import io.getunleash.errors.ServerException
 import kotlinx.coroutines.suspendCancellableCoroutine
-import okhttp3.Cache
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Headers.Companion.toHeaders
@@ -24,7 +22,6 @@ import okhttp3.Response
 import okhttp3.internal.closeQuietly
 import java.io.Closeable
 import java.io.IOException
-import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -38,12 +35,13 @@ open class UnleashFetcher(
     private val httpClient: OkHttpClient,
     private val applicationHeaders: Map<String, String> = emptyMap()
 ) : Closeable {
-
-    private val tag = "UnleashFetcher"
+    companion object {
+        private const val TAG = "UnleashFetcher"
+    }
     private var etag: String? = null
 
     suspend fun getToggles(ctx: UnleashContext): ToggleResponse {
-        Log.d(tag, "Fetching toggles with $ctx")
+        Log.d(TAG, "Fetching toggles with $ctx")
         val response = fetchToggles(ctx)
         return if (response.isFetched()) {
             ToggleResponse(
@@ -65,7 +63,7 @@ open class UnleashFetcher(
         try {
             val response = this.httpClient.newCall(request.build()).await()
             response.use { res ->
-                Log.d(tag, "Received status code ${res.code} from $contextUrl")
+                Log.d(TAG, "Received status code ${res.code} from $contextUrl")
                 return when {
                     res.isSuccessful -> {
                         etag = res.header("ETag")
@@ -75,7 +73,7 @@ open class UnleashFetcher(
                                     Parser.jackson.readValue(b.string())
                                 FetchResponse(Status.FETCHED, proxyResponse)
                             } catch (e: Exception) {
-                                Log.w(tag, "Couldn't parse data", e)
+                                Log.w(TAG, "Couldn't parse data", e)
                                 // If we fail to parse, just keep data
                                 FetchResponse(Status.FAILED)
                             }
@@ -87,7 +85,7 @@ open class UnleashFetcher(
                     }
 
                     res.code == 401 -> {
-                        Log.e(tag, "Double check your SDK key")
+                        Log.e(TAG, "Double check your SDK key")
                         FetchResponse(Status.FAILED, error = NotAuthorizedException())
                     }
 
@@ -97,7 +95,7 @@ open class UnleashFetcher(
                 }
             }
         } catch (e: IOException) {
-            Log.w(tag, "An error occurred when fetching the latest configuration.", e)
+            Log.w(TAG, "An error occurred when fetching the latest configuration.", e)
             return FetchResponse(status = Status.FAILED, error = e)
         }
     }
