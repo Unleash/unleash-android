@@ -32,6 +32,7 @@ private const val TAG = "TaskManager"
 class LifecycleAwareTaskManager(
     private val unleashConfig: UnleashConfig,
     private val unleashContext: StateFlow<UnleashContext>,
+    private val coroutineContextForContextChange: CoroutineContext = Dispatchers.IO
 ) : LifecycleEventObserver {
     private var foregroundMetricsSender: Job? = null
     private var featureTogglesPoller: Job? = null
@@ -56,7 +57,7 @@ class LifecycleAwareTaskManager(
         // listen to unleash context state changes
         unleashScope.launch {
             unleashContext.collect {
-                withContext(Dispatchers.IO) {
+                withContext(coroutineContextForContextChange) {
                     Log.i("MAIN", "Unleash context changed: $it")
                     doFetchToggles()
                 }
@@ -64,22 +65,24 @@ class LifecycleAwareTaskManager(
         }
     }
 
-    fun startForegroundJobs() {
+    fun startForegroundJobs(
+        coroutineContext: CoroutineContext = Dispatchers.IO
+    ) {
         if (isRunning) return
         isRunning = true
         println("Starting foreground jobs")
 
-        foregroundMetricsSender = startWithStrategy(unleashConfig.metricsStrategy) {
+        foregroundMetricsSender = startWithStrategy(unleashConfig.metricsStrategy, coroutineContext) {
             doSendMetrics()
         }
-        featureTogglesPoller = startWithStrategy(unleashConfig.pollingStrategy) {
+        featureTogglesPoller = startWithStrategy(unleashConfig.pollingStrategy, coroutineContext) {
             doFetchToggles()
         }
     }
 
     private fun startWithStrategy(
         strategy: DataStrategy,
-        context: CoroutineContext = Dispatchers.IO,
+        context: CoroutineContext,
         action: suspend () -> Unit
     ): Job? {
         if (strategy.enabled) {
