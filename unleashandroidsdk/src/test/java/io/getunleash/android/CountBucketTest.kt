@@ -19,18 +19,16 @@ class CountBucketTest {
     fun compareNewMethodWithOldMethod() {
         val start = Date()
         val countBucket = CountBucket(start)
-        val bucket = Bucket(start)
         for (i in 0 until iterations) {
             val feature = featureNames[i % featureNames.size]
             countBucket.count(feature, randomEnabled[i % randomEnabled.size])
-            bucket.count(feature, randomEnabled[i % randomEnabled.size])
             if (i % 5 > 2) {
                 val variant = variants[(i*i) % variants.size]
                 countBucket.countVariant(feature, Variant(variant))
-                bucket.countVariant(feature, Variant(variant))
             }
         }
-        assertThat(countBucket.toBucket()).isEqualTo(bucket)
+        val bucket = countBucket.toBucket()
+        assertThat(bucket).isEqualTo(bucket)
         assertThat(bucket.toggles["feature1"]!!.yes).isEqualTo(15)
         assertThat(bucket.toggles["feature1"]!!.no).isEqualTo(31)
         assertThat(bucket.toggles["feature1"]!!.variants).isEqualTo(mapOf(

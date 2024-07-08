@@ -1,11 +1,10 @@
 package io.getunleash.android.metrics
 
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import io.getunleash.android.UnleashConfig
 import io.getunleash.android.cache.CacheDirectoryProvider
 import io.getunleash.android.data.Bucket
+import io.getunleash.android.data.CountBucket
 import io.getunleash.android.data.MetricsPayload
 import io.getunleash.android.data.Parser
 import io.getunleash.android.data.Variant
@@ -36,10 +35,10 @@ class MetricsSender(
 ): MetricsCollector, MetricsReporter {
     private val tag: String = "MetricsSender"
     private val metricsUrl = config.proxyUrl.toHttpUrl().newBuilder().addPathSegment("client").addPathSegment("metrics").build()
-    private var bucket: Bucket = Bucket(start = Date())
+    private var bucket: CountBucket = CountBucket(start = Date())
 
     override fun sendMetrics() {
-        val toReport = swapMetrics()
+        val toReport = swapAndFreeze()
         val payload = MetricsPayload(
             appName = config.appName,
             instanceId = config.instanceId,
@@ -55,26 +54,22 @@ class MetricsSender(
 
             override fun onResponse(call: Call, response: Response) {
                 Log.d(tag, "Received status code ${response.code} from ${request.method} $metricsUrl")
-                response.body.use { //Need to consume body to ensure we don't keep connection open
+                response.body.use { // Need to consume body to ensure we don't keep connection open
                 }
             }
         })
     }
 
-    private fun swapMetrics(): Bucket {
-        val stop = Date()
+    private fun swapAndFreeze(): Bucket {
         val bucketRef = bucket
-        bucket = Bucket(start = stop)
-        val clonedMetrics = bucketRef.copy(stop = stop)
-        return clonedMetrics
+        bucket = CountBucket(start = Date())
+        return bucketRef.copy().toBucket(bucket.start)
     }
 
-    @RequiresApi(Build.VERSION_CODES.N)
     override fun count(featureName: String, enabled: Boolean): Boolean {
         return bucket.count(featureName, enabled)
     }
 
-    @RequiresApi(Build.VERSION_CODES.N)
     override fun countVariant(featureName: String, variant: Variant): Variant {
         return bucket.countVariant(featureName, variant)
     }
