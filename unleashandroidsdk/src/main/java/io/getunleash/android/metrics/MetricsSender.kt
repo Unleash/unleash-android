@@ -3,6 +3,7 @@ package io.getunleash.android.metrics
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import io.getunleash.android.Unleash
 import io.getunleash.android.UnleashConfig
 import io.getunleash.android.cache.CacheDirectoryProvider
 import io.getunleash.android.data.Bucket
@@ -54,7 +55,7 @@ class MetricsSender(
         val clonedMetrics = bucketRef.copy(stop = stop)
         val payload = MetricsPayload(
             appName = config.appName,
-            instanceId = config.instanceId ?: "not-set",
+            instanceId = config.instanceId,
             bucket = clonedMetrics
         )
         val request = Request.Builder().header("Authorization", config.clientKey).url(metricsUrl).post(
