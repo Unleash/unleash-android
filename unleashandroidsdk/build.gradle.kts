@@ -46,6 +46,7 @@ dependencies {
 
     testImplementation(libs.androidx.work.testing)
     testImplementation(libs.junit)
+    testImplementation(libs.assertj)
     androidTestImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.assertj)
     androidTestImplementation(libs.androidx.work.testing)
