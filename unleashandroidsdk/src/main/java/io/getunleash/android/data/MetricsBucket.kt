@@ -1,7 +1,5 @@
 package io.getunleash.android.data
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import java.util.Date
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
@@ -16,35 +14,7 @@ data class Bucket(
     val start: Date,
     var stop: Date? = null,
     val toggles: ConcurrentHashMap<String, EvaluationCount> = ConcurrentHashMap()
-): UnleashMetricsBucket {
-
-    @RequiresApi(Build.VERSION_CODES.N)
-    @Deprecated("Old method use CountBucket instead")
-    override fun count(featureName: String, enabled: Boolean): Boolean {
-        val count = if (enabled) {
-            EvaluationCount(1, 0)
-        } else {
-            EvaluationCount(0, 1)
-        }
-        toggles.merge(featureName, count) { old: EvaluationCount?, new: EvaluationCount ->
-            old?.copy(yes = old.yes + new.yes, no = old.no + new.no) ?: new
-        }
-        return enabled
-    }
-
-    @RequiresApi(Build.VERSION_CODES.N)
-    @Deprecated("Old method use CountBucket instead")
-    override fun countVariant(featureName: String, variant: Variant): Variant {
-        toggles.compute(featureName) { _, count ->
-            val evaluationCount = count ?: EvaluationCount(0, 0)
-            evaluationCount.variants.merge(variant.name, 1) { old, value ->
-                old + value
-            }
-            evaluationCount
-        }
-        return variant
-    }
-}
+)
 
 interface UnleashMetricsBucket {
     fun count(featureName: String, enabled: Boolean): Boolean
