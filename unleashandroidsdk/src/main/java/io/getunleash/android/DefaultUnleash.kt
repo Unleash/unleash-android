@@ -27,7 +27,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 
 val unleashExceptionHandler = CoroutineExceptionHandler { _, exception ->
     Log.e("UnleashHandler", "Caught unhandled exception: ${exception.message}", exception)
-    }
+}
 
 private val job = SupervisorJob()
 val unleashScope = CoroutineScope(Dispatchers.Default + job + unleashExceptionHandler)
@@ -40,13 +40,15 @@ class DefaultUnleash(
     companion object {
         private const val TAG = "Unleash"
     }
+
     private val unleashContextState = MutableStateFlow(unleashContext)
     private val metrics: MetricsCollector
     private val taskManager: LifecycleAwareTaskManager
     private val cache: ObservableToggleCache = ObservableCache(cacheImpl)
 
     init {
-        val metricsSender = if (unleashConfig.metricsStrategy.enabled) MetricsSender(unleashConfig) else NoOpMetrics()
+        val metricsSender =
+            if (unleashConfig.metricsStrategy.enabled) MetricsSender(unleashConfig) else NoOpMetrics()
         val fetcher = UnleashFetcher(
             unleashContextState.asStateFlow(),
             unleashConfig.proxyUrl.toHttpUrl(),
@@ -60,7 +62,13 @@ class DefaultUnleash(
                     add(DataJob("fetchToggles", unleashConfig.pollingStrategy, fetcher::getToggles))
                 }
                 if (unleashConfig.metricsStrategy.enabled) {
-                    add(DataJob("sendMetrics", unleashConfig.metricsStrategy, metricsSender::sendMetrics))
+                    add(
+                        DataJob(
+                            "sendMetrics",
+                            unleashConfig.metricsStrategy,
+                            metricsSender::sendMetrics
+                        )
+                    )
                 }
             }
         )
@@ -74,7 +82,7 @@ class DefaultUnleash(
         return enabled
     }
 
-    override fun getVariant(toggleName: String, defaultValue: Variant) : Variant {
+    override fun getVariant(toggleName: String, defaultValue: Variant): Variant {
         val variant =
             if (isEnabled(toggleName)) {
                 cache.get(toggleName)?.variant ?: defaultValue
