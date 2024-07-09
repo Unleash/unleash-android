@@ -6,6 +6,7 @@ import io.getunleash.android.Unleash
 import io.getunleash.android.UnleashConfig
 import io.getunleash.android.data.DataStrategy
 import io.getunleash.android.data.UnleashContext
+import io.getunleash.android.events.UnleashEventListener
 
 const val initialFlagValue = "flag-1"
 const val initialUserId = "123"
@@ -26,7 +27,12 @@ class TestApplication: Application() {
                     pauseOnBackground = true
                 )
             ),
-            UnleashContext(userId = initialUserId, appName = "test-android-app")
+            UnleashContext(userId = initialUserId, appName = "test-android-app"),
+            eventListener = object : UnleashEventListener {
+                override fun onReady() {
+                    println("Unleash is ready")
+                }
+            }
         )
     }
 

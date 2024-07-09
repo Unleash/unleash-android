@@ -115,7 +115,7 @@ class IsEnabledViewModel(initialFlag: String): ViewModel() {
 
     fun initialize(unleash: Unleash) {
         val listener: UnleashEventListener = object: UnleashEventListener {
-            override fun onRefresh() {
+            override fun onStateChanged() {
                 Log.i("MAIN", "Detected refresh event")
                 val flag = _flagName.value
                 if (flag == null) {
