@@ -51,10 +51,9 @@ class LifecycleAwareTaskManager(
             isForeground = false
 
             dataJobs.forEach { dataJob ->
-                if (dataJob.strategy.pauseOnBackground) {
+                if (dataJob.strategy.pauseOnBackground || isDestroying) {
                     Log.d(TAG, "Pausing foreground job: ${dataJob.id}")
                     foregroundWorkers[dataJob.id]?.cancel()
-                    Log.d(TAG, "Job is active: ${foregroundWorkers[dataJob.id]?.isActive}")
                 } else {
                     Log.d(TAG, "Keeping job running: ${dataJob.id}")
                 }
@@ -67,20 +66,15 @@ class LifecycleAwareTaskManager(
         strategy: DataStrategy,
         action: suspend () -> Unit
     ): Job {
-        Log.d(TAG, "Launching job $id")
         return scope.launch {
-            Log.d(TAG, "Inside job $id in context $ioContext")
             withContext(ioContext) {
-                Log.d(TAG, "Within $ioContext for job $id")
                 while (!isDestroying && (isForeground || !strategy.pauseOnBackground)) {
                     if (strategy.delay > 0) {
                         delay(strategy.delay)
                     }
-                    Log.d(TAG, "[$id] Executing action $isForeground")
+                    Log.d(TAG, "[$id] Executing action within $ioContext (isForeground? $isForeground)")
                     action()
-                    Log.d(TAG, "[$id] Delaying for ${strategy.interval}ms")
                     delay(timeMillis = strategy.interval)
-                    Log.d(TAG, "[$id] Done waiting ${strategy.interval}ms")
                 }
             }
         }

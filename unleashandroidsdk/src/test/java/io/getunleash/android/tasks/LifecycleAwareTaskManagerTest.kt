@@ -72,5 +72,6 @@ class LifecycleAwareTaskManagerTest {
         runCurrent()
         assertThat(Pair(foregroundCount, alwaysCount)).isEqualTo(Pair(2 , 2))
         manager.stop()
+        assertThat(manager.foregroundWorkers.filter { it.value.isActive }.size).isEqualTo(0)
     }
 }
