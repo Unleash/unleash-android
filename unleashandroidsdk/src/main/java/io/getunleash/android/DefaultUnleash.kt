@@ -1,11 +1,11 @@
 package io.getunleash.android
 
 import android.util.Log
+import androidx.lifecycle.ProcessLifecycleOwner
 import io.getunleash.android.cache.InMemoryToggleCache
 import io.getunleash.android.cache.ObservableCache
 import io.getunleash.android.cache.ObservableToggleCache
 import io.getunleash.android.cache.ToggleCache
-import io.getunleash.android.data.DataStrategy
 import io.getunleash.android.data.UnleashContext
 import io.getunleash.android.data.Variant
 import io.getunleash.android.events.UnleashEventListener
@@ -35,7 +35,8 @@ val unleashScope = CoroutineScope(Dispatchers.Default + job + unleashExceptionHa
 class DefaultUnleash(
     unleashConfig: UnleashConfig,
     unleashContext: UnleashContext = UnleashContext(),
-    cacheImpl: ToggleCache = InMemoryToggleCache()
+    cacheImpl: ToggleCache = InMemoryToggleCache(),
+    eventListener: UnleashEventListener? = null
 ) : Unleash {
     companion object {
         private const val TAG = "Unleash"
@@ -45,8 +46,10 @@ class DefaultUnleash(
     private val metrics: MetricsCollector
     private val taskManager: LifecycleAwareTaskManager
     private val cache: ObservableToggleCache = ObservableCache(cacheImpl)
+    private var ready = false
 
     init {
+        eventListener?.let { addUnleashEventListener(it) }
         val metricsSender =
             if (unleashConfig.metricsStrategy.enabled) MetricsSender(unleashConfig) else NoOpMetrics()
         val fetcher = UnleashFetcher(
@@ -72,6 +75,7 @@ class DefaultUnleash(
                 }
             }
         )
+        ProcessLifecycleOwner.get().lifecycle.addObserver(taskManager)
         cache.subscribeTo(fetcher.getFeaturesReceivedFlow())
     }
 
@@ -103,27 +107,23 @@ class DefaultUnleash(
         return unleashContextState.value
     }
 
-    override fun setMetricsStrategy(strategy: DataStrategy) {
-        TODO("Not yet implemented")
-    }
-
-    override fun setFlagFetchStrategy(strategy: DataStrategy) {
-        TODO("Not yet implemented")
-    }
-
     override fun addUnleashEventListener(listener: UnleashEventListener) {
         // TODO split into different listener methods
         unleashScope.launch {
             cache.getUpdatesFlow().collect {
                 Log.i(TAG, "Cache updated, telling listeners to refresh")
-                listener.onRefresh()
+                if (!ready) {
+                    ready = true
+                    listener.onReady()
+                }
+                listener.onStateChanged()
             }
         }
 
         unleashScope.launch {
             unleashContextState.asStateFlow().collect {
                 Log.i(TAG, "Context updated, telling listeners to refresh")
-                listener.onRefresh()
+                listener.onStateChanged()
             }
         }
     }
