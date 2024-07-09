@@ -24,11 +24,13 @@ class MetricsSender(
     private val httpClient: OkHttpClient = config.buildHttpClient(config.metricsStrategy),
     private val applicationHeaders: Map<String, String> = config.getApplicationHeaders(config.metricsStrategy)
 ): MetricsCollector, MetricsReporter {
-    private val tag: String = "MetricsSender"
+    companion object {
+        private const val TAG: String = "MetricsSender"
+    }
     private val metricsUrl = config.proxyUrl.toHttpUrl().newBuilder().addPathSegment("client").addPathSegment("metrics").build()
     private var bucket: CountBucket = CountBucket(start = Date())
 
-    override fun sendMetrics() {
+    override suspend fun sendMetrics() {
         val toReport = swapAndFreeze()
         val payload = MetricsPayload(
             appName = config.appName,
@@ -42,11 +44,11 @@ class MetricsSender(
         ).build()
         httpClient.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                Log.i(tag, "Failed to report metrics for interval", e)
+                Log.i(TAG, "Failed to report metrics for interval", e)
             }
 
             override fun onResponse(call: Call, response: Response) {
-                Log.d(tag, "Received status code ${response.code} from ${request.method} $metricsUrl")
+                Log.d(TAG, "Received status code ${response.code} from ${request.method} $metricsUrl")
                 response.body.use { // Need to consume body to ensure we don't keep connection open
                 }
             }

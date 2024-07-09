@@ -11,6 +11,6 @@ class NoOpMetrics: MetricsCollector, MetricsReporter {
         return variant
     }
 
-    override fun sendMetrics() {
+    override suspend fun sendMetrics() {
     }
 }
