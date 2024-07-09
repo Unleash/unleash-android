@@ -35,16 +35,8 @@ import kotlin.coroutines.resumeWithException
  */
 open class UnleashFetcher(
     private val proxyUrl: HttpUrl,
-    private val applicationHeaders: Map<String, String> = emptyMap(),
-    private val httpClient: OkHttpClient = OkHttpClient.Builder()
-        .readTimeout(5000, TimeUnit.MILLISECONDS)
-        .connectTimeout(2000, TimeUnit.MILLISECONDS)
-        .cache(
-            Cache(
-                directory = CacheDirectoryProvider().getCacheDirectory(),
-                maxSize = 1024 * 1024 * 10
-            )
-        ).build()
+    private val httpClient: OkHttpClient,
+    private val applicationHeaders: Map<String, String> = emptyMap()
 ) : Closeable {
 
     private val tag = "UnleashFetcher"
@@ -76,24 +68,18 @@ open class UnleashFetcher(
                 Log.d(tag, "Received status code ${res.code} from $contextUrl")
                 return when {
                     res.isSuccessful -> {
-
-                        //TODO check why this, seems to be an internal cache, should still return the body
-                        /*if (res.cacheResponse != null && res.networkResponse?.code == 304) {
-                            //return FetchResponse(Status.NOTMODIFIED)
-                        } else {*/
-                            etag = res.header("ETag")
-                            res.body?.use { b ->
-                                try {
-                                    val proxyResponse: ProxyResponse =
-                                        Parser.jackson.readValue(b.string())
-                                    FetchResponse(Status.FETCHED, proxyResponse)
-                                } catch (e: Exception) {
-                                    Log.w(tag, "Couldn't parse data", e)
-                                    // If we fail to parse, just keep data
-                                    FetchResponse(Status.FAILED)
-                                }
-                            } ?: FetchResponse(Status.FAILED, error = NoBodyException())
-                        //}
+                        etag = res.header("ETag")
+                        res.body?.use { b ->
+                            try {
+                                val proxyResponse: ProxyResponse =
+                                    Parser.jackson.readValue(b.string())
+                                FetchResponse(Status.FETCHED, proxyResponse)
+                            } catch (e: Exception) {
+                                Log.w(tag, "Couldn't parse data", e)
+                                // If we fail to parse, just keep data
+                                FetchResponse(Status.FAILED)
+                            }
+                        } ?: FetchResponse(Status.FAILED, error = NoBodyException())
                     }
 
                     res.code == 304 -> {

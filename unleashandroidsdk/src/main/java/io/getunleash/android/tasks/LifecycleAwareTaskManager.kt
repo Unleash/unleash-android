@@ -28,8 +28,6 @@ import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import kotlin.coroutines.CoroutineContext
 
-private const val TAG = "TaskManager"
-
 class LifecycleAwareTaskManager(
     private val unleashConfig: UnleashConfig,
     private val unleashContext: StateFlow<UnleashContext>,
@@ -37,9 +35,14 @@ class LifecycleAwareTaskManager(
     private val coroutineContextForContextChange: CoroutineContext = Dispatchers.IO,
     private val fetcher: UnleashFetcher = UnleashFetcher(
         unleashConfig.proxyUrl.toHttpUrl(),
-        unleashConfig.getApplicationHeaders()
+        unleashConfig.buildHttpClient(unleashConfig.pollingStrategy),
+        unleashConfig.getApplicationHeaders(unleashConfig.pollingStrategy)
     )
 ) : LifecycleEventObserver {
+    companion object {
+        private const val TAG = "TaskManager"
+    }
+
     private var foregroundMetricsSender: Job? = null
     private var featureTogglesPoller: Job? = null
     private var isRunning = false
@@ -66,18 +69,27 @@ class LifecycleAwareTaskManager(
         }
     }
 
+
     fun startForegroundJobs(
         coroutineContext: CoroutineContext = Dispatchers.IO
     ) {
         if (isRunning) return
         isRunning = true
-        println("Starting foreground jobs")
+        Log.d(TAG, "Starting foreground jobs")
 
-        foregroundMetricsSender = startWithStrategy(unleashConfig.metricsStrategy, coroutineContext) {
-            doSendMetrics()
+        if (foregroundMetricsSender?.isActive == true) {
+            Log.d(TAG, "Metrics sender is already running")
+        } else {
+            foregroundMetricsSender = startWithStrategy(unleashConfig.metricsStrategy, coroutineContext) {
+                doSendMetrics()
+            }
         }
-        featureTogglesPoller = startWithStrategy(unleashConfig.pollingStrategy, coroutineContext) {
-            doFetchToggles()
+        if (featureTogglesPoller?.isActive == true) {
+            Log.d(TAG, "Feature toggles poller is already running")
+        } else {
+            featureTogglesPoller = startWithStrategy(unleashConfig.pollingStrategy, coroutineContext) {
+                doFetchToggles()
+            }
         }
     }
 
@@ -119,9 +131,16 @@ class LifecycleAwareTaskManager(
     private fun stopForegroundJobs() {
         if (!isRunning) return
         isRunning = false
-        foregroundMetricsSender?.cancel()
-        featureTogglesPoller?.cancel()
-        flushMetricsOnBackground()
+
+        if (unleashConfig.pollingStrategy.pauseOnBackground) {
+            Log.d(TAG, "Pause polling configuration")
+            featureTogglesPoller?.cancel()
+        }
+        if (unleashConfig.metricsStrategy.pauseOnBackground) {
+            Log.d(TAG, "Pause metrics sending")
+            foregroundMetricsSender?.cancel()
+            flushMetricsOnBackground()
+        }
     }
 
     private fun flushMetricsOnBackground() {

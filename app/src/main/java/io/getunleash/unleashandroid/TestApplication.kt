@@ -19,11 +19,11 @@ class TestApplication: Application() {
                 clientKey = "gaston:development.8c5d8ce0fd7233c268b74da276eb3c110caf8d2c67eb8dc5b29b4644",
                 pollingStrategy = DataStrategy(
                     interval = 3000, // this is just for testing purposes
-                    respectHibernation = true
+                    pauseOnBackground = true
                 ),
                 metricsStrategy = DataStrategy(
                     interval = 5000, // this is just for testing purposes
-                    respectHibernation = true
+                    pauseOnBackground = true
                 )
             ),
             UnleashContext(userId = initialUserId, appName = "test-android-app")

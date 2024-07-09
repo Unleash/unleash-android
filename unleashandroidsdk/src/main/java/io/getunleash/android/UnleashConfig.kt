@@ -1,63 +1,43 @@
 package io.getunleash.android
 
+import io.getunleash.android.cache.CacheDirectoryProvider
 import io.getunleash.android.data.DataStrategy
+import okhttp3.Cache
 import okhttp3.OkHttpClient
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 /**
  * Represents configuration for Unleash.
  * @property proxyUrl HTTP(s) URL to the Unleash Proxy (Required).
  * @property clientKey the key added as the Authorization header sent to the unleash-proxy (Required)
- * @property appName: name of the underlying application. Will be used as default in the [io.getunleash.UnleashContext] call (Required).
- * @property httpClientReadTimeout How long to wait for HTTP reads in milliseconds. (Optional - Defaults to 5000)
- * @property httpClientConnectionTimeout How long to wait for HTTP connection in milliseconds. (Optional - Defaults to 2000)
- * @property httpClientCacheSize Disk space (in bytes) set aside for http cache. (Optional - Defaults to 10MB)
- * @property reportMetrics Should the client collate and report metrics? The [io.getunleah.ReportMetrics] dataclass includes a metricsInterval field which defaults to 60 seconds. (Optional - defaults to null)
+ * @property appName: name of the underlying application. Will be used as default in the [io.getunleash.android.data.UnleashContext] call (Required).
+ * @property pollingStrategy How to poll for features. (Optional - Defaults to [io.getunleash.android.data.DataStrategy] with poll interval set to 60 seconds).
+ * @property metricsStrategy How to poll for metrics. (Optional - Defaults to [io.getunleash.android.data.DataStrategy] with poll interval set to 60 seconds).
  */
 data class UnleashConfig(
     val proxyUrl: String,
     val clientKey: String,
     val appName: String,
-    val httpClientConnectionTimeout: Long = 2000,
-    val httpClientReadTimeout: Long = 5000,
-    val httpClientCacheSize: Long = 1024 * 1024 * 10,
-    val httpClientCustomHeaders: Map<String, String> = emptyMap(),
-    val pollingStrategy: DataStrategy = DataStrategy(60000,
-        respectHibernation = true,
+    val pollingStrategy: DataStrategy = DataStrategy(
+        pauseOnBackground = true,
     ),
-    val metricsStrategy: DataStrategy = DataStrategy(60000,
-        respectHibernation = true,
+    val metricsStrategy: DataStrategy = DataStrategy(
+        pauseOnBackground = true,
     ),
 ) {
     companion object {
         val instanceId: String = UUID.randomUUID().toString()
         /**
-         * Get a [io.getunleash.UnleashConfig.Builder] with no fields set.
+         * Get a [io.getunleash.UnleashConfig.Builder] with default values.
          */
         fun newBuilder(appName: String): Builder = Builder(appName)
     }
 
     val instanceId: String get() = Companion.instanceId
 
-
-    /**
-     * Get a [io.getunleash.UnleashConfig.Builder] with all fields set to the value of
-     * this instance of the class.
-     */
-    fun newBuilder(): Builder =
-        Builder(
-            proxyUrl = proxyUrl,
-            clientKey = clientKey,
-            appName = appName,
-            httpClientConnectionTimeout = httpClientConnectionTimeout,
-            httpClientReadTimeout = httpClientReadTimeout,
-            httpClientCacheSize = httpClientCacheSize,
-            enableMetrics = metricsStrategy.enabled,
-            metricsInterval = metricsStrategy.interval
-        )
-
-    fun getApplicationHeaders(): Map<String, String> {
-        return httpClientCustomHeaders.plus(mapOf(
+    fun getApplicationHeaders(strategy: DataStrategy): Map<String, String> {
+        return strategy.httpCustomHeaders.plus(mapOf(
             "Authorization" to clientKey,
             "Content-Type" to "application/json",
             "UNLEASH-APPNAME" to appName,
@@ -66,49 +46,44 @@ data class UnleashConfig(
         ))
     }
 
+    fun buildHttpClient(strategy: DataStrategy): OkHttpClient {
+        return OkHttpClient.Builder()
+            .readTimeout(strategy.httpReadTimeout, TimeUnit.MILLISECONDS)
+            .connectTimeout(strategy.httpConnectionTimeout, TimeUnit.MILLISECONDS)
+            .cache(
+                Cache(
+                    directory = CacheDirectoryProvider().getCacheDirectory(),
+                    maxSize = strategy.httpCacheSize
+                )
+            ).build()
+    }
+
     /**
      * Builder for [io.getunleash.UnleashConfig]
      */
     data class Builder(
         var appName: String,
         var proxyUrl: String? = null,
-        var clientKey: String? = null,
-        var httpClientConnectionTimeout: Long? = null,
-        var httpClientReadTimeout: Long? = null,
-        var httpClientCacheSize: Long? = null,
-        var enableMetrics: Boolean = false,
-        var metricsHttpClient: OkHttpClient? = null,
-        var metricsInterval: Long? = null,
+        var clientKey: String? = null
     ) {
+        val pollingStrategy: DataStrategy.Builder = DataStrategy()
+            .newBuilder(parent = this)
+        val metricsStrategy: DataStrategy.Builder = DataStrategy()
+            .newBuilder(parent = this)
+        fun build(): UnleashConfig {
+            if ((proxyUrl == null || clientKey == null) && (pollingStrategy.enabled || metricsStrategy.enabled)) {
+                throw IllegalStateException("You must set the pollingStrategy and metricsStrategy to be disabled")
+            }
+            return UnleashConfig(
+                proxyUrl = proxyUrl ?: "",
+                clientKey = clientKey ?: "",
+                appName = appName,
+                pollingStrategy = pollingStrategy.build(),
+                metricsStrategy = metricsStrategy.build(),
+            )
+        }
+
         fun proxyUrl(proxyUrl: String) = apply { this.proxyUrl = proxyUrl }
-
-        @Deprecated(message = "use clientKey(key: String) instead", replaceWith = ReplaceWith("clientKey(key: String)"))
-        fun clientSecret(secret: String) = apply { this.clientKey = secret }
-        fun clientKey(key: String) = apply { this.clientKey = key }
-        fun appName(appName: String) = apply { this.appName = appName }
-        fun httpClientConnectionTimeout(timeoutInMs: Long) = apply { this.httpClientConnectionTimeout = timeoutInMs }
-        fun httpClientConnectionTimeoutInSeconds(seconds: Long) = apply { this.httpClientConnectionTimeout = seconds * 1000 }
-        fun httpClientReadTimeout(timeoutInMs: Long) = apply { this.httpClientReadTimeout = timeoutInMs }
-        fun httpClientReadTimeoutInSeconds(seconds: Long) = apply { this.httpClientReadTimeout = seconds * 1000 }
-        fun httpClientCacheSize(cacheSize: Long) = apply { this.httpClientCacheSize = cacheSize }
-        fun enableMetrics() = apply { this.enableMetrics = true }
-        fun disableMetrics() = apply { this.enableMetrics = false }
-        fun metricsHttpClient(client: OkHttpClient) = apply { this.metricsHttpClient = client }
-        fun metricsInterval(intervalInMs: Long) = apply { this.metricsInterval = intervalInMs }
-        fun metricsIntervalInSeconds(seconds: Long) = apply { this.metricsInterval = seconds * 1000 }
-        fun build(): UnleashConfig = UnleashConfig(
-            proxyUrl = proxyUrl ?: throw IllegalStateException("You have to set proxy url in your UnleashConfig"),
-            clientKey = clientKey
-                ?: throw IllegalStateException("You have to set client key in your UnleashConfig"),
-            appName = appName,
-            httpClientConnectionTimeout = httpClientConnectionTimeout ?: 2000,
-            httpClientReadTimeout = httpClientReadTimeout ?: 5000,
-            httpClientCacheSize = httpClientCacheSize ?: (1024 * 1024 * 10),
-            metricsStrategy = DataStrategy(
-                interval = metricsInterval ?: 60000,
-                enabled = enableMetrics
-            ),
-        )
-
+        fun clientKey(clientKey: String) = apply { this.clientKey = clientKey }
     }
 }
