@@ -29,7 +29,7 @@ data class UnleashConfig(
     companion object {
         val instanceId: String = UUID.randomUUID().toString()
         /**
-         * Get a [io.getunleash.UnleashConfig.Builder] with default values.
+         * Get a [io.getunleash.android.UnleashConfig.Builder] with default values.
          */
         fun newBuilder(appName: String): Builder = Builder(appName)
     }
@@ -59,7 +59,7 @@ data class UnleashConfig(
     }
 
     /**
-     * Builder for [io.getunleash.UnleashConfig]
+     * Builder for [io.getunleash.android.UnleashConfig]
      */
     data class Builder(
         var appName: String,

@@ -1,6 +1,7 @@
 package io.getunleash.android
 
 import android.util.Log
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ProcessLifecycleOwner
 import io.getunleash.android.cache.InMemoryToggleCache
 import io.getunleash.android.cache.ObservableCache
@@ -36,7 +37,8 @@ class DefaultUnleash(
     unleashConfig: UnleashConfig,
     unleashContext: UnleashContext = UnleashContext(),
     cacheImpl: ToggleCache = InMemoryToggleCache(),
-    eventListener: UnleashEventListener? = null
+    eventListener: UnleashEventListener? = null,
+    lifecycle: Lifecycle = ProcessLifecycleOwner.get().lifecycle
 ) : Unleash {
     companion object {
         private const val TAG = "Unleash"
@@ -52,16 +54,16 @@ class DefaultUnleash(
         eventListener?.let { addUnleashEventListener(it) }
         val metricsSender =
             if (unleashConfig.metricsStrategy.enabled) MetricsSender(unleashConfig) else NoOpMetrics()
-        val fetcher = UnleashFetcher(
+        val fetcher = if (unleashConfig.pollingStrategy.enabled) UnleashFetcher(
             unleashContextState.asStateFlow(),
             unleashConfig.proxyUrl.toHttpUrl(),
             unleashConfig.buildHttpClient(unleashConfig.pollingStrategy),
             unleashConfig.getApplicationHeaders(unleashConfig.pollingStrategy)
-        )
+        ) else null
         metrics = metricsSender
         taskManager = LifecycleAwareTaskManager(
             buildList {
-                if (unleashConfig.pollingStrategy.enabled) {
+                if (fetcher != null) {
                     add(DataJob("fetchToggles", unleashConfig.pollingStrategy, fetcher::getToggles))
                 }
                 if (unleashConfig.metricsStrategy.enabled) {
@@ -75,8 +77,10 @@ class DefaultUnleash(
                 }
             }
         )
-        ProcessLifecycleOwner.get().lifecycle.addObserver(taskManager)
-        cache.subscribeTo(fetcher.getFeaturesReceivedFlow())
+        lifecycle.addObserver(taskManager)
+        if (fetcher != null) {
+            cache.subscribeTo(fetcher.getFeaturesReceivedFlow())
+        }
     }
 
     override fun isEnabled(toggleName: String, defaultValue: Boolean): Boolean {
