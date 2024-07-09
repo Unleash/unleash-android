@@ -12,6 +12,8 @@ import io.getunleash.android.events.UnleashEventListener
 import io.getunleash.android.metrics.MetricsCollector
 import io.getunleash.android.metrics.MetricsSender
 import io.getunleash.android.metrics.NoOpMetrics
+import io.getunleash.android.polling.UnleashFetcher
+import io.getunleash.android.tasks.DataJob
 import io.getunleash.android.tasks.LifecycleAwareTaskManager
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -21,6 +23,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import okhttp3.HttpUrl.Companion.toHttpUrl
 
 val unleashExceptionHandler = CoroutineExceptionHandler { _, exception ->
     Log.e("UnleashHandler", "Caught unhandled exception: ${exception.message}", exception)
@@ -44,11 +47,24 @@ class DefaultUnleash(
 
     init {
         val metricsSender = if (unleashConfig.metricsStrategy.enabled) MetricsSender(unleashConfig) else NoOpMetrics()
-        metrics = metricsSender
-        taskManager = LifecycleAwareTaskManager(unleashConfig, unleashContextState,
-            metricsSender
+        val fetcher = UnleashFetcher(
+            unleashContextState.asStateFlow(),
+            unleashConfig.proxyUrl.toHttpUrl(),
+            unleashConfig.buildHttpClient(unleashConfig.pollingStrategy),
+            unleashConfig.getApplicationHeaders(unleashConfig.pollingStrategy)
         )
-        cache.subscribeTo(taskManager.getFeaturesReceivedFlow())
+        metrics = metricsSender
+        taskManager = LifecycleAwareTaskManager(
+            buildList {
+                if (unleashConfig.pollingStrategy.enabled) {
+                    add(DataJob("fetchToggles", unleashConfig.pollingStrategy, fetcher::getToggles))
+                }
+                if (unleashConfig.metricsStrategy.enabled) {
+                    add(DataJob("sendMetrics", unleashConfig.metricsStrategy, metricsSender::sendMetrics))
+                }
+            }
+        )
+        cache.subscribeTo(fetcher.getFeaturesReceivedFlow())
     }
 
     override fun isEnabled(toggleName: String, defaultValue: Boolean): Boolean {

@@ -6,12 +6,22 @@ import io.getunleash.android.data.FetchResponse
 import io.getunleash.android.data.Parser
 import io.getunleash.android.data.ProxyResponse
 import io.getunleash.android.data.Status
+import io.getunleash.android.data.Toggle
 import io.getunleash.android.data.ToggleResponse
 import io.getunleash.android.data.UnleashContext
 import io.getunleash.android.errors.NoBodyException
 import io.getunleash.android.errors.NotAuthorizedException
+import io.getunleash.android.unleashScope
 import io.getunleash.errors.ServerException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Headers.Companion.toHeaders
@@ -22,6 +32,7 @@ import okhttp3.Response
 import okhttp3.internal.closeQuietly
 import java.io.Closeable
 import java.io.IOException
+import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -31,6 +42,7 @@ import kotlin.coroutines.resumeWithException
  * @param httpClient - the http client to use for fetching toggles from Unleash proxy
  */
 open class UnleashFetcher(
+    private val unleashContext: StateFlow<UnleashContext>,
     private val proxyUrl: HttpUrl,
     private val httpClient: OkHttpClient,
     private val applicationHeaders: Map<String, String> = emptyMap()
@@ -39,18 +51,48 @@ open class UnleashFetcher(
         private const val TAG = "UnleashFetcher"
     }
     private var etag: String? = null
+    private val featuresReceivedFlow = MutableSharedFlow<Map<String, Toggle>>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+    private val coroutineContextForContextChange: CoroutineContext = Dispatchers.IO
 
-    suspend fun getToggles(ctx: UnleashContext): ToggleResponse {
+    fun getFeaturesReceivedFlow(): SharedFlow<Map<String, Toggle>> = featuresReceivedFlow.asSharedFlow()
+
+    init {
+        // listen to unleash context state changes
+        unleashScope.launch {
+            unleashContext.collect {
+                withContext(coroutineContextForContextChange) {
+                    Log.d(TAG, "Unleash context changed: $it")
+                    getToggles()
+                }
+            }
+        }
+    }
+
+
+    suspend fun getToggles(): ToggleResponse {
+        val ctx: UnleashContext = unleashContext.value
         Log.d(TAG, "Fetching toggles with $ctx")
         val response = fetchToggles(ctx)
-        return if (response.isFetched()) {
-            ToggleResponse(
-                status = response.status,
-                toggles = response.config!!.toggles.groupBy { it.name }
-                    .mapValues { (_, v) -> v.first() })
+        if (response.isFetched()) {
+
+            val toggles = response.config!!.toggles.groupBy { it.name }
+                .mapValues { (_, v) -> v.first() }
+            Log.d(TAG, "Fetched new state with ${toggles.size} toggles, emitting featuresReceivedFlow")
+            featuresReceivedFlow.emit(toggles)
+            return ToggleResponse(response.status, toggles)
         } else {
-            ToggleResponse(response.status, error = response.error)
+            if (response.isFailed()) {
+                if (response.error is NotAuthorizedException) {
+                    Log.e(TAG, "Not authorized to fetch toggles. Double check your SDK key")
+                } else {
+                    Log.e(TAG, "Failed to fetch toggles", response.error)
+                }
+            }
         }
+        return ToggleResponse(response.status, error = response.error)
     }
 
     private suspend fun fetchToggles(ctx: UnleashContext): FetchResponse {
@@ -85,7 +127,6 @@ open class UnleashFetcher(
                     }
 
                     res.code == 401 -> {
-                        Log.e(TAG, "Double check your SDK key")
                         FetchResponse(Status.FAILED, error = NotAuthorizedException())
                     }
 
@@ -95,7 +136,6 @@ open class UnleashFetcher(
                 }
             }
         } catch (e: IOException) {
-            Log.w(TAG, "An error occurred when fetching the latest configuration.", e)
             return FetchResponse(status = Status.FAILED, error = e)
         }
     }
