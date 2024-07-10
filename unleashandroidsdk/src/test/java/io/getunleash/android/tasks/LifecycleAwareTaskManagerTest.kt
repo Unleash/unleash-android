@@ -2,7 +2,7 @@ package io.getunleash.android.tasks
 
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
-import io.getunleash.android.ShadowLog
+import io.getunleash.android.BaseTest
 import io.getunleash.android.data.DataStrategy
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -11,14 +11,10 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.mockito.Mockito.mock
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
 
-@RunWith(RobolectricTestRunner::class)
-@Config(manifest=Config.NONE, sdk = [21], shadows = [ShadowLog::class])
-class LifecycleAwareTaskManagerTest {
+
+class LifecycleAwareTaskManagerTest: BaseTest() {
     private val testDispatcher = StandardTestDispatcher()
 
     @OptIn(ExperimentalCoroutinesApi::class)
