@@ -5,14 +5,9 @@ import io.getunleash.android.cache.ToggleCache
 import io.getunleash.android.data.Toggle
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.mockito.Mockito.mock
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
 
-@RunWith(RobolectricTestRunner::class)
-@Config(manifest= Config.NONE, sdk = [21], shadows = [ShadowLog::class])
-class DefaultUnleashTest {
+class DefaultUnleashTest: BaseTest() {
     private val testCache = object: ToggleCache {
         val staticToggles = mapOf(
             "feature1" to Toggle(name = "feature1", enabled = true),
