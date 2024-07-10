@@ -27,7 +27,7 @@ class TestApplication: Application() {
                     pauseOnBackground = true
                 )
             ),
-            UnleashContext(userId = initialUserId, appName = "test-android-app"),
+            UnleashContext(userId = initialUserId),
             eventListener = object : UnleashEventListener {
                 override fun onReady() {
                     println("Unleash is ready")

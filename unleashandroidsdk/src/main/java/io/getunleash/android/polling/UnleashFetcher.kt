@@ -43,6 +43,7 @@ import kotlin.coroutines.resumeWithException
  */
 open class UnleashFetcher(
     private val unleashContext: StateFlow<UnleashContext>,
+    private val appName: String,
     private val proxyUrl: HttpUrl,
     private val httpClient: OkHttpClient,
     private val applicationHeaders: Map<String, String> = emptyMap()
@@ -166,9 +167,7 @@ open class UnleashFetcher(
 
     private fun buildContextUrl(ctx: UnleashContext): HttpUrl {
         var contextUrl = proxyUrl.newBuilder()
-        if (ctx.appName != null) {
-            contextUrl.addQueryParameter("appName", ctx.appName)
-        }
+            .addQueryParameter("appName", appName)
         if (ctx.userId != null) {
             contextUrl.addQueryParameter("userId", ctx.userId)
         }
