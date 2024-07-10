@@ -34,7 +34,7 @@ private val job = SupervisorJob()
 val unleashScope = CoroutineScope(Dispatchers.Default + job + unleashExceptionHandler)
 
 class DefaultUnleash(
-    unleashConfig: UnleashConfig,
+    private val unleashConfig: UnleashConfig,
     unleashContext: UnleashContext = UnleashContext(),
     cacheImpl: ToggleCache = InMemoryToggleCache(),
     eventListener: UnleashEventListener? = null,
@@ -56,6 +56,7 @@ class DefaultUnleash(
             if (unleashConfig.metricsStrategy.enabled) MetricsSender(unleashConfig) else NoOpMetrics()
         val fetcher = if (unleashConfig.pollingStrategy.enabled) UnleashFetcher(
             unleashContextState.asStateFlow(),
+            unleashConfig.appName,
             unleashConfig.proxyUrl.toHttpUrl(),
             unleashConfig.buildHttpClient(unleashConfig.pollingStrategy),
             unleashConfig.getApplicationHeaders(unleashConfig.pollingStrategy)
@@ -120,13 +121,6 @@ class DefaultUnleash(
                     ready = true
                     listener.onReady()
                 }
-                listener.onStateChanged()
-            }
-        }
-
-        unleashScope.launch {
-            unleashContextState.asStateFlow().collect {
-                Log.i(TAG, "Context updated, telling listeners to refresh")
                 listener.onStateChanged()
             }
         }
