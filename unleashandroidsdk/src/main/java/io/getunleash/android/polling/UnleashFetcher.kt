@@ -65,7 +65,6 @@ open class UnleashFetcher(
             unleashContext.collect {
                 withContext(coroutineContextForContextChange) {
                     Log.d(TAG, "Unleash context changed: $it")
-
                     getToggles(unleashContext.value)
                 }
             }
