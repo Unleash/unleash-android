@@ -3,6 +3,7 @@ package io.getunleash.android
 import androidx.lifecycle.Lifecycle
 import io.getunleash.android.cache.ToggleCache
 import io.getunleash.android.data.Toggle
+import io.getunleash.android.data.UnleashState
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -13,6 +14,7 @@ class DefaultUnleashTest: BaseTest() {
             "feature1" to Toggle(name = "feature1", enabled = true),
             "feature2" to Toggle(name = "feature2", enabled = false),
         )
+
         override fun read(): Map<String, Toggle> {
             return staticToggles
         }
@@ -21,11 +23,11 @@ class DefaultUnleashTest: BaseTest() {
             return staticToggles[key]
         }
 
-        override fun write(value: Map<String, Toggle>) {
-            TODO("Should not be used")
+        override fun write(state: UnleashState) {
+            TODO("Not needed for this test.")
         }
-
     }
+
     private val unleash = DefaultUnleash(
         unleashConfig = UnleashConfig.newBuilder("test-android-app")
             .pollingStrategy.enabled(false)

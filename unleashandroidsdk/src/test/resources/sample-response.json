@@ -1,0 +1,84 @@
+{
+  "toggles": [
+    {
+      "name": "bff-response-cache-flag",
+      "enabled": false,
+      "variant": {
+        "name": "disabled",
+        "enabled": false,
+        "payload": null
+      },
+      "impressionData": false
+    },
+    {
+      "name": "AwsomeDemo",
+      "enabled": true,
+      "variant": {
+        "name": "black",
+        "enabled": true,
+        "payload": null
+      },
+      "impressionData": false
+    },
+    {
+      "name": "PersonalisedHeroBanner",
+      "enabled": false,
+      "variant": {
+        "name": "disabled",
+        "enabled": false,
+        "payload": null
+      },
+      "impressionData": true
+    },
+    {
+      "name": "prevent_multi_accounts",
+      "enabled": false,
+      "variant": {
+        "name": "disabled",
+        "enabled": false,
+        "payload": null
+      },
+      "impressionData": false
+    },
+    {
+      "name": "Tunneldevente",
+      "enabled": false,
+      "variant": {
+        "name": "disabled",
+        "enabled": false,
+        "payload": null
+      },
+      "impressionData": false
+    },
+    {
+      "name": "myff",
+      "enabled": false,
+      "variant": {
+        "name": "disabled",
+        "enabled": false,
+        "payload": null
+      },
+      "impressionData": false
+    },
+    {
+      "name": "cache-flag",
+      "enabled": false,
+      "variant": {
+        "name": "disabled",
+        "enabled": false,
+        "payload": null
+      },
+      "impressionData": false
+    },
+    {
+      "name": "RotateLogo",
+      "enabled": true,
+      "variant": {
+        "name": "disabled",
+        "enabled": false,
+        "payload": null
+      },
+      "impressionData": false
+    }
+  ]
+}
