@@ -1,6 +1,7 @@
 package io.getunleash.android.cache
 
 import io.getunleash.android.data.Toggle
+import io.getunleash.android.data.UnleashState
 
 class InMemoryToggleCache : ToggleCache {
     @Volatile
@@ -14,7 +15,7 @@ class InMemoryToggleCache : ToggleCache {
         return internalCache[key]
     }
 
-    override fun write(value: Map<String, Toggle>) {
-        internalCache = value
+    override fun write(state: UnleashState) {
+        internalCache = state.toggles
     }
 }

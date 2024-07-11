@@ -6,5 +6,4 @@ import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest= Config.NONE, sdk = [21], shadows = [ShadowLog::class])
-abstract class BaseTest {
-}
+abstract class BaseTest

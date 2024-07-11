@@ -6,9 +6,9 @@ import io.getunleash.android.data.FetchResponse
 import io.getunleash.android.data.Parser
 import io.getunleash.android.data.ProxyResponse
 import io.getunleash.android.data.Status
-import io.getunleash.android.data.Toggle
 import io.getunleash.android.data.ToggleResponse
 import io.getunleash.android.data.UnleashContext
+import io.getunleash.android.data.UnleashState
 import io.getunleash.android.errors.NoBodyException
 import io.getunleash.android.errors.NotAuthorizedException
 import io.getunleash.android.unleashScope
@@ -16,7 +16,6 @@ import io.getunleash.errors.ServerException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
@@ -52,13 +51,13 @@ open class UnleashFetcher(
         private const val TAG = "UnleashFetcher"
     }
     private var etag: String? = null
-    private val featuresReceivedFlow = MutableSharedFlow<Map<String, Toggle>>(
+    private val featuresReceivedFlow = MutableSharedFlow<UnleashState>(
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
     private val coroutineContextForContextChange: CoroutineContext = Dispatchers.IO
 
-    fun getFeaturesReceivedFlow(): SharedFlow<Map<String, Toggle>> = featuresReceivedFlow.asSharedFlow()
+    fun getFeaturesReceivedFlow() = featuresReceivedFlow.asSharedFlow()
 
     init {
         // listen to unleash context state changes
@@ -66,15 +65,18 @@ open class UnleashFetcher(
             unleashContext.collect {
                 withContext(coroutineContextForContextChange) {
                     Log.d(TAG, "Unleash context changed: $it")
-                    getToggles()
+
+                    getToggles(unleashContext.value)
                 }
             }
         }
     }
 
+    suspend fun refreshToggles(): ToggleResponse {
+        return getToggles(unleashContext.value)
+    }
 
-    suspend fun getToggles(): ToggleResponse {
-        val ctx: UnleashContext = unleashContext.value
+    suspend fun getToggles(ctx: UnleashContext): ToggleResponse {
         Log.d(TAG, "Fetching toggles with $ctx")
         val response = fetchToggles(ctx)
         if (response.isFetched()) {
@@ -82,7 +84,7 @@ open class UnleashFetcher(
             val toggles = response.config!!.toggles.groupBy { it.name }
                 .mapValues { (_, v) -> v.first() }
             Log.d(TAG, "Fetched new state with ${toggles.size} toggles, emitting featuresReceivedFlow")
-            featuresReceivedFlow.emit(toggles)
+            featuresReceivedFlow.emit(UnleashState(ctx, toggles))
             return ToggleResponse(response.status, toggles)
         } else {
             if (response.isFailed()) {

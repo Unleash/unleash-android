@@ -12,9 +12,20 @@ interface Unleash: Closeable {
 
     fun getVariant(toggleName: String, defaultValue: Variant = disabledVariant): Variant
 
-    fun setContext(context: UnleashContext);
 
-    fun getContext(): UnleashContext;
+    /**
+     * Set context and trigger a fetch of the latest toggles immediately.
+     * The method will block until the fetch is complete or the timeout is reached.
+     * The timeout is in milliseconds and defaults to 5000.
+     */
+    fun setContext(context: UnleashContext, timeout: Long = 5000L)
+
+    /**
+     * Set context and trigger a fetch of the latest toggles asynchronously
+     */
+    fun setContextAsync(context: UnleashContext)
+
+    fun getContext(): UnleashContext
 
     fun addUnleashEventListener(listener: UnleashEventListener)
 }
