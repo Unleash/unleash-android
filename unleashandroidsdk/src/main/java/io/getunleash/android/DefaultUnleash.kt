@@ -27,6 +27,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.internal.toImmutableList
 import java.util.concurrent.TimeoutException
 
 val unleashExceptionHandler = CoroutineExceptionHandler { _, exception ->
@@ -80,7 +81,7 @@ class DefaultUnleash(
                         )
                     )
                 }
-            }
+            }.toImmutableList()
         )
         lifecycle.addObserver(taskManager)
         if (fetcher != null) {
