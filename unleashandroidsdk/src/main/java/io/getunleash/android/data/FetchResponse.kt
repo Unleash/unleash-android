@@ -7,7 +7,10 @@ import java.lang.Exception
  * @param status Status of the request
  * @param config The response from the proxy parsed to a data class
  */
-class FetchResponse(val status: Status, val config: ProxyResponse? = null, val error: Exception? = null) {
+data class FetchResponse(
+    val status: Status,
+    val config: ProxyResponse? = null,
+    val error: Exception? = null) {
     fun isFetched() = status == Status.FETCHED
     fun isNotModified() = status == Status.NOTMODIFIED
     fun isFailed() = status == Status.FAILED
@@ -18,7 +21,10 @@ class FetchResponse(val status: Status, val config: ProxyResponse? = null, val e
  * @param status Status of the request
  * @param toggles The parsed feature toggles map from the unleash proxy
  */
-class ToggleResponse(val status: Status, val toggles: Map<String, Toggle> = emptyMap(), val error: Exception? = null) {
+data class ToggleResponse(
+    val status: Status,
+    val toggles: Map<String, Toggle> = emptyMap(),
+    val error: Exception? = null) {
     fun isFetched() = status == Status.FETCHED
     fun isNotModified() = status == Status.NOTMODIFIED
     fun isFailed() = status == Status.FAILED

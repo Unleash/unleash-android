@@ -1,10 +1,10 @@
 package io.getunleash.android.cache
 
-import io.getunleash.android.data.Toggle
+import io.getunleash.android.data.UnleashState
 import kotlinx.coroutines.flow.Flow
 
 interface ObservableToggleCache : ToggleCache {
-    fun subscribeTo(featuresReceived: Flow<Map<String, Toggle>>)
+    fun subscribeTo(featuresReceived: Flow<UnleashState>)
 
-    fun getUpdatesFlow(): Flow<Unit>
+    fun getUpdatesFlow(): Flow<UnleashState>
 }
