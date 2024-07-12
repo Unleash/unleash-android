@@ -1,6 +1,7 @@
 package io.getunleash.android.polling
 
 import io.getunleash.android.BaseTest
+import io.getunleash.android.UnleashConfig
 import io.getunleash.android.data.UnleashContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,10 +29,13 @@ class UnleashFetcherTest : BaseTest() {
 
         // When
         val unleashFetcher = UnleashFetcher(
-            unleashContextState.asStateFlow(),
-            "test-app",
-            server.url("unleash"),
-            OkHttpClient.Builder().build()
+            UnleashConfig(
+                server.url("unleash").toString(),
+                "key-123",
+                "test-app",
+            ),
+            OkHttpClient.Builder().build(),
+            unleashContextState.asStateFlow()
         )
         unleashFetcher.startWatchingContext()
 
@@ -61,10 +65,13 @@ class UnleashFetcherTest : BaseTest() {
 
         // When
         val unleashFetcher = UnleashFetcher(
-            unleashContextState.asStateFlow(),
-            "test-app",
-            server.url("unleash"),
-            OkHttpClient.Builder().build()
+            UnleashConfig(
+                server.url("unleash").toString(),
+                "key-123",
+                "test-app",
+            ),
+            OkHttpClient.Builder().build(),
+            unleashContextState.asStateFlow()
         )
 
         runBlocking {

@@ -1,5 +1,6 @@
 package io.getunleash.android
 
+import android.content.Context
 import androidx.lifecycle.Lifecycle
 import io.getunleash.android.backup.LocalBackup
 import io.getunleash.android.cache.ToggleCache
@@ -30,6 +31,7 @@ class DefaultUnleashTest: BaseTest() {
 
     }
     private val unleash = DefaultUnleash(
+        androidContext = mock(Context::class.java),
         unleashConfig = UnleashConfig.newBuilder("test-android-app")
             .pollingStrategy.enabled(false)
             .metricsStrategy.enabled(false)

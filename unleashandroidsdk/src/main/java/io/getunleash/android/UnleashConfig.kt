@@ -1,11 +1,7 @@
 package io.getunleash.android
 
-import io.getunleash.android.cache.CacheDirectoryProvider
 import io.getunleash.android.data.DataStrategy
-import okhttp3.Cache
-import okhttp3.OkHttpClient
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 
 /**
  * Represents configuration for Unleash.
@@ -44,18 +40,6 @@ data class UnleashConfig(
             "User-Agent" to appName,
             "UNLEASH-INSTANCEID" to instanceId,
         ))
-    }
-
-    fun buildHttpClient(strategy: DataStrategy): OkHttpClient {
-        return OkHttpClient.Builder()
-            .readTimeout(strategy.httpReadTimeout, TimeUnit.MILLISECONDS)
-            .connectTimeout(strategy.httpConnectionTimeout, TimeUnit.MILLISECONDS)
-            .cache(
-                Cache(
-                    directory = CacheDirectoryProvider().getCacheDirectory("unleash_http_cache", true),
-                    maxSize = strategy.httpCacheSize
-                )
-            ).build()
     }
 
     /**
