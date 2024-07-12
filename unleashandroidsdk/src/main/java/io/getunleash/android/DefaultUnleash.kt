@@ -24,7 +24,10 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import java.util.concurrent.TimeoutException
 
 val unleashExceptionHandler = CoroutineExceptionHandler { _, exception ->
     Log.e("UnleashHandler", "Caught unhandled exception: ${exception.message}", exception)
@@ -49,12 +52,13 @@ class DefaultUnleash(
     private val taskManager: LifecycleAwareTaskManager
     private val cache: ObservableToggleCache = ObservableCache(cacheImpl)
     private var ready = false
+    private val fetcher: UnleashFetcher?
 
     init {
         eventListener?.let { addUnleashEventListener(it) }
         val metricsSender =
             if (unleashConfig.metricsStrategy.enabled) MetricsSender(unleashConfig) else NoOpMetrics()
-        val fetcher = if (unleashConfig.pollingStrategy.enabled) UnleashFetcher(
+        fetcher = if (unleashConfig.pollingStrategy.enabled) UnleashFetcher(
             unleashContextState.asStateFlow(),
             unleashConfig.appName,
             unleashConfig.proxyUrl.toHttpUrl(),
@@ -65,7 +69,7 @@ class DefaultUnleash(
         taskManager = LifecycleAwareTaskManager(
             buildList {
                 if (fetcher != null) {
-                    add(DataJob("fetchToggles", unleashConfig.pollingStrategy, fetcher::getToggles))
+                    add(DataJob("fetchToggles", unleashConfig.pollingStrategy, fetcher::refreshToggles))
                 }
                 if (unleashConfig.metricsStrategy.enabled) {
                     add(
@@ -85,7 +89,6 @@ class DefaultUnleash(
     }
 
     override fun isEnabled(toggleName: String, defaultValue: Boolean): Boolean {
-        Log.d(TAG, "UNLEASH Checking if $toggleName is enabled")
         val enabled = cache.get(toggleName)?.enabled ?: defaultValue
         metrics.count(toggleName, enabled)
         return enabled
@@ -103,8 +106,23 @@ class DefaultUnleash(
     }
 
     override fun setContext(context: UnleashContext) {
-        // important, this should not force an HTTP call but put an event to do
-        // that at some point in the nearish future so we don't get DDoS'd
+        unleashContextState.value = context
+        runBlocking {
+            fetcher?.refreshToggles()
+        }
+    }
+
+    @Throws(TimeoutException::class)
+    override fun setContextWithTimeout(context: UnleashContext, timeout: Long) {
+        unleashContextState.value = context
+        runBlocking {
+            withTimeout(timeout) {
+                fetcher?.refreshToggles()
+            }
+        }
+    }
+
+    override fun setContextAsync(context: UnleashContext) {
         unleashContextState.value = context
     }
 
@@ -113,7 +131,6 @@ class DefaultUnleash(
     }
 
     override fun addUnleashEventListener(listener: UnleashEventListener) {
-        // TODO split into different listener methods
         unleashScope.launch {
             cache.getUpdatesFlow().collect {
                 Log.i(TAG, "Cache updated, telling listeners to refresh")
