@@ -12,7 +12,6 @@ interface Unleash: Closeable {
 
     fun getVariant(toggleName: String, defaultValue: Variant = disabledVariant): Variant
 
-
     /**
      * Set context and trigger a fetch of the latest toggles immediately and block until the fetch is complete or failed.
      */
@@ -31,4 +30,16 @@ interface Unleash: Closeable {
     fun getContext(): UnleashContext
 
     fun addUnleashEventListener(listener: UnleashEventListener)
+
+    /**
+     * This function forces a refresh of the toggles from the server and wait until the refresh is complete or failed.
+     * Usually, this is done automatically in the background, but you can call this function to force a refresh.
+     */
+    fun refreshTogglesNow()
+
+    /**
+     * This function forces a refresh of the toggles from the server asynchronously using the IO dispatcher.
+     * Usually, this is done automatically in the background, but you can call this function to force a refresh.
+     */
+    fun refreshTogglesNowAsync()
 }
