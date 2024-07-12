@@ -68,7 +68,7 @@ open class UnleashFetcher(
             unleashContext.distinctUntilChanged { old, new -> old != new }.collect {
                 withContext(coroutineContextForContextChange) {
                     Log.d(TAG, "Unleash context changed: $it")
-                    getToggles(unleashContext.value)
+                    refreshToggles()
                 }
             }
         }
@@ -76,10 +76,10 @@ open class UnleashFetcher(
 
     suspend fun refreshToggles(): ToggleResponse {
         Log.d(TAG, "Refreshing toggles")
-        return getToggles(unleashContext.value)
+        return refreshTogglesWithContext(unleashContext.value)
     }
 
-    suspend fun getToggles(ctx: UnleashContext): ToggleResponse {
+    internal suspend fun refreshTogglesWithContext(ctx: UnleashContext): ToggleResponse {
         val response = fetchToggles(ctx)
         if (response.isFetched()) {
 
