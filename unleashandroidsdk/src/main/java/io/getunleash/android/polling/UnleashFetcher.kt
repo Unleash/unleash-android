@@ -66,11 +66,9 @@ open class UnleashFetcher(
     fun startWatchingContext() {
         unleashScope.launch {
             unleashContext.distinctUntilChanged { old, new -> old != new }.collect {
-                launch {
-                    withContext(coroutineContextForContextChange) {
-                        Log.d(TAG, "Unleash context changed: $it")
-                        getToggles(unleashContext.value)
-                    }
+                withContext(coroutineContextForContextChange) {
+                    Log.d(TAG, "Unleash context changed: $it")
+                    getToggles(unleashContext.value)
                 }
             }
         }
