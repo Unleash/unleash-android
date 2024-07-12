@@ -15,9 +15,13 @@ interface Unleash: Closeable {
 
     /**
      * Set context and trigger a fetch of the latest toggles immediately and block until the fetch is complete or failed.
-     * Optionally you can provide a timeout in milliseconds and then it will either complete or timeout.
      */
-    fun setContext(context: UnleashContext, timeout: Long? = null)
+    fun setContext(context: UnleashContext)
+
+    /**
+     * Set context and trigger a fetch of the latest toggles asynchronously
+     */
+    fun setContextWithTimeout(context: UnleashContext, timeout: Long = 5000)
 
     /**
      * Set context and trigger a fetch of the latest toggles asynchronously

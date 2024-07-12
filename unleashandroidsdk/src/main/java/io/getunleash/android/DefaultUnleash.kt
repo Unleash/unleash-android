@@ -23,8 +23,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -107,22 +105,19 @@ class DefaultUnleash(
         return variant
     }
 
-    override fun setContext(context: UnleashContext, timeout: Long?) {
+    override fun setContext(context: UnleashContext) {
         unleashContextState.value = context
-        if (timeout != null) {
-            runBlocking {
-                try {
-                    withTimeout(timeout) {
-                        cache.getUpdatesFlow()
-                            .filter { it.context == context }
-                            .first {
-                                Log.i(TAG, "Unleash state is updated to $context")
-                                true
-                            }
-                    }
-                } catch (e: TimeoutException) {
-                    Log.e(TAG, "Failed to update context", e)
-                }
+        runBlocking {
+            fetcher?.refreshToggles()
+        }
+    }
+
+    @Throws(TimeoutException::class)
+    override fun setContextWithTimeout(context: UnleashContext, timeout: Long) {
+        unleashContextState.value = context
+        runBlocking {
+            withTimeout(timeout) {
+                fetcher?.refreshToggles()
             }
         }
     }
@@ -143,7 +138,6 @@ class DefaultUnleash(
                     ready = true
                     listener.onReady()
                 }
-                // Q: We could propagate the state changed, does it make sense?
                 listener.onStateChanged()
             }
         }
