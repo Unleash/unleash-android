@@ -18,8 +18,10 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import okhttp3.Call
 import okhttp3.Callback
@@ -31,6 +33,7 @@ import okhttp3.Response
 import okhttp3.internal.closeQuietly
 import java.io.Closeable
 import java.io.IOException
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -56,30 +59,33 @@ open class UnleashFetcher(
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
     private val coroutineContextForContextChange: CoroutineContext = Dispatchers.IO
+    private val currentCall = AtomicReference<Call?>(null)
+    private val mutex = Mutex()
 
     fun getFeaturesReceivedFlow() = featuresReceivedFlow.asSharedFlow()
 
     init {
         // listen to unleash context state changes
         unleashScope.launch {
-            unleashContext.collect {
-                withContext(coroutineContextForContextChange) {
-                    Log.d(TAG, "Unleash context changed: $it")
-                    getToggles(unleashContext.value)
+            unleashContext.distinctUntilChanged { old, new -> old != new }.collect {
+                launch {
+                    withContext(coroutineContextForContextChange) {
+                        Log.d(TAG, "[$this] Unleash context changed: $it")
+                        getToggles(unleashContext.value)
+                    }
                 }
             }
         }
     }
 
     suspend fun refreshToggles(): ToggleResponse {
+        Log.d(TAG, "Refreshing toggles")
         return getToggles(unleashContext.value)
     }
 
     suspend fun getToggles(ctx: UnleashContext): ToggleResponse {
-        Log.d(TAG, "Fetching toggles with $ctx")
         val response = fetchToggles(ctx)
         if (response.isFetched()) {
-
             val toggles = response.config!!.toggles.groupBy { it.name }
                 .mapValues { (_, v) -> v.first() }
             Log.d(TAG, "Fetched new state with ${toggles.size} toggles, emitting featuresReceivedFlow")
@@ -90,7 +96,7 @@ open class UnleashFetcher(
                 if (response.error is NotAuthorizedException) {
                     Log.e(TAG, "Not authorized to fetch toggles. Double check your SDK key")
                 } else {
-                    Log.e(TAG, "Failed to fetch toggles", response.error)
+                    Log.e(TAG, "Failed to fetch toggles ${response.error?.message}", response.error)
                 }
             }
         }
@@ -99,25 +105,39 @@ open class UnleashFetcher(
 
     private suspend fun fetchToggles(ctx: UnleashContext): FetchResponse {
         val contextUrl = buildContextUrl(ctx)
-        val request = Request.Builder().url(contextUrl)
-                .headers(applicationHeaders.toHeaders())
-        if (etag != null) {
-            request.header("If-None-Match", etag!!)
-        }
         try {
-            val response = this.httpClient.newCall(request.build()).await()
+            val request = Request.Builder().url(contextUrl)
+                .headers(applicationHeaders.toHeaders())
+            if (etag != null) {
+                request.header("If-None-Match", etag!!)
+            }
+            val call = this.httpClient.newCall(request.build())
+
+            //mutex.lock()
+            val inFlightCall = currentCall.get()
+            if (!currentCall.compareAndSet(inFlightCall, call)) {
+                return FetchResponse(Status.FAILED, error = IllegalStateException("Failed to set new call while ${inFlightCall?.request()?.url} is in flight"))
+            } else if (inFlightCall != null && !inFlightCall.isCanceled()) {
+                Log.d(TAG, "Cancelling previous ${inFlightCall.request().method} ${inFlightCall.request().url}")
+                inFlightCall.cancel()
+            }
+            //mutex.unlock()
+
+            Log.d(TAG, "Fetching toggles from $contextUrl")
+            val response = call.await()
             response.use { res ->
                 Log.d(TAG, "Received status code ${res.code} from $contextUrl")
                 return when {
                     res.isSuccessful -> {
                         etag = res.header("ETag")
-                        res.body?.use { b ->
+                        res.body?.use { b -> // this operation is blocking can we adapt it as we adapted the call.await()?
                             try {
+                                val content = b.string()
+                                Log.d(TAG, "Body content fetched from $contextUrl")
                                 val proxyResponse: ProxyResponse =
-                                    Parser.jackson.readValue(b.string())
+                                    Parser.jackson.readValue(content)
                                 FetchResponse(Status.FETCHED, proxyResponse)
                             } catch (e: Exception) {
-                                Log.w(TAG, "Couldn't parse data", e)
                                 // If we fail to parse, just keep data
                                 FetchResponse(Status.FAILED)
                             }
@@ -138,7 +158,7 @@ open class UnleashFetcher(
                 }
             }
         } catch (e: IOException) {
-            return FetchResponse(status = Status.FAILED, error = e)
+            return FetchResponse(status = Status.FAILED, error = IOException("While fetching $contextUrl", e))
         }
     }
 
@@ -151,6 +171,7 @@ open class UnleashFetcher(
 
                 override fun onFailure(call: Call, e: IOException) {
                     // Don't bother with resuming the continuation if it is already cancelled.
+                    Log.e(TAG, "Call.onFailure: Failed to fetch toggles")
                     if (continuation.isCancelled) return
                     continuation.resumeWithException(e)
                 }
@@ -190,3 +211,4 @@ open class UnleashFetcher(
         httpClient.cache?.closeQuietly()
     }
 }
+
