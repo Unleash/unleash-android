@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.internal.toImmutableList
@@ -107,11 +108,23 @@ class DefaultUnleash(
         return variant
     }
 
-    override fun setContext(context: UnleashContext) {
-        unleashContextState.value = context
+    override fun refreshTogglesNow() {
         runBlocking {
             fetcher?.refreshToggles()
         }
+    }
+
+    override fun refreshTogglesNowAsync() {
+        unleashScope.launch {
+            withContext(Dispatchers.IO) {
+                fetcher?.refreshToggles()
+            }
+        }
+    }
+
+    override fun setContext(context: UnleashContext) {
+        unleashContextState.value = context
+        refreshTogglesNow()
     }
 
     @Throws(TimeoutException::class)
