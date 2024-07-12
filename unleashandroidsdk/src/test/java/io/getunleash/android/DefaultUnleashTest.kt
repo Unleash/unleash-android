@@ -3,6 +3,7 @@ package io.getunleash.android
 import androidx.lifecycle.Lifecycle
 import io.getunleash.android.cache.ToggleCache
 import io.getunleash.android.data.Toggle
+import io.getunleash.android.data.UnleashState
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -21,7 +22,7 @@ class DefaultUnleashTest: BaseTest() {
             return staticToggles[key]
         }
 
-        override fun write(value: Map<String, Toggle>) {
+        override fun write(state: UnleashState) {
             TODO("Should not be used")
         }
 
