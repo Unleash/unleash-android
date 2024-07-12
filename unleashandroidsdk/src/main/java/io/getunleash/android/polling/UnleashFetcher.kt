@@ -18,6 +18,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -31,6 +32,7 @@ import okhttp3.Response
 import okhttp3.internal.closeQuietly
 import java.io.Closeable
 import java.io.IOException
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -50,39 +52,43 @@ open class UnleashFetcher(
     companion object {
         private const val TAG = "UnleashFetcher"
     }
+
     private var etag: String? = null
     private val featuresReceivedFlow = MutableSharedFlow<UnleashState>(
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
     private val coroutineContextForContextChange: CoroutineContext = Dispatchers.IO
+    private val currentCall = AtomicReference<Call?>(null)
 
     fun getFeaturesReceivedFlow() = featuresReceivedFlow.asSharedFlow()
 
-    init {
-        // listen to unleash context state changes
+    fun startWatchingContext() {
         unleashScope.launch {
-            unleashContext.collect {
+            unleashContext.distinctUntilChanged { old, new -> old != new }.collect {
                 withContext(coroutineContextForContextChange) {
                     Log.d(TAG, "Unleash context changed: $it")
-                    getToggles(unleashContext.value)
+                    refreshToggles()
                 }
             }
         }
     }
 
     suspend fun refreshToggles(): ToggleResponse {
-        return getToggles(unleashContext.value)
+        Log.d(TAG, "Refreshing toggles")
+        return refreshTogglesWithContext(unleashContext.value)
     }
 
-    suspend fun getToggles(ctx: UnleashContext): ToggleResponse {
-        Log.d(TAG, "Fetching toggles with $ctx")
+    internal suspend fun refreshTogglesWithContext(ctx: UnleashContext): ToggleResponse {
         val response = fetchToggles(ctx)
         if (response.isFetched()) {
 
             val toggles = response.config!!.toggles.groupBy { it.name }
                 .mapValues { (_, v) -> v.first() }
-            Log.d(TAG, "Fetched new state with ${toggles.size} toggles, emitting featuresReceivedFlow")
+            Log.d(
+                TAG,
+                "Fetched new state with ${toggles.size} toggles, emitting featuresReceivedFlow"
+            )
             featuresReceivedFlow.emit(UnleashState(ctx, toggles))
             return ToggleResponse(response.status, toggles)
         } else {
@@ -90,7 +96,7 @@ open class UnleashFetcher(
                 if (response.error is NotAuthorizedException) {
                     Log.e(TAG, "Not authorized to fetch toggles. Double check your SDK key")
                 } else {
-                    Log.e(TAG, "Failed to fetch toggles", response.error)
+                    Log.i(TAG, "Failed to fetch toggles ${response.error?.message}", response.error)
                 }
             }
         }
@@ -99,13 +105,29 @@ open class UnleashFetcher(
 
     private suspend fun fetchToggles(ctx: UnleashContext): FetchResponse {
         val contextUrl = buildContextUrl(ctx)
-        val request = Request.Builder().url(contextUrl)
-                .headers(applicationHeaders.toHeaders())
-        if (etag != null) {
-            request.header("If-None-Match", etag!!)
-        }
         try {
-            val response = this.httpClient.newCall(request.build()).await()
+            val request = Request.Builder().url(contextUrl)
+                .headers(applicationHeaders.toHeaders())
+            if (etag != null) {
+                request.header("If-None-Match", etag!!)
+            }
+            val call = this.httpClient.newCall(request.build())
+            val inFlightCall = currentCall.get()
+            if (!currentCall.compareAndSet(inFlightCall, call)) {
+                return FetchResponse(
+                    Status.FAILED,
+                    error = IllegalStateException("Failed to set new call while ${inFlightCall?.request()?.url} is in flight")
+                )
+            } else if (inFlightCall != null && !inFlightCall.isCanceled()) {
+                Log.d(
+                    TAG,
+                    "Cancelling previous ${inFlightCall.request().method} ${inFlightCall.request().url}"
+                )
+                inFlightCall.cancel()
+            }
+
+            Log.d(TAG, "Fetching toggles from $contextUrl")
+            val response = call.await()
             response.use { res ->
                 Log.d(TAG, "Received status code ${res.code} from $contextUrl")
                 return when {
@@ -117,9 +139,8 @@ open class UnleashFetcher(
                                     Parser.jackson.readValue(b.string())
                                 FetchResponse(Status.FETCHED, proxyResponse)
                             } catch (e: Exception) {
-                                Log.w(TAG, "Couldn't parse data", e)
                                 // If we fail to parse, just keep data
-                                FetchResponse(Status.FAILED)
+                                FetchResponse(Status.FAILED, error = e)
                             }
                         } ?: FetchResponse(Status.FAILED, error = NoBodyException())
                     }
