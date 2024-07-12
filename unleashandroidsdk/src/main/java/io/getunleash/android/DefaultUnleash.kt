@@ -107,20 +107,22 @@ class DefaultUnleash(
         return variant
     }
 
-    override fun setContext(context: UnleashContext, timeout: Long) {
+    override fun setContext(context: UnleashContext, timeout: Long?) {
         unleashContextState.value = context
-        runBlocking {
-            try {
-                withTimeout(timeout) {
-                    cache.getUpdatesFlow()
-                        .filter { it.context == context }
-                        .first {
-                            Log.i(TAG, "Unleash state is updated to $context")
-                            true
-                        }
+        if (timeout != null) {
+            runBlocking {
+                try {
+                    withTimeout(timeout) {
+                        cache.getUpdatesFlow()
+                            .filter { it.context == context }
+                            .first {
+                                Log.i(TAG, "Unleash state is updated to $context")
+                                true
+                            }
+                    }
+                } catch (e: TimeoutException) {
+                    Log.e(TAG, "Failed to update context", e)
                 }
-            } catch (e: TimeoutException) {
-                Log.e(TAG, "Failed to update context", e)
             }
         }
     }
