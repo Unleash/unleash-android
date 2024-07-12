@@ -38,6 +38,7 @@ class UnleashFetcherTest : BaseTest() {
             server.url("unleash"),
             OkHttpClient.Builder().build()
         )
+        unleashFetcher.startWatchingContext()
 
         // Then
         val request = server.takeRequest()
