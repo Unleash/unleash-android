@@ -12,6 +12,7 @@ import io.getunleash.android.data.UnleashContext
 import io.getunleash.android.data.UnleashState
 import io.getunleash.android.errors.NoBodyException
 import io.getunleash.android.errors.NotAuthorizedException
+import io.getunleash.android.http.Throttler
 import io.getunleash.android.unleashScope
 import io.getunleash.errors.ServerException
 import kotlinx.coroutines.Dispatchers
@@ -34,6 +35,7 @@ import okhttp3.Response
 import okhttp3.internal.closeQuietly
 import java.io.Closeable
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
@@ -63,6 +65,12 @@ open class UnleashFetcher(
     )
     private val coroutineContextForContextChange: CoroutineContext = Dispatchers.IO
     private val currentCall = AtomicReference<Call?>(null)
+    private val throttler =
+        Throttler(
+            TimeUnit.MILLISECONDS.toSeconds(unleashConfig.pollingStrategy.interval),
+            longestAcceptableIntervalSeconds = 300,
+            proxyUrl.toString()
+        )
 
     fun getFeaturesReceivedFlow() = featuresReceivedFlow.asSharedFlow()
 
@@ -78,8 +86,12 @@ open class UnleashFetcher(
     }
 
     suspend fun refreshToggles(): ToggleResponse {
-        Log.d(TAG, "Refreshing toggles")
-        return refreshTogglesWithContext(unleashContext.value)
+        if (throttler.performAction()) {
+            Log.d(TAG, "Refreshing toggles")
+            return refreshTogglesWithContext(unleashContext.value)
+        }
+        Log.i(TAG, "Skipping refresh toggles due to throttling")
+        return ToggleResponse(Status.FAILED)
     }
 
     internal suspend fun refreshTogglesWithContext(ctx: UnleashContext): ToggleResponse {
@@ -133,6 +145,7 @@ open class UnleashFetcher(
             val response = call.await()
             response.use { res ->
                 Log.d(TAG, "Received status code ${res.code} from $contextUrl")
+                throttler.handle(response.code)
                 return when {
                     res.isSuccessful -> {
                         etag = res.header("ETag")
