@@ -86,6 +86,7 @@ class DefaultUnleash(
         )
         lifecycle.addObserver(taskManager)
         if (fetcher != null) {
+            fetcher.startWatchingContext()
             cache.subscribeTo(fetcher.getFeaturesReceivedFlow())
         }
     }

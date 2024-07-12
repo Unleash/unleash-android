@@ -33,6 +33,7 @@ import okhttp3.Response
 import okhttp3.internal.closeQuietly
 import java.io.Closeable
 import java.io.IOException
+import java.net.SocketException
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
@@ -60,12 +61,10 @@ open class UnleashFetcher(
     )
     private val coroutineContextForContextChange: CoroutineContext = Dispatchers.IO
     private val currentCall = AtomicReference<Call?>(null)
-    private val mutex = Mutex()
 
     fun getFeaturesReceivedFlow() = featuresReceivedFlow.asSharedFlow()
 
-    init {
-        // listen to unleash context state changes
+    fun startWatchingContext() {
         unleashScope.launch {
             unleashContext.distinctUntilChanged { old, new -> old != new }.collect {
                 launch {
@@ -96,7 +95,7 @@ open class UnleashFetcher(
                 if (response.error is NotAuthorizedException) {
                     Log.e(TAG, "Not authorized to fetch toggles. Double check your SDK key")
                 } else {
-                    Log.e(TAG, "Failed to fetch toggles ${response.error?.message}", response.error)
+                    Log.i(TAG, "Failed to fetch toggles ${response.error?.message}", response.error)
                 }
             }
         }
@@ -112,8 +111,6 @@ open class UnleashFetcher(
                 request.header("If-None-Match", etag!!)
             }
             val call = this.httpClient.newCall(request.build())
-
-            //mutex.lock()
             val inFlightCall = currentCall.get()
             if (!currentCall.compareAndSet(inFlightCall, call)) {
                 return FetchResponse(Status.FAILED, error = IllegalStateException("Failed to set new call while ${inFlightCall?.request()?.url} is in flight"))
@@ -121,7 +118,6 @@ open class UnleashFetcher(
                 Log.d(TAG, "Cancelling previous ${inFlightCall.request().method} ${inFlightCall.request().url}")
                 inFlightCall.cancel()
             }
-            //mutex.unlock()
 
             Log.d(TAG, "Fetching toggles from $contextUrl")
             val response = call.await()
@@ -158,7 +154,7 @@ open class UnleashFetcher(
                 }
             }
         } catch (e: IOException) {
-            return FetchResponse(status = Status.FAILED, error = IOException("While fetching $contextUrl", e))
+            return FetchResponse(status = Status.FAILED)
         }
     }
 

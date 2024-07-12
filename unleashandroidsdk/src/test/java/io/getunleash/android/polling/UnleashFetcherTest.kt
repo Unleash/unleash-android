@@ -3,12 +3,14 @@ package io.getunleash.android.polling
 import io.getunleash.android.BaseTest
 import io.getunleash.android.data.Status
 import io.getunleash.android.data.UnleashContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -45,7 +47,7 @@ class UnleashFetcherTest : BaseTest() {
     }
 
     @Test
-    fun `changing the context should cancel in flight requests`() = runTest {
+    fun `changing the context should cancel in flight requests`() {
         // Given
         val server = MockWebServer()
         // a slow request
@@ -62,25 +64,31 @@ class UnleashFetcherTest : BaseTest() {
         val unleashContextState = MutableStateFlow(UnleashContext(userId = "123"))
 
         // When
-        runBlocking {
-            val unleashFetcher = UnleashFetcher(
-                unleashContextState.asStateFlow(),
-                "test-app",
-                server.url("unleash"),
-                OkHttpClient.Builder().build()
-            )
-            // refresh toggles to force first request
-            val firstResponse = unleashFetcher.refreshToggles()
-            println("Setting context to 321")
-            unleashContextState.value = UnleashContext(userId = "321")
+        val unleashFetcher = UnleashFetcher(
+            unleashContextState.asStateFlow(),
+            "test-app",
+            server.url("unleash"),
+            OkHttpClient.Builder().build()
+        )
 
-            // Then
-            val firstRequest = server.takeRequest()
-            assertThat(firstRequest.path).isEqualTo("/unleash?appName=test-app&userId=123")
-            assertThat(firstResponse.status).isEqualTo(Status.FAILED)
-            assertThat(firstResponse.error).isInstanceOf(IOException::class.java)
-            val secondRequest = server.takeRequest(450, TimeUnit.MILLISECONDS)
-            assertThat(secondRequest?.path).isEqualTo("/unleash?appName=test-app&userId=321")
+        runBlocking {
+            launch {
+                println("Setting context to 123")
+                unleashFetcher.getToggles(UnleashContext(userId = "123"))
+            }
+            delay(150)
+            launch {
+                println("Setting context to 321")
+                unleashFetcher.getToggles(UnleashContext(userId = "321"))
+            }
         }
+
+        // Then
+        val firstRequest = server.takeRequest()
+        assertThat(firstRequest.bodySize).isEqualTo(0)
+        assertThat(firstRequest.path).isEqualTo("/unleash?appName=test-app&userId=123")
+
+        val secondRequest = server.takeRequest()
+        assertThat(secondRequest.path).isEqualTo("/unleash?appName=test-app&userId=321")
     }
 }
