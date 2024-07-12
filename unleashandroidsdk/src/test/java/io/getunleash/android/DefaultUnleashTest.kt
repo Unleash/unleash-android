@@ -14,7 +14,6 @@ class DefaultUnleashTest: BaseTest() {
             "feature1" to Toggle(name = "feature1", enabled = true),
             "feature2" to Toggle(name = "feature2", enabled = false),
         )
-
         override fun read(): Map<String, Toggle> {
             return staticToggles
         }
@@ -24,10 +23,10 @@ class DefaultUnleashTest: BaseTest() {
         }
 
         override fun write(state: UnleashState) {
-            TODO("Not needed for this test.")
+            TODO("Should not be used")
         }
-    }
 
+    }
     private val unleash = DefaultUnleash(
         unleashConfig = UnleashConfig.newBuilder("test-android-app")
             .pollingStrategy.enabled(false)

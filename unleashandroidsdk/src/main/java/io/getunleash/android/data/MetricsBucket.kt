@@ -29,11 +29,8 @@ data class CountBucket(
 ): UnleashMetricsBucket {
 
     override fun count(featureName: String, enabled: Boolean): Boolean {
-        if (enabled) {
-            yes.getOrPut(featureName) { AtomicInteger(0) }.incrementAndGet()
-        } else {
-            no.getOrPut(featureName) { AtomicInteger(0) }.incrementAndGet()
-        }
+        (if (enabled) yes else no)
+            .getOrPut(featureName) { AtomicInteger(0) }.incrementAndGet()
         return enabled
     }
 
