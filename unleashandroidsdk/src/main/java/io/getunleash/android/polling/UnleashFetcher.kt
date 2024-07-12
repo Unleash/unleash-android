@@ -133,7 +133,7 @@ open class UnleashFetcher(
                 return when {
                     res.isSuccessful -> {
                         etag = res.header("ETag")
-                        res.body?.use { b -> // this operation is blocking can we adapt it as we adapted the call.await()?
+                        res.body?.use { b ->
                             try {
                                 val proxyResponse: ProxyResponse =
                                     Parser.jackson.readValue(b.string())
