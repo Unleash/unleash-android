@@ -52,7 +52,7 @@ data class UnleashConfig(
             .connectTimeout(strategy.httpConnectionTimeout, TimeUnit.MILLISECONDS)
             .cache(
                 Cache(
-                    directory = CacheDirectoryProvider().getCacheDirectory(),
+                    directory = CacheDirectoryProvider().getCacheDirectory("unleash_http_cache", true),
                     maxSize = strategy.httpCacheSize
                 )
             ).build()

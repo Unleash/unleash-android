@@ -3,6 +3,7 @@ package io.getunleash.android
 import android.util.Log
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ProcessLifecycleOwner
+import io.getunleash.android.backup.LocalBackup
 import io.getunleash.android.cache.InMemoryToggleCache
 import io.getunleash.android.cache.ObservableCache
 import io.getunleash.android.cache.ObservableToggleCache
@@ -42,6 +43,7 @@ class DefaultUnleash(
     private val unleashConfig: UnleashConfig,
     unleashContext: UnleashContext = UnleashContext(),
     cacheImpl: ToggleCache = InMemoryToggleCache(),
+    backup: LocalBackup? = LocalBackup(),
     eventListener: UnleashEventListener? = null,
     lifecycle: Lifecycle = ProcessLifecycleOwner.get().lifecycle
 ) : Unleash {
@@ -85,6 +87,11 @@ class DefaultUnleash(
             }.toImmutableList()
         )
         lifecycle.addObserver(taskManager)
+        if (backup != null) {
+            val stored = backup.loadFromDisc(unleashContextState.value)
+            if (stored != null) cacheImpl.write(stored)
+            backup.subscribeTo(cache.getUpdatesFlow())
+        }
         if (fetcher != null) {
             fetcher.startWatchingContext()
             cache.subscribeTo(fetcher.getFeaturesReceivedFlow())

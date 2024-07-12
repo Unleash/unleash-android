@@ -9,9 +9,9 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 
 object Parser {
     val jackson: ObjectMapper =
-        jacksonObjectMapper({
+        jacksonObjectMapper {
             enable(KotlinFeature.NullIsSameAsDefault)
-        }).disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+        }.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .setDateFormat(
                 StdDateFormat().withColonInTimeZone(true)
             ).disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)

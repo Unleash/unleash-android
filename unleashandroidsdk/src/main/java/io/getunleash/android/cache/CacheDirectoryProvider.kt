@@ -1,44 +1,39 @@
 package io.getunleash.android.cache
 
 import android.os.Environment
+import android.util.Log
 import java.io.File
-import java.io.IOException
-
 
 class CacheDirectoryProvider {
 
-    fun getCacheDirectory(): File = try {
-        createTempDirectory()
-    } catch (e: NoClassDefFoundError) {
-        val file = getCacheDirectoryFile()
-        createDirectoryIfNotExists(file)
-        file
+    companion object {
+        private const val TAG = "CacheDirProvider"
+    }
+    fun getCacheDirectory(tempDirName: String, deleteOnShutdown: Boolean = false): File {
+        return getTempDirectory(tempDirName, deleteOnShutdown)
     }
 
-    private fun createTempDirectory(): File {
-        val storageDir: File = Environment.getDataDirectory() // Use internal storage directory
-        val tempDirName = "unleash_toggles_" + System.currentTimeMillis() // Unique directory name
-        val tempDir = File(storageDir, tempDirName)
-        if (!tempDir.mkdir()) {
-            throw IOException("Failed to create temporary directory: " + tempDir.absolutePath)
+    private fun getTempDirectory(tempDirName: String, deleteOnShutdown: Boolean = false): File {
+        val storageDir: File = try {
+            Environment.getDataDirectory()
+        } catch (e: NoClassDefFoundError) {
+            File.createTempFile("unleash_toggles", null)
+        } catch (e: RuntimeException) {
+            File("unleash_toggles")
         }
+        val tempDir = File(storageDir, tempDirName)
+        Log.d(TAG, "Using temp storage directory: $tempDirName")
+        createDirectoryIfNotExists(tempDir) || throw RuntimeException("Failed to create directory ${tempDir.absolutePath}")
+        if (deleteOnShutdown) addShutdownHook(tempDir)
         return tempDir
     }
 
-    private fun getCacheDirectoryFile() = File("unleash_toggles")
-
-    private fun createDirectoryIfNotExists(file: File) {
-        if (!file.exists())
-            createDirectoryAndAddShutdownHook(file)
+    private fun createDirectoryIfNotExists(file: File): Boolean {
+        return file.exists() || file.mkdirs()
     }
 
-    private fun createDirectoryAndAddShutdownHook(file: File) {
-        file.mkdirs()
-        Runtime.getRuntime().addShutdownHook(getShutdownHook(file))
-    }
-
-    private fun getShutdownHook(file: File): Thread {
-        return DeleteFileShutdownHook(file)
+    private fun addShutdownHook(file: File) {
+        Runtime.getRuntime().addShutdownHook(DeleteFileShutdownHook(file))
     }
 
     private class DeleteFileShutdownHook(file: File) : Thread(Runnable {
