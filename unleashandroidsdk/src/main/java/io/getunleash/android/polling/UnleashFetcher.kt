@@ -9,6 +9,7 @@ import io.getunleash.android.data.Status
 import io.getunleash.android.data.Toggle
 import io.getunleash.android.data.ToggleResponse
 import io.getunleash.android.data.UnleashContext
+import io.getunleash.android.data.UnleashState
 import io.getunleash.android.errors.NoBodyException
 import io.getunleash.android.errors.NotAuthorizedException
 import io.getunleash.android.unleashScope
@@ -52,13 +53,13 @@ open class UnleashFetcher(
         private const val TAG = "UnleashFetcher"
     }
     private var etag: String? = null
-    private val featuresReceivedFlow = MutableSharedFlow<Map<String, Toggle>>(
+    private val featuresReceivedFlow = MutableSharedFlow<UnleashState>(
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
     private val coroutineContextForContextChange: CoroutineContext = Dispatchers.IO
 
-    fun getFeaturesReceivedFlow(): SharedFlow<Map<String, Toggle>> = featuresReceivedFlow.asSharedFlow()
+    fun getFeaturesReceivedFlow(): SharedFlow<UnleashState> = featuresReceivedFlow.asSharedFlow()
 
     init {
         // listen to unleash context state changes
@@ -82,7 +83,7 @@ open class UnleashFetcher(
             val toggles = response.config!!.toggles.groupBy { it.name }
                 .mapValues { (_, v) -> v.first() }
             Log.d(TAG, "Fetched new state with ${toggles.size} toggles, emitting featuresReceivedFlow")
-            featuresReceivedFlow.emit(toggles)
+            featuresReceivedFlow.emit(UnleashState(ctx, toggles))
             return ToggleResponse(response.status, toggles)
         } else {
             if (response.isFailed()) {
