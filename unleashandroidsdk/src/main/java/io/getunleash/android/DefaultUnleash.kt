@@ -36,7 +36,6 @@ import kotlinx.coroutines.withTimeout
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.internal.toImmutableList
-import java.io.File
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
@@ -106,25 +105,7 @@ class DefaultUnleash(
         )
         cache = ObservableCache(cacheImpl)
         if (unleashConfig.localStorageConfig.enabled) {
-            val backupDir = CacheDirectoryProvider(unleashConfig.localStorageConfig, androidContext)
-                            .getCacheDirectory("unleash_backup")
-            val localBackup = LocalBackup(backupDir)
-            unleashScope.launch {
-                withContext(Dispatchers.IO) {
-                    unleashContextState.asStateFlow().takeWhile { !ready.get() }.collect {
-                        Log.d(TAG, "Loading state from backup")
-                        localBackup.loadFromDisc(unleashContextState.value)?.let {
-                            if (ready.compareAndSet(false, true)) {
-                                Log.i(TAG, "Loaded state from backup: $it")
-                                cacheImpl.write(it)
-                                eventListener?.onReady()
-                            } else {
-                                Log.d(TAG, "Ignoring backup, Unleash is already ready")
-                            }
-                        }
-                    }
-                }
-            }
+            val localBackup = loadFromBackup(cacheImpl, eventListener)
             localBackup.subscribeTo(cache.getUpdatesFlow())
         }
         if (fetcher != null) {
@@ -133,6 +114,32 @@ class DefaultUnleash(
         }
         lifecycle.addObserver(taskManager)
         eventListener?.let { addUnleashEventListener(it) }
+    }
+
+    private fun loadFromBackup(
+        cacheImpl: ToggleCache,
+        eventListener: UnleashEventListener?
+    ): LocalBackup {
+        val backupDir = CacheDirectoryProvider(unleashConfig.localStorageConfig, androidContext)
+            .getCacheDirectory("unleash_backup")
+        val localBackup = LocalBackup(backupDir)
+        unleashScope.launch {
+            withContext(Dispatchers.IO) {
+                unleashContextState.asStateFlow().takeWhile { !ready.get() }.collect { ctx ->
+                    Log.d(TAG, "Loading state from backup for $ctx")
+                    localBackup.loadFromDisc(unleashContextState.value)?.let { state ->
+                        if (ready.compareAndSet(false, true)) {
+                            Log.i(TAG, "Loaded state from backup for $ctx")
+                            cacheImpl.write(state)
+                            eventListener?.onReady()
+                        } else {
+                            Log.d(TAG, "Ignoring backup, Unleash is already ready")
+                        }
+                    }
+                }
+            }
+        }
+        return localBackup
     }
 
     private fun buildHttpClient(
