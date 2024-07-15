@@ -33,7 +33,7 @@ class ObservableCache(private val cache: ToggleCache) : ObservableToggleCache {
     }
 
     override fun subscribeTo(featuresReceived: Flow<UnleashState>) {
-        Log.d(TAG, "Subscribing to cache, subscribers: ${events.subscriptionCount.value}")
+        Log.d(TAG, "Subscribing to observable cache")
         unleashScope.launch {
             featuresReceived.collect { state ->
                 withContext(Dispatchers.IO) {

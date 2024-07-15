@@ -1,44 +1,41 @@
 package io.getunleash.android.cache
 
-import android.os.Environment
+import android.content.Context
+import android.util.Log
+import io.getunleash.android.backup.LocalStorageConfig
 import java.io.File
-import java.io.IOException
 
+class CacheDirectoryProvider(private val config: LocalStorageConfig, private val context: Context) {
 
-class CacheDirectoryProvider {
-
-    fun getCacheDirectory(): File = try {
-        createTempDirectory()
-    } catch (e: NoClassDefFoundError) {
-        val file = getCacheDirectoryFile()
-        createDirectoryIfNotExists(file)
-        file
+    companion object {
+        private const val TAG = "CacheDirProvider"
     }
-
-    private fun createTempDirectory(): File {
-        val storageDir: File = Environment.getDataDirectory() // Use internal storage directory
-        val tempDirName = "unleash_toggles_" + System.currentTimeMillis() // Unique directory name
-        val tempDir = File(storageDir, tempDirName)
-        if (!tempDir.mkdir()) {
-            throw IOException("Failed to create temporary directory: " + tempDir.absolutePath)
+    fun getCacheDirectory(tempDirName: String, deleteOnShutdown: Boolean = false): File {
+        val tempStorageDir: File = config.dir?.let { File(it) } ?: context.cacheDir
+        val tempDir = File(tempStorageDir, tempDirName)
+        if (!createDirectoryIfNotExists(tempDir)) {
+            Log.w(TAG, "Failed to create directory ${tempDir.absolutePath}")
+        } else {
+            if (deleteOnShutdown) addShutdownHook(tempDir)
         }
         return tempDir
     }
 
-    private fun getCacheDirectoryFile() = File("unleash_toggles")
-
-    private fun createDirectoryIfNotExists(file: File) {
-        if (!file.exists())
-            createDirectoryAndAddShutdownHook(file)
+    private fun createDirectoryIfNotExists(file: File): Boolean {
+        if (file.exists()) {
+            Log.d(TAG, "Directory ${file.absolutePath} already exists")
+            return true
+        }
+        if (file.mkdirs()) {
+            Log.d(TAG, "Created directory ${file.absolutePath}")
+            return true
+        }
+        Log.w(TAG, "Failed to create directory ${file.absolutePath}")
+        return false
     }
 
-    private fun createDirectoryAndAddShutdownHook(file: File) {
-        file.mkdirs()
-        Runtime.getRuntime().addShutdownHook(getShutdownHook(file))
-    }
-
-    private fun getShutdownHook(file: File): Thread {
-        return DeleteFileShutdownHook(file)
+    private fun addShutdownHook(file: File) {
+        Runtime.getRuntime().addShutdownHook(DeleteFileShutdownHook(file))
     }
 
     private class DeleteFileShutdownHook(file: File) : Thread(Runnable {

@@ -2,6 +2,7 @@ package io.getunleash.android.polling
 
 import android.util.Log
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.getunleash.android.UnleashConfig
 import io.getunleash.android.data.FetchResponse
 import io.getunleash.android.data.Parser
 import io.getunleash.android.data.ProxyResponse
@@ -26,6 +27,7 @@ import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Headers.Companion.toHeaders
 import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -43,16 +45,17 @@ import kotlin.coroutines.resumeWithException
  * @param httpClient - the http client to use for fetching toggles from Unleash proxy
  */
 open class UnleashFetcher(
-    private val unleashContext: StateFlow<UnleashContext>,
-    private val appName: String,
-    private val proxyUrl: HttpUrl,
+    unleashConfig: UnleashConfig,
     private val httpClient: OkHttpClient,
-    private val applicationHeaders: Map<String, String> = emptyMap()
+    private val unleashContext: StateFlow<UnleashContext>,
 ) : Closeable {
     companion object {
         private const val TAG = "UnleashFetcher"
     }
 
+    private val proxyUrl = unleashConfig.proxyUrl.toHttpUrl()
+    private val applicationHeaders = unleashConfig.getApplicationHeaders(unleashConfig.pollingStrategy)
+    private val appName = unleashConfig.appName
     private var etag: String? = null
     private val featuresReceivedFlow = MutableSharedFlow<UnleashState>(
         extraBufferCapacity = 1,

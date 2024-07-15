@@ -1,11 +1,8 @@
 package io.getunleash.android
 
-import io.getunleash.android.cache.CacheDirectoryProvider
+import io.getunleash.android.backup.LocalStorageConfig
 import io.getunleash.android.data.DataStrategy
-import okhttp3.Cache
-import okhttp3.OkHttpClient
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 
 /**
  * Represents configuration for Unleash.
@@ -19,6 +16,7 @@ data class UnleashConfig(
     val proxyUrl: String,
     val clientKey: String,
     val appName: String,
+    val localStorageConfig: LocalStorageConfig = LocalStorageConfig(),
     val pollingStrategy: DataStrategy = DataStrategy(
         pauseOnBackground = true,
     ),
@@ -46,18 +44,6 @@ data class UnleashConfig(
         ))
     }
 
-    fun buildHttpClient(strategy: DataStrategy): OkHttpClient {
-        return OkHttpClient.Builder()
-            .readTimeout(strategy.httpReadTimeout, TimeUnit.MILLISECONDS)
-            .connectTimeout(strategy.httpConnectionTimeout, TimeUnit.MILLISECONDS)
-            .cache(
-                Cache(
-                    directory = CacheDirectoryProvider().getCacheDirectory(),
-                    maxSize = strategy.httpCacheSize
-                )
-            ).build()
-    }
-
     /**
      * Builder for [io.getunleash.android.UnleashConfig]
      */
@@ -70,6 +56,8 @@ data class UnleashConfig(
             .newBuilder(parent = this)
         val metricsStrategy: DataStrategy.Builder = DataStrategy()
             .newBuilder(parent = this)
+        val localStorageConfig: LocalStorageConfig.Builder = LocalStorageConfig()
+            .newBuilder(parent = this)
         fun build(): UnleashConfig {
             if ((proxyUrl == null || clientKey == null) && (pollingStrategy.enabled || metricsStrategy.enabled)) {
                 throw IllegalStateException("You must set the pollingStrategy and metricsStrategy to be disabled")
@@ -80,6 +68,7 @@ data class UnleashConfig(
                 appName = appName,
                 pollingStrategy = pollingStrategy.build(),
                 metricsStrategy = metricsStrategy.build(),
+                localStorageConfig = localStorageConfig.build()
             )
         }
 

@@ -14,7 +14,8 @@ const val initialUserId = "123"
 class TestApplication: Application() {
     val unleash: Unleash by lazy {
         DefaultUnleash(
-            UnleashConfig(
+            androidContext = this,
+            unleashConfig = UnleashConfig(
                 appName = "test-android-app",
                 proxyUrl = "https://sandbox.getunleash.io/enterprise/api/frontend",
                 clientKey = "gaston:development.8c5d8ce0fd7233c268b74da276eb3c110caf8d2c67eb8dc5b29b4644",
@@ -27,7 +28,7 @@ class TestApplication: Application() {
                     pauseOnBackground = true
                 )
             ),
-            UnleashContext(userId = initialUserId),
+            unleashContext = UnleashContext(userId = initialUserId),
             eventListener = object : UnleashEventListener {
                 override fun onReady() {
                     println("Unleash is ready")

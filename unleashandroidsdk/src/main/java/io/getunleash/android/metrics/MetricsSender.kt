@@ -21,7 +21,7 @@ import java.util.Date
 
 class MetricsSender(
     private val config: UnleashConfig,
-    private val httpClient: OkHttpClient = config.buildHttpClient(config.metricsStrategy),
+    private val httpClient: OkHttpClient,
     private val applicationHeaders: Map<String, String> = config.getApplicationHeaders(config.metricsStrategy)
 ): MetricsCollector, MetricsReporter {
     companion object {
