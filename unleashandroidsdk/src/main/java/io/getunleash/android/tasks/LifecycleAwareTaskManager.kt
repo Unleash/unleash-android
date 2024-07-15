@@ -107,12 +107,13 @@ class LifecycleAwareTaskManager(
 
     override fun onAvailable(network: Network) {
         Log.d(TAG, "Network available")
-        startForegroundJobs()
         networkAvailable = true
+        startForegroundJobs()
     }
 
     override fun onLost(network: Network) {
         Log.d(TAG, "Network connection lost")
         networkAvailable = false
+        stopForegroundJobs()
     }
 }
