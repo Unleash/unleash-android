@@ -33,9 +33,9 @@ class DefaultUnleashTest: BaseTest() {
         unleashConfig = UnleashConfig.newBuilder("test-android-app")
             .pollingStrategy.enabled(false)
             .metricsStrategy.enabled(false)
+            .localStorageConfig.enabled(false)
             .build(),
         cacheImpl = testCache,
-        localBackup = null,
         lifecycle = mock(Lifecycle::class.java),
     )
 

@@ -36,6 +36,7 @@ import kotlinx.coroutines.withTimeout
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.internal.toImmutableList
+import java.io.File
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
@@ -53,8 +54,7 @@ class DefaultUnleash(
     unleashContext: UnleashContext = UnleashContext(),
     cacheImpl: ToggleCache = InMemoryToggleCache(),
     eventListener: UnleashEventListener? = null,
-    lifecycle: Lifecycle = getLifecycle(androidContext),
-    localBackup: LocalBackup? = LocalBackup(androidContext)
+    lifecycle: Lifecycle = getLifecycle(androidContext)
 ) : Unleash {
     companion object {
         private const val TAG = "Unleash"
@@ -105,7 +105,10 @@ class DefaultUnleash(
             }.toImmutableList()
         )
         cache = ObservableCache(cacheImpl)
-        if (localBackup != null) {
+        if (unleashConfig.localStorageConfig.enabled) {
+            val backupDir = CacheDirectoryProvider(unleashConfig.localStorageConfig, androidContext)
+                            .getCacheDirectory("unleash_backup")
+            val localBackup = LocalBackup(backupDir)
             unleashScope.launch {
                 withContext(Dispatchers.IO) {
                     unleashContextState.asStateFlow().takeWhile { !ready.get() }.collect {
@@ -142,7 +145,10 @@ class DefaultUnleash(
             .connectTimeout(strategy.httpConnectionTimeout, TimeUnit.MILLISECONDS)
             .cache(
                 Cache(
-                    directory = CacheDirectoryProvider(androidContext).getCacheDirectory(
+                    directory = CacheDirectoryProvider(
+                        unleashConfig.localStorageConfig,
+                        androidContext
+                    ).getCacheDirectory(
                         "unleash_${clientName}_http_cache", true
                     ),
                     maxSize = strategy.httpCacheSize

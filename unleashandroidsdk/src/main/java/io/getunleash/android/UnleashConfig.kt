@@ -1,5 +1,6 @@
 package io.getunleash.android
 
+import io.getunleash.android.backup.LocalStorageConfig
 import io.getunleash.android.data.DataStrategy
 import java.util.UUID
 
@@ -15,6 +16,7 @@ data class UnleashConfig(
     val proxyUrl: String,
     val clientKey: String,
     val appName: String,
+    val localStorageConfig: LocalStorageConfig = LocalStorageConfig(),
     val pollingStrategy: DataStrategy = DataStrategy(
         pauseOnBackground = true,
     ),
@@ -54,6 +56,8 @@ data class UnleashConfig(
             .newBuilder(parent = this)
         val metricsStrategy: DataStrategy.Builder = DataStrategy()
             .newBuilder(parent = this)
+        val localStorageConfig: LocalStorageConfig.Builder = LocalStorageConfig()
+            .newBuilder(parent = this)
         fun build(): UnleashConfig {
             if ((proxyUrl == null || clientKey == null) && (pollingStrategy.enabled || metricsStrategy.enabled)) {
                 throw IllegalStateException("You must set the pollingStrategy and metricsStrategy to be disabled")
@@ -64,6 +68,7 @@ data class UnleashConfig(
                 appName = appName,
                 pollingStrategy = pollingStrategy.build(),
                 metricsStrategy = metricsStrategy.build(),
+                localStorageConfig = localStorageConfig.build()
             )
         }
 

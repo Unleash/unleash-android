@@ -1,9 +1,7 @@
 package io.getunleash.android.backup
 
-import android.content.Context
 import android.util.Log
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.getunleash.android.cache.CacheDirectoryProvider
 import io.getunleash.android.data.Parser
 import io.getunleash.android.data.Toggle
 import io.getunleash.android.data.UnleashContext
@@ -24,8 +22,7 @@ data class BackupState(val contextId: String, val toggles: Map<String, Toggle>)
  * is the same when loading the state from disc.
  */
 class LocalBackup(
-    androidContext: Context,
-    private val localDir: File = CacheDirectoryProvider(androidContext).getCacheDirectory("unleash_backup")
+    private val localDir: File
 ) {
     companion object {
         private const val TAG = "LocalBackup"
