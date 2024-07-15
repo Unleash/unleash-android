@@ -28,6 +28,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -37,6 +38,7 @@ import okhttp3.OkHttpClient
 import okhttp3.internal.toImmutableList
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicBoolean
 
 val unleashExceptionHandler = CoroutineExceptionHandler { _, exception ->
     Log.e("UnleashHandler", "Caught unhandled exception: ${exception.message}", exception)
@@ -50,7 +52,6 @@ class DefaultUnleash(
     private val unleashConfig: UnleashConfig,
     unleashContext: UnleashContext = UnleashContext(),
     cacheImpl: ToggleCache = InMemoryToggleCache(),
-    backup: LocalBackup? = LocalBackup(androidContext),
     eventListener: UnleashEventListener? = null,
     lifecycle: Lifecycle = getLifecycle(androidContext)
 ) : Unleash {
@@ -62,7 +63,7 @@ class DefaultUnleash(
     private val metrics: MetricsCollector
     private val taskManager: LifecycleAwareTaskManager
     private val cache: ObservableToggleCache
-    private var ready = false
+    private var ready = AtomicBoolean(false)
     private val fetcher: UnleashFetcher?
 
     init {
@@ -103,16 +104,9 @@ class DefaultUnleash(
             }.toImmutableList()
         )
         cache = ObservableCache(cacheImpl)
-        if (backup != null) {
-            unleashScope.launch {// Do we launch this async or not? NodeSDK does it sync
-                withContext(Dispatchers.IO) {
-                    Log.d(TAG, "Loading state from backup")
-                    val stored = backup.loadFromDisc(unleashContextState.value)
-                    if (stored != null) cacheImpl.write(stored) // what if fetcher is faster?
-                    Log.d(TAG, "Loaded state from backup: $stored")
-                    backup.subscribeTo(cache.getUpdatesFlow())
-                }
-            }
+        if (unleashConfig.localStorageConfig.enabled) {
+            val localBackup = loadFromBackup(cacheImpl, eventListener)
+            localBackup.subscribeTo(cache.getUpdatesFlow())
         }
         if (fetcher != null) {
             fetcher.startWatchingContext()
@@ -120,6 +114,32 @@ class DefaultUnleash(
         }
         lifecycle.addObserver(taskManager)
         eventListener?.let { addUnleashEventListener(it) }
+    }
+
+    private fun loadFromBackup(
+        cacheImpl: ToggleCache,
+        eventListener: UnleashEventListener?
+    ): LocalBackup {
+        val backupDir = CacheDirectoryProvider(unleashConfig.localStorageConfig, androidContext)
+            .getCacheDirectory("unleash_backup")
+        val localBackup = LocalBackup(backupDir)
+        unleashScope.launch {
+            withContext(Dispatchers.IO) {
+                unleashContextState.asStateFlow().takeWhile { !ready.get() }.collect { ctx ->
+                    Log.d(TAG, "Loading state from backup for $ctx")
+                    localBackup.loadFromDisc(unleashContextState.value)?.let { state ->
+                        if (ready.compareAndSet(false, true)) {
+                            Log.i(TAG, "Loaded state from backup for $ctx")
+                            cacheImpl.write(state)
+                            eventListener?.onReady()
+                        } else {
+                            Log.d(TAG, "Ignoring backup, Unleash is already ready")
+                        }
+                    }
+                }
+            }
+        }
+        return localBackup
     }
 
     private fun buildHttpClient(
@@ -132,7 +152,10 @@ class DefaultUnleash(
             .connectTimeout(strategy.httpConnectionTimeout, TimeUnit.MILLISECONDS)
             .cache(
                 Cache(
-                    directory = CacheDirectoryProvider(androidContext).getCacheDirectory(
+                    directory = CacheDirectoryProvider(
+                        unleashConfig.localStorageConfig,
+                        androidContext
+                    ).getCacheDirectory(
                         "unleash_${clientName}_http_cache", true
                     ),
                     maxSize = strategy.httpCacheSize
@@ -197,11 +220,11 @@ class DefaultUnleash(
     override fun addUnleashEventListener(listener: UnleashEventListener) {
         unleashScope.launch {
             cache.getUpdatesFlow().collect {
-                Log.i(TAG, "Cache updated, telling listeners to refresh")
-                if (!ready) {
-                    ready = true
+                if (ready.compareAndSet(false, true)) {
+                    Log.i(TAG, "Toggles received, Unleash is ready")
                     listener.onReady()
                 }
+                Log.d(TAG, "Cache updated, notifying listeners that state changed")
                 listener.onStateChanged()
             }
         }
