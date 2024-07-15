@@ -114,7 +114,7 @@ class LifecycleAwareTaskManagerTest: BaseTest() {
         assertThat(manager.foregroundWorkers.filter { it.value.isActive }.size).isEqualTo(0)
 
         // when network becomes available workers become active
-        manager.onAvailable(mock(Network::class.java))
+        manager.onAvailable()
         assertThat(manager.foregroundWorkers.filter { it.value.isActive }.size).isEqualTo(2)
 
         runCurrent()

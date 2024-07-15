@@ -16,6 +16,7 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.robolectric.annotation.Config
 
+@Suppress("DEPRECATION")
 class NetworkStatusHelperTest : BaseTest() {
 
     @Test
