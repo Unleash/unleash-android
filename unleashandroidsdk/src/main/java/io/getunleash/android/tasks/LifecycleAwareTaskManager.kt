@@ -71,7 +71,7 @@ class LifecycleAwareTaskManager(
                     if (strategy.delay > 0) {
                         delay(strategy.delay)
                     }
-                    Log.d(TAG, "[$id] Executing action within $ioContext (isForeground? $isForeground)")
+                    Log.d(TAG, "[$id] Executing action within $ioContext")
                     action()
                     delay(timeMillis = strategy.interval)
                 }

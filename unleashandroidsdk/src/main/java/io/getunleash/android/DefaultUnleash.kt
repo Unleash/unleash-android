@@ -28,6 +28,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -37,6 +38,7 @@ import okhttp3.OkHttpClient
 import okhttp3.internal.toImmutableList
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicBoolean
 
 val unleashExceptionHandler = CoroutineExceptionHandler { _, exception ->
     Log.e("UnleashHandler", "Caught unhandled exception: ${exception.message}", exception)
@@ -50,9 +52,9 @@ class DefaultUnleash(
     private val unleashConfig: UnleashConfig,
     unleashContext: UnleashContext = UnleashContext(),
     cacheImpl: ToggleCache = InMemoryToggleCache(),
-    backup: LocalBackup? = LocalBackup(androidContext),
     eventListener: UnleashEventListener? = null,
-    lifecycle: Lifecycle = getLifecycle(androidContext)
+    lifecycle: Lifecycle = getLifecycle(androidContext),
+    localBackup: LocalBackup? = LocalBackup(androidContext)
 ) : Unleash {
     companion object {
         private const val TAG = "Unleash"
@@ -62,7 +64,7 @@ class DefaultUnleash(
     private val metrics: MetricsCollector
     private val taskManager: LifecycleAwareTaskManager
     private val cache: ObservableToggleCache
-    private var ready = false
+    private var ready = AtomicBoolean(false)
     private val fetcher: UnleashFetcher?
 
     init {
@@ -103,16 +105,24 @@ class DefaultUnleash(
             }.toImmutableList()
         )
         cache = ObservableCache(cacheImpl)
-        if (backup != null) {
-            unleashScope.launch {// Do we launch this async or not? NodeSDK does it sync
+        if (localBackup != null) {
+            unleashScope.launch {
                 withContext(Dispatchers.IO) {
-                    Log.d(TAG, "Loading state from backup")
-                    val stored = backup.loadFromDisc(unleashContextState.value)
-                    if (stored != null) cacheImpl.write(stored) // what if fetcher is faster?
-                    Log.d(TAG, "Loaded state from backup: $stored")
-                    backup.subscribeTo(cache.getUpdatesFlow())
+                    unleashContextState.asStateFlow().takeWhile { !ready.get() }.collect {
+                        Log.d(TAG, "Loading state from backup")
+                        localBackup.loadFromDisc(unleashContextState.value)?.let {
+                            if (ready.compareAndSet(false, true)) {
+                                Log.i(TAG, "Loaded state from backup: $it")
+                                cacheImpl.write(it)
+                                eventListener?.onReady()
+                            } else {
+                                Log.d(TAG, "Ignoring backup, Unleash is already ready")
+                            }
+                        }
+                    }
                 }
             }
+            localBackup.subscribeTo(cache.getUpdatesFlow())
         }
         if (fetcher != null) {
             fetcher.startWatchingContext()
@@ -197,11 +207,11 @@ class DefaultUnleash(
     override fun addUnleashEventListener(listener: UnleashEventListener) {
         unleashScope.launch {
             cache.getUpdatesFlow().collect {
-                Log.i(TAG, "Cache updated, telling listeners to refresh")
-                if (!ready) {
-                    ready = true
+                if (ready.compareAndSet(false, true)) {
+                    Log.i(TAG, "Toggles received, Unleash is ready")
                     listener.onReady()
                 }
+                Log.d(TAG, "Cache updated, notifying listeners that state changed")
                 listener.onStateChanged()
             }
         }

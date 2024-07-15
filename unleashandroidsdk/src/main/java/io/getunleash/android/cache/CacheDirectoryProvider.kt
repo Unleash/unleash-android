@@ -10,17 +10,7 @@ class CacheDirectoryProvider(private val context: Context) {
         private const val TAG = "CacheDirProvider"
     }
     fun getCacheDirectory(tempDirName: String, deleteOnShutdown: Boolean = false): File {
-        return getTempDirectory(tempDirName, deleteOnShutdown)
-    }
-
-    private fun getTempDirectory(tempDirName: String, deleteOnShutdown: Boolean = false): File {
-        val tempStorageDir: File = try {
-                context.cacheDir
-        } catch (e: NoClassDefFoundError) {
-            File.createTempFile("unleash_toggles", null)
-        } catch (e: RuntimeException) {
-            File("unleash_toggles")
-        }
+        val tempStorageDir: File = context.cacheDir
         val tempDir = File(tempStorageDir, tempDirName)
         if (!createDirectoryIfNotExists(tempDir)) {
             Log.w(TAG, "Failed to create directory ${tempDir.absolutePath}")
