@@ -5,6 +5,7 @@ import androidx.lifecycle.LifecycleOwner
 import io.getunleash.android.BaseTest
 import io.getunleash.android.data.DataStrategy
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
@@ -43,8 +44,8 @@ class LifecycleAwareTaskManagerTest: BaseTest() {
                     }
                 )
             ),
-            this,
-            this.backgroundScope.coroutineContext // override Dispatchers.IO
+            scope = this,
+            ioContext = this.backgroundScope.coroutineContext // override Dispatchers.IO
         )
 
         assertThat(manager.foregroundWorkers.filter { it.value.isActive }.size).isEqualTo(0)

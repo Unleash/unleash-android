@@ -15,6 +15,7 @@ import io.getunleash.android.data.DataStrategy
 import io.getunleash.android.data.UnleashContext
 import io.getunleash.android.data.Variant
 import io.getunleash.android.events.UnleashEventListener
+import io.getunleash.android.http.NetworkStatusHelper
 import io.getunleash.android.metrics.MetricsCollector
 import io.getunleash.android.metrics.MetricsSender
 import io.getunleash.android.metrics.NoOpMetrics
@@ -65,6 +66,7 @@ class DefaultUnleash(
     private val cache: ObservableToggleCache
     private var ready = AtomicBoolean(false)
     private val fetcher: UnleashFetcher?
+    private val networkStatusHelper = NetworkStatusHelper(androidContext)
 
     init {
         val metricsSender =
@@ -101,8 +103,10 @@ class DefaultUnleash(
                         )
                     )
                 }
-            }.toImmutableList()
+            }.toImmutableList(),
+            networkAvailable = networkStatusHelper.isAvailable()
         )
+        networkStatusHelper.registerNetworkListener(taskManager)
         cache = ObservableCache(cacheImpl)
         if (unleashConfig.localStorageConfig.enabled) {
             val localBackup = loadFromBackup(cacheImpl, eventListener)
@@ -231,6 +235,7 @@ class DefaultUnleash(
     }
 
     override fun close() {
+        networkStatusHelper.close()
         job.cancel("Unleash received closed signal")
     }
 }
