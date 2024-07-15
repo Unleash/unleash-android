@@ -7,9 +7,11 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Build
 import android.util.Log
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+
+interface NetworkListener {
+    fun onAvailable()
+    fun onLost()
+}
 
 class NetworkStatusHelper(val context: Context) {
     companion object {
@@ -18,45 +20,61 @@ class NetworkStatusHelper(val context: Context) {
 
     private val networkCallbacks = mutableListOf<ConnectivityManager.NetworkCallback>()
 
-    fun registerNetworkListener(networkCallback: ConnectivityManager.NetworkCallback) {
-        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE)
-        if (connectivityManager !is ConnectivityManager) {
-            Log.i(TAG, "Failed to get ConnectivityManager")
-            return
-        }
+    fun registerNetworkListener(listener: NetworkListener) {
+        val connectivityManager = getConnectivityManager() ?: return
         val networkRequest = NetworkRequest.Builder()
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             .build()
+
+        // wrap the listener in a NetworkCallback so the listener doesn't have to know about Android specifics
+        val networkCallback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                listener.onAvailable()
+            }
+
+            override fun onLost(network: Network) {
+                listener.onLost()
+            }
+        }
 
         connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
         networkCallbacks += networkCallback
     }
 
     fun close () {
-        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE)
-        if (connectivityManager !is ConnectivityManager) {
-            Log.i(TAG, "Failed to get ConnectivityManager")
-            return
-        }
+        val connectivityManager = getConnectivityManager() ?: return
         networkCallbacks.forEach {
             connectivityManager.unregisterNetworkCallback(it)
         }
     }
 
-    private fun isNetworkAvailable(context: Context): Boolean {
-        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    private fun isNetworkAvailable(): Boolean {
+        val connectivityManager = getConnectivityManager() ?: return true
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             val activeNetwork = connectivityManager.activeNetwork ?: return false
-            val capabilities = connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
+            val capabilities =
+                connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
             return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
                     capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
         } else {
+            @Suppress("DEPRECATION")
             val networkInfo = connectivityManager.activeNetworkInfo ?: return false
+            @Suppress("DEPRECATION")
             return networkInfo.isConnected
         }
     }
 
-    private fun isAirplaneModeOn(context: Context): Boolean {
+    private fun getConnectivityManager(): ConnectivityManager? {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE)
+        if (connectivityManager !is ConnectivityManager) {
+            Log.w(TAG, "Failed to get ConnectivityManager assuming network is available")
+            return null
+        }
+        return connectivityManager
+    }
+
+    private fun isAirplaneModeOn(): Boolean {
         return android.provider.Settings.System.getInt(
             context.contentResolver,
             android.provider.Settings.Global.AIRPLANE_MODE_ON, 0
@@ -64,6 +82,6 @@ class NetworkStatusHelper(val context: Context) {
     }
 
     fun isAvailable(): Boolean {
-        return !isAirplaneModeOn(context) && isNetworkAvailable(context)
+        return !isAirplaneModeOn() && isNetworkAvailable()
     }
 }

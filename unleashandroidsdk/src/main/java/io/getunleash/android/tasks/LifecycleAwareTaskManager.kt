@@ -1,12 +1,11 @@
 package io.getunleash.android.tasks
 
-import android.net.ConnectivityManager
-import android.net.Network
 import android.util.Log
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import io.getunleash.android.data.DataStrategy
+import io.getunleash.android.http.NetworkListener
 import io.getunleash.android.unleashScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,7 +22,7 @@ class LifecycleAwareTaskManager(
     private var networkAvailable: Boolean = true,
     private val scope: CoroutineScope = unleashScope,
     private val ioContext: CoroutineContext = Dispatchers.IO
-) : LifecycleEventObserver, ConnectivityManager.NetworkCallback() {
+) : LifecycleEventObserver, NetworkListener {
     companion object {
         private const val TAG = "TaskManager"
     }
@@ -105,13 +104,13 @@ class LifecycleAwareTaskManager(
         }
     }
 
-    override fun onAvailable(network: Network) {
+    override fun onAvailable() {
         Log.d(TAG, "Network available")
         networkAvailable = true
         startForegroundJobs()
     }
 
-    override fun onLost(network: Network) {
+    override fun onLost() {
         Log.d(TAG, "Network connection lost")
         networkAvailable = false
         stopForegroundJobs()
