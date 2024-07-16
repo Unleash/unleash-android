@@ -11,10 +11,10 @@ import io.getunleash.android.cache.InMemoryToggleCache
 import io.getunleash.android.cache.ObservableCache
 import io.getunleash.android.cache.ObservableToggleCache
 import io.getunleash.android.cache.ToggleCache
-import io.getunleash.android.data.DataStrategy
 import io.getunleash.android.data.UnleashContext
 import io.getunleash.android.data.Variant
 import io.getunleash.android.events.UnleashEventListener
+import io.getunleash.android.http.ClientBuilder
 import io.getunleash.android.http.NetworkStatusHelper
 import io.getunleash.android.metrics.MetricsCollector
 import io.getunleash.android.metrics.MetricsSender
@@ -34,10 +34,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
-import okhttp3.Cache
-import okhttp3.OkHttpClient
 import okhttp3.internal.toImmutableList
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -69,17 +66,18 @@ class DefaultUnleash(
     private val networkStatusHelper = NetworkStatusHelper(androidContext)
 
     init {
+        val httpClientBuilder = ClientBuilder(unleashConfig, androidContext)
         val metricsSender =
             if (unleashConfig.metricsStrategy.enabled)
                 MetricsSender(
                     unleashConfig,
-                    buildHttpClient("metrics", androidContext, unleashConfig.metricsStrategy)
+                    httpClientBuilder.build("metrics", unleashConfig.metricsStrategy)
                 )
             else NoOpMetrics()
         fetcher = if (unleashConfig.pollingStrategy.enabled)
             UnleashFetcher(
                 unleashConfig,
-                buildHttpClient("poller", androidContext, unleashConfig.pollingStrategy),
+                httpClientBuilder.build("poller", unleashConfig.pollingStrategy),
                 unleashContextState.asStateFlow()
             ) else null
         metrics = metricsSender
@@ -144,27 +142,6 @@ class DefaultUnleash(
             }
         }
         return localBackup
-    }
-
-    private fun buildHttpClient(
-        clientName: String,
-        androidContext: Context,
-        strategy: DataStrategy
-    ): OkHttpClient {
-        return OkHttpClient.Builder()
-            .readTimeout(strategy.httpReadTimeout, TimeUnit.MILLISECONDS)
-            .connectTimeout(strategy.httpConnectionTimeout, TimeUnit.MILLISECONDS)
-            .cache(
-                Cache(
-                    directory = CacheDirectoryProvider(
-                        unleashConfig.localStorageConfig,
-                        androidContext
-                    ).getCacheDirectory(
-                        "unleash_${clientName}_http_cache", true
-                    ),
-                    maxSize = strategy.httpCacheSize
-                )
-            ).build()
     }
 
     override fun isEnabled(toggleName: String, defaultValue: Boolean): Boolean {

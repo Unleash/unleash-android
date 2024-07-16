@@ -43,7 +43,7 @@ class MainActivity : ComponentActivity() {
         Log.i("MAIN","MainActivity.onCreate | lifecycle ${lifecycle.currentState}")
 
         setContent {
-            unleashAndroidTheme {
+            UnleashAndroidTheme {
                 var userId by remember { mutableStateOf(initialUserId) }
                 val flag by isEnabledViewModel.flagName.observeAsState()
                 if (!initialized) {
