@@ -23,6 +23,7 @@ data class UnleashConfig(
     val metricsStrategy: DataStrategy = DataStrategy(
         pauseOnBackground = true,
     ),
+    val delayedInitialization: Boolean = true
 ) {
     companion object {
         val instanceId: String = UUID.randomUUID().toString()
@@ -60,7 +61,7 @@ data class UnleashConfig(
             .newBuilder(parent = this)
         fun build(): UnleashConfig {
             if ((proxyUrl == null || clientKey == null) && (pollingStrategy.enabled || metricsStrategy.enabled)) {
-                throw IllegalStateException("You must set the pollingStrategy and metricsStrategy to be disabled")
+                throw IllegalStateException("You must either set proxyUrl and clientKey or disable both polling and metrics.")
             }
             return UnleashConfig(
                 proxyUrl = proxyUrl ?: "",
