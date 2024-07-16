@@ -29,7 +29,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import io.getunleash.android.Unleash
-import io.getunleash.android.UnleashStats
 import io.getunleash.android.events.UnleashEventListener
 import java.util.Date
 import java.util.Timer
@@ -45,6 +44,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val unleash = (application as TestApplication).unleash
+        var context = (application as TestApplication).unleashContext
         enableEdgeToEdge()
         Log.i("MAIN","MainActivity.onCreate | lifecycle ${lifecycle.currentState}")
 
@@ -70,7 +70,8 @@ class MainActivity : ComponentActivity() {
                             value = userId,
                             onValueChange = { newText ->
                                 userId = newText
-                                unleash.setContext(unleash.getContext().copy(userId = newText))
+                                context = context.copy(userId = newText)
+                                unleash.setContext(context)
                             },
                             label = { Text("Enter the userId for the context") },
                             modifier = Modifier.fillMaxWidth(),
@@ -171,8 +172,8 @@ fun Greeting(
         diff = diff(stats.value?.stats?.readySince)
     )
     ElapsedTime(
-        prefix = "Last 200 response was",
-        diff = diff(stats.value?.stats?.lastSuccessfulFetch)
+        prefix = "Last state update",
+        diff = diff(stats.value?.stats?.lastStateUpdate)
     )
 }
 

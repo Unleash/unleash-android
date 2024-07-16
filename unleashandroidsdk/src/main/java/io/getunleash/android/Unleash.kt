@@ -27,8 +27,6 @@ interface Unleash: Closeable {
      */
     fun setContextAsync(context: UnleashContext)
 
-    fun getContext(): UnleashContext
-
     fun addUnleashEventListener(listener: UnleashEventListener)
 
     /**
@@ -43,9 +41,4 @@ interface Unleash: Closeable {
      */
     fun refreshTogglesNowAsync()
 
-    /**
-     * Get the current stats for the client. Use this method carefully as it can change
-     * with future versions and should not be considered part of the public API.
-     */
-    fun getStats(): UnleashStats
 }

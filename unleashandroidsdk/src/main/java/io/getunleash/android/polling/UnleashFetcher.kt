@@ -3,7 +3,6 @@ package io.getunleash.android.polling
 import android.util.Log
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.getunleash.android.UnleashConfig
-import io.getunleash.android.UnleashStats
 import io.getunleash.android.data.FetchResponse
 import io.getunleash.android.data.Parser
 import io.getunleash.android.data.ProxyResponse
@@ -36,7 +35,6 @@ import okhttp3.Response
 import okhttp3.internal.closeQuietly
 import java.io.Closeable
 import java.io.IOException
-import java.util.Date
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.CoroutineContext
@@ -106,7 +104,6 @@ open class UnleashFetcher(
                 TAG,
                 "Fetched new state with ${toggles.size} toggles, emitting featuresReceivedFlow"
             )
-            UnleashStats.lastSuccessfulFetch = Date()
             featuresReceivedFlow.emit(UnleashState(ctx, toggles))
             return ToggleResponse(response.status, toggles)
         } else {
