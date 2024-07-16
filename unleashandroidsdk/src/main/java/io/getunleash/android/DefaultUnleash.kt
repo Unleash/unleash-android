@@ -17,6 +17,7 @@ import io.getunleash.android.events.UnleashEventListener
 import io.getunleash.android.http.ClientBuilder
 import io.getunleash.android.http.NetworkStatusHelper
 import io.getunleash.android.metrics.MetricsCollector
+import io.getunleash.android.metrics.MetricsReporter
 import io.getunleash.android.metrics.MetricsSender
 import io.getunleash.android.metrics.NoOpMetrics
 import io.getunleash.android.polling.UnleashFetcher
@@ -74,34 +75,15 @@ class DefaultUnleash(
                     httpClientBuilder.build("metrics", unleashConfig.metricsStrategy)
                 )
             else NoOpMetrics()
+        metrics = metricsSender
         fetcher = if (unleashConfig.pollingStrategy.enabled)
             UnleashFetcher(
                 unleashConfig,
                 httpClientBuilder.build("poller", unleashConfig.pollingStrategy),
                 unleashContextState.asStateFlow()
             ) else null
-        metrics = metricsSender
         taskManager = LifecycleAwareTaskManager(
-            buildList {
-                if (fetcher != null) {
-                    add(
-                        DataJob(
-                            "fetchToggles",
-                            unleashConfig.pollingStrategy,
-                            fetcher::refreshToggles
-                        )
-                    )
-                }
-                if (unleashConfig.metricsStrategy.enabled) {
-                    add(
-                        DataJob(
-                            "sendMetrics",
-                            unleashConfig.metricsStrategy,
-                            metricsSender::sendMetrics
-                        )
-                    )
-                }
-            }.toImmutableList(),
+            dataJobs = buildDataJobs(fetcher, metricsSender),
             networkAvailable = networkStatusHelper.isAvailable()
         )
         networkStatusHelper.registerNetworkListener(taskManager)
@@ -110,13 +92,34 @@ class DefaultUnleash(
             val localBackup = loadFromBackup(cacheImpl, eventListener)
             localBackup.subscribeTo(cache.getUpdatesFlow())
         }
-        if (fetcher != null) {
-            fetcher.startWatchingContext()
-            cache.subscribeTo(fetcher.getFeaturesReceivedFlow())
+        fetcher?.let {
+            it.startWatchingContext()
+            cache.subscribeTo(it.getFeaturesReceivedFlow())
         }
         lifecycle.addObserver(taskManager)
         eventListener?.let { addUnleashEventListener(it) }
     }
+
+    private fun buildDataJobs(fetcher: UnleashFetcher?, metricsSender: MetricsReporter) = buildList {
+        if (fetcher != null) {
+            add(
+                DataJob(
+                    "fetchToggles",
+                    unleashConfig.pollingStrategy,
+                    fetcher::refreshToggles
+                )
+            )
+        }
+        if (unleashConfig.metricsStrategy.enabled) {
+            add(
+                DataJob(
+                    "sendMetrics",
+                    unleashConfig.metricsStrategy,
+                    metricsSender::sendMetrics
+                )
+            )
+        }
+    }.toImmutableList()
 
     private fun loadFromBackup(
         cacheImpl: ToggleCache,
