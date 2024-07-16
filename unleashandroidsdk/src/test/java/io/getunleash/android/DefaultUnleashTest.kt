@@ -13,8 +13,10 @@ import kotlinx.coroutines.test.runTest
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.groups.Tuple
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.robolectric.shadows.ShadowLog
 
 class DefaultUnleashTest: BaseTest() {
     private val testCache = object: ToggleCache {
@@ -100,5 +102,26 @@ class DefaultUnleashTest: BaseTest() {
         while (!onReady1 || !onReady2 || !onReady3) {
             runCurrent()
         }
+    }
+
+    @Test
+    fun `initializing client twice should show a console warning`() {
+        val unleash = DefaultUnleash(
+            androidContext = mock(Context::class.java),
+            unleashConfig = UnleashConfig.newBuilder("test-android-app")
+                .pollingStrategy.enabled(false)
+                .metricsStrategy.enabled(false)
+                .localStorageConfig.enabled(false)
+                .build(),
+            cacheImpl = testCache,
+            lifecycle = mock(Lifecycle::class.java),
+        )
+
+        unleash.start()
+        unleash.start()
+
+        assertThat(ShadowLog.getLogs())
+            .map(ShadowLog.LogItem::msg)
+            .contains(Tuple("Unleash already started, ignoring start call"))
     }
 }
