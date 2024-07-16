@@ -11,7 +11,10 @@ import io.getunleash.android.cache.InMemoryToggleCache
 import io.getunleash.android.cache.ObservableCache
 import io.getunleash.android.cache.ObservableToggleCache
 import io.getunleash.android.cache.ToggleCache
+import io.getunleash.android.data.ImpressionEvent
+import io.getunleash.android.data.Toggle
 import io.getunleash.android.data.UnleashContext
+import io.getunleash.android.data.UnleashState
 import io.getunleash.android.data.Variant
 import io.getunleash.android.events.UnleashEventListener
 import io.getunleash.android.http.ClientBuilder
@@ -28,9 +31,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -53,7 +59,8 @@ class DefaultUnleash(
     unleashContext: UnleashContext = UnleashContext(),
     cacheImpl: ToggleCache = InMemoryToggleCache(),
     eventListeners: List<UnleashEventListener> = emptyList(),
-    private val lifecycle: Lifecycle = getLifecycle(androidContext)
+    private val lifecycle: Lifecycle = getLifecycle(androidContext),
+    private val coroutineScope: CoroutineScope = unleashScope
 ) : Unleash {
     companion object {
         private const val TAG = "Unleash"
@@ -62,12 +69,16 @@ class DefaultUnleash(
     private val unleashContextState = MutableStateFlow(unleashContext)
     private val metrics: MetricsCollector
     private val taskManager: LifecycleAwareTaskManager
-    private val cache: ObservableToggleCache = ObservableCache(cacheImpl)
+    private val cache: ObservableToggleCache = ObservableCache(cacheImpl, coroutineScope)
     private var started = AtomicBoolean(false)
     private var ready = AtomicBoolean(false)
     private val readyFlow = MutableStateFlow(false)
     private val fetcher: UnleashFetcher?
     private val networkStatusHelper = NetworkStatusHelper(androidContext)
+    private val impressionEventsFlow = MutableSharedFlow<ImpressionEvent>(
+        extraBufferCapacity = 64,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
 
     init {
         val httpClientBuilder = ClientBuilder(unleashConfig, androidContext)
@@ -87,7 +98,8 @@ class DefaultUnleash(
             ) else null
         taskManager = LifecycleAwareTaskManager(
             dataJobs = buildDataJobs(fetcher, metricsSender),
-            networkAvailable = networkStatusHelper.isAvailable()
+            networkAvailable = networkStatusHelper.isAvailable(),
+            scope = coroutineScope
         )
         if (!unleashConfig.delayedInitialization) {
             start(eventListeners)
@@ -96,7 +108,10 @@ class DefaultUnleash(
         }
     }
 
-    fun start(eventListeners: List<UnleashEventListener> = emptyList()) {
+    fun start(
+        eventListeners: List<UnleashEventListener> = emptyList(),
+        bootstrap: List<Toggle> = emptyList()
+    ) {
         if (!started.compareAndSet(false, true)) {
             Log.w(TAG, "Unleash already started, ignoring start call")
             return
@@ -112,6 +127,10 @@ class DefaultUnleash(
             cache.subscribeTo(it.getFeaturesReceivedFlow())
         }
         lifecycle.addObserver(taskManager)
+        if (bootstrap.isNotEmpty()) {
+            Log.i(TAG, "Using provided bootstrap toggles")
+            cache.write(UnleashState(unleashContextState.value, bootstrap.associateBy { it.name }))
+        }
     }
 
     private fun buildDataJobs(fetcher: UnleashFetcher?, metricsSender: MetricsReporter) = buildList {
@@ -139,7 +158,7 @@ class DefaultUnleash(
         val backupDir = CacheDirectoryProvider(unleashConfig.localStorageConfig, androidContext)
             .getCacheDirectory("unleash_backup")
         val localBackup = LocalBackup(backupDir)
-        unleashScope.launch {
+        coroutineScope.launch {
             withContext(Dispatchers.IO) {
                 unleashContextState.asStateFlow().takeWhile { !ready.get() }.collect { ctx ->
                     Log.d(TAG, "Loading state from backup for $ctx")
@@ -158,20 +177,32 @@ class DefaultUnleash(
     }
 
     override fun isEnabled(toggleName: String, defaultValue: Boolean): Boolean {
-        val enabled = cache.get(toggleName)?.enabled ?: defaultValue
+        val toggle = cache.get(toggleName)
+        val enabled = toggle?.enabled ?: defaultValue
+        val impressionData = toggle?.impressionData ?: unleashConfig.forceImpressionData
+        if (impressionData) {
+            emit(ImpressionEvent(toggleName, enabled, unleashContextState.value))
+        }
         metrics.count(toggleName, enabled)
         return enabled
     }
 
     override fun getVariant(toggleName: String, defaultValue: Variant): Variant {
-        val variant =
-            if (isEnabled(toggleName)) {
-                cache.get(toggleName)?.variant ?: defaultValue
-            } else {
-                defaultValue
-            }
+        val toggle = cache.get(toggleName)
+        val enabled = isEnabled(toggleName)
+        val variant = if (enabled) (toggle?.variant ?: defaultValue) else defaultValue
+        val impressionData = toggle?.impressionData ?: unleashConfig.forceImpressionData
+        if (impressionData) {
+            emit(ImpressionEvent(toggleName, enabled, unleashContextState.value, variant.name))
+        }
         metrics.countVariant(toggleName, variant)
         return variant
+    }
+
+    private fun emit(impressionEvent: ImpressionEvent) {
+        coroutineScope.launch {
+            impressionEventsFlow.emit(impressionEvent)
+        }
     }
 
     override fun refreshTogglesNow() {
@@ -181,7 +212,7 @@ class DefaultUnleash(
     }
 
     override fun refreshTogglesNowAsync() {
-        unleashScope.launch {
+        coroutineScope.launch {
             withContext(Dispatchers.IO) {
                 fetcher?.refreshToggles()
             }
@@ -208,19 +239,24 @@ class DefaultUnleash(
     }
 
     override fun addUnleashEventListener(listener: UnleashEventListener) {
-        unleashScope.launch {
+        coroutineScope.launch {
+            val firstReady = readyFlow.asStateFlow().filter { it }.first()
+            Log.d(TAG, "Ready state changed to $firstReady, notifying $listener")
+            listener.onReady()
+        }
+        coroutineScope.launch {
             cache.getUpdatesFlow().collect {
                 if (ready.compareAndSet(false, true)) {
+                    Log.d(TAG, "Unleash is now ready")
                     readyFlow.value = true
                 }
                 Log.d(TAG, "Cache updated, notifying $listener that state changed")
                 listener.onStateChanged()
             }
         }
-        unleashScope.launch {
-            readyFlow.asStateFlow().filter { it }.collect {
-                Log.d(TAG, "Ready state changed, notifying $listener")
-                listener.onReady()
+        coroutineScope.launch {
+            impressionEventsFlow.collect { event ->
+                listener.onImpression(event)
             }
         }
     }

@@ -3,13 +3,11 @@ package io.getunleash.android
 import android.content.Context
 import androidx.lifecycle.Lifecycle
 import io.getunleash.android.cache.ToggleCache
+import io.getunleash.android.data.ImpressionEvent
 import io.getunleash.android.data.Toggle
+import io.getunleash.android.data.UnleashContext
 import io.getunleash.android.data.UnleashState
 import io.getunleash.android.events.UnleashEventListener
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runCurrent
-import kotlinx.coroutines.test.runTest
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.assertj.core.api.Assertions.assertThat
@@ -19,11 +17,12 @@ import org.mockito.Mockito.mock
 import org.robolectric.shadows.ShadowLog
 
 class DefaultUnleashTest: BaseTest() {
+    private val staticToggleList = listOf(
+        Toggle(name = "feature1", enabled = true),
+        Toggle(name = "feature2", enabled = false),
+    )
     private val testCache = object: ToggleCache {
-        val staticToggles = mapOf(
-            "feature1" to Toggle(name = "feature1", enabled = true),
-            "feature2" to Toggle(name = "feature2", enabled = false),
-        )
+        val staticToggles = staticToggleList.associateBy { it.name }
         override fun read(): Map<String, Toggle> {
             return staticToggles
         }
@@ -35,10 +34,9 @@ class DefaultUnleashTest: BaseTest() {
         override fun write(state: UnleashState) {
             TODO("Should not be used")
         }
-
     }
     @Test
-    fun testDefaultUnleash() {
+    fun testDefaultUnleashWithStaticCache() {
         val unleash = DefaultUnleash(
             androidContext = mock(Context::class.java),
             unleashConfig = UnleashConfig.newBuilder("test-android-app")
@@ -54,9 +52,25 @@ class DefaultUnleashTest: BaseTest() {
         assertThat(unleash.isEnabled("nonExisting")).isFalse()
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun addingOnReadyListenersShouldNotifyAll() = runTest {
+    fun testDefaultUnleashWithBootstrap() {
+        val unleash = DefaultUnleash(
+            androidContext = mock(Context::class.java),
+            unleashConfig = UnleashConfig.newBuilder("test-android-app")
+                .pollingStrategy.enabled(false)
+                .metricsStrategy.enabled(false)
+                .localStorageConfig.enabled(false)
+                .build(),
+            lifecycle = mock(Lifecycle::class.java),
+        )
+        unleash.start(bootstrap = staticToggleList)
+        assertThat(unleash.isEnabled("feature1")).isTrue()
+        assertThat(unleash.isEnabled("feature2")).isFalse()
+        assertThat(unleash.isEnabled("nonExisting")).isFalse()
+    }
+
+    @Test
+    fun `adding on ready listeners should notify all`() {
         val server = MockWebServer()
         server.enqueue(
             MockResponse().setBody(
@@ -100,7 +114,7 @@ class DefaultUnleashTest: BaseTest() {
         )
 
         while (!onReady1 || !onReady2 || !onReady3) {
-            runCurrent()
+            Thread.sleep(50)
         }
     }
 
@@ -123,5 +137,63 @@ class DefaultUnleashTest: BaseTest() {
         assertThat(ShadowLog.getLogs())
             .map(ShadowLog.LogItem::msg)
             .contains(Tuple("Unleash already started, ignoring start call"))
+    }
+
+    @Test
+    fun `feature with impression event set to true will emit an impression event`() {
+        val unleash = DefaultUnleash(
+            androidContext = mock(Context::class.java),
+            unleashConfig = UnleashConfig.newBuilder("test-android-app")
+                .pollingStrategy.enabled(false)
+                .metricsStrategy.enabled(false)
+                .localStorageConfig.enabled(false)
+                .build(),
+            unleashContext = UnleashContext(userId = "123"),
+            lifecycle = mock(Lifecycle::class.java)
+        )
+
+        var ready = false
+        val impressionEvents = mutableListOf<ImpressionEvent>()
+        unleash.start(
+            eventListeners = listOf(object : UnleashEventListener {
+                override fun onImpression(event: ImpressionEvent) {
+                    impressionEvents.add(event)
+                }
+
+                override fun onReady() {
+                    ready = true
+                }
+            }), bootstrap = listOf(
+                Toggle(name = "with-impression", enabled = true, impressionData = true),
+                Toggle(name = "without-impression", enabled = false)
+            )
+        )
+
+        var waits = 0
+        while (!ready) {
+            println("Waiting for unleash to be ready")
+            waits ++
+            Thread.sleep(50)
+            if (waits > 100) {
+                throw IllegalStateException("Unleash did not become ready")
+            }
+        }
+
+        unleash.isEnabled("with-impression")
+        unleash.isEnabled("with-impression", true)
+        unleash.isEnabled("without-impression")
+        unleash.isEnabled("with-impression", false)
+        unleash.isEnabled("non-existing-toggle")
+
+        while (impressionEvents.size < 3) {
+            waits ++
+            Thread.sleep(50)
+            if (waits > 100) {
+                throw IllegalStateException("Impression events never arrived")
+            }
+        }
+        assertThat(impressionEvents).hasSize(3)
+        assertThat(impressionEvents).allMatch { it.featureName == "with-impression" }
+        assertThat(impressionEvents).allMatch { it.enabled }
     }
 }

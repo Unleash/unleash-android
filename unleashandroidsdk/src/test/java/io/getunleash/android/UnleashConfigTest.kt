@@ -47,6 +47,7 @@ class UnleashConfigTest {
         val config = UnleashConfig.newBuilder("testApp")
             .pollingStrategy.enabled(false)
             .metricsStrategy.enabled(false)
+            .build()
 
         assertThat(config.proxyUrl).isNull()
         assertThat(config.clientKey).isNull()

@@ -4,6 +4,7 @@ import android.util.Log
 import io.getunleash.android.data.Toggle
 import io.getunleash.android.data.UnleashState
 import io.getunleash.android.unleashScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -11,7 +12,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class ObservableCache(private val cache: ToggleCache) : ObservableToggleCache {
+class ObservableCache(private val cache: ToggleCache, private val coroutineScope: CoroutineScope = unleashScope) : ObservableToggleCache {
     companion object {
         private const val TAG = "ObservableCache"
     }
@@ -27,14 +28,17 @@ class ObservableCache(private val cache: ToggleCache) : ObservableToggleCache {
 
     override fun write(state: UnleashState) {
         cache.write(state)
-        unleashScope.launch {
+        Log.d(TAG, "Done writing cache")
+        coroutineScope.launch {
+            Log.d(TAG, "Emitting new state with ${state.toggles.size} toggles for ${state.context}")
             events.emit(state)
         }
+        Log.d(TAG, "Done sending event")
     }
 
     override fun subscribeTo(featuresReceived: Flow<UnleashState>) {
         Log.d(TAG, "Subscribing to observable cache")
-        unleashScope.launch {
+        coroutineScope.launch {
             featuresReceived.collect { state ->
                 withContext(Dispatchers.IO) {
                     Log.d(TAG, "Storing new state with ${state.toggles.size} toggles for $state.context")
