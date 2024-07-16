@@ -5,6 +5,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import io.getunleash.android.data.DataStrategy
+import io.getunleash.android.http.NetworkListener
 import io.getunleash.android.unleashScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,9 +19,10 @@ data class DataJob(val id: String, val strategy: DataStrategy, val action: suspe
 
 class LifecycleAwareTaskManager(
     private val dataJobs: List<DataJob>,
+    private var networkAvailable: Boolean = true,
     private val scope: CoroutineScope = unleashScope,
     private val ioContext: CoroutineContext = Dispatchers.IO
-) : LifecycleEventObserver {
+) : LifecycleEventObserver, NetworkListener {
     companion object {
         private const val TAG = "TaskManager"
     }
@@ -29,6 +31,10 @@ class LifecycleAwareTaskManager(
     private var isDestroying = false
 
     internal fun startForegroundJobs() {
+        if (!networkAvailable) {
+            Log.d(TAG, "Network not available, not starting foreground jobs")
+            return
+        }
         if (!isForeground) {
             isForeground = true
 
@@ -46,11 +52,11 @@ class LifecycleAwareTaskManager(
     }
 
     private fun stopForegroundJobs() {
-        if (isForeground || isDestroying) {
+        if (isForeground || isDestroying || !networkAvailable) {
             isForeground = false
 
             dataJobs.forEach { dataJob ->
-                if (dataJob.strategy.pauseOnBackground || isDestroying) {
+                if (dataJob.strategy.pauseOnBackground || isDestroying || !networkAvailable) {
                     Log.d(TAG, "Pausing foreground job: ${dataJob.id}")
                     foregroundWorkers[dataJob.id]?.cancel()
                 } else {
@@ -67,7 +73,8 @@ class LifecycleAwareTaskManager(
     ): Job {
         return scope.launch {
             withContext(ioContext) {
-                while (!isDestroying && (isForeground || !strategy.pauseOnBackground)) {
+                while (!isDestroying && (isForeground || !strategy.pauseOnBackground)
+                    && networkAvailable) {
                     if (strategy.delay > 0) {
                         delay(strategy.delay)
                     }
@@ -95,5 +102,17 @@ class LifecycleAwareTaskManager(
             }
             else -> {}
         }
+    }
+
+    override fun onAvailable() {
+        Log.d(TAG, "Network available")
+        networkAvailable = true
+        startForegroundJobs()
+    }
+
+    override fun onLost() {
+        Log.d(TAG, "Network connection lost")
+        networkAvailable = false
+        stopForegroundJobs()
     }
 }
