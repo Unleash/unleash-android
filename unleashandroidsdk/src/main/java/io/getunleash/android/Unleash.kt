@@ -42,4 +42,10 @@ interface Unleash: Closeable {
      * Usually, this is done automatically in the background, but you can call this function to force a refresh.
      */
     fun refreshTogglesNowAsync()
+
+    /**
+     * Get the current stats for the client. Use this method carefully as it can change
+     * with future versions and should not be considered part of the public API.
+     */
+    fun getStats(): UnleashStats
 }

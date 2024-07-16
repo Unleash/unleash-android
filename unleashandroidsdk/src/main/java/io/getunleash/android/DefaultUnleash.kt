@@ -36,6 +36,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import okhttp3.internal.toImmutableList
+import java.util.Date
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -89,7 +90,7 @@ class DefaultUnleash(
         networkStatusHelper.registerNetworkListener(taskManager)
         cache = ObservableCache(cacheImpl)
         if (unleashConfig.localStorageConfig.enabled) {
-            val localBackup = loadFromBackup(cacheImpl, eventListener)
+            val localBackup = getLocalBackup()
             localBackup.subscribeTo(cache.getUpdatesFlow())
         }
         fetcher?.let {
@@ -121,10 +122,7 @@ class DefaultUnleash(
         }
     }.toImmutableList()
 
-    private fun loadFromBackup(
-        cacheImpl: ToggleCache,
-        eventListener: UnleashEventListener?
-    ): LocalBackup {
+    private fun getLocalBackup(): LocalBackup {
         val backupDir = CacheDirectoryProvider(unleashConfig.localStorageConfig, androidContext)
             .getCacheDirectory("unleash_backup")
         val localBackup = LocalBackup(backupDir)
@@ -133,10 +131,9 @@ class DefaultUnleash(
                 unleashContextState.asStateFlow().takeWhile { !ready.get() }.collect { ctx ->
                     Log.d(TAG, "Loading state from backup for $ctx")
                     localBackup.loadFromDisc(unleashContextState.value)?.let { state ->
-                        if (ready.compareAndSet(false, true)) {
+                        if (!ready.get()) {
                             Log.i(TAG, "Loaded state from backup for $ctx")
-                            cacheImpl.write(state)
-                            eventListener?.onReady()
+                            cache.write(state)
                         } else {
                             Log.d(TAG, "Ignoring backup, Unleash is already ready")
                         }
@@ -201,11 +198,16 @@ class DefaultUnleash(
         return unleashContextState.value
     }
 
+    override fun getStats(): UnleashStats {
+        return UnleashStats
+    }
+
     override fun addUnleashEventListener(listener: UnleashEventListener) {
         unleashScope.launch {
             cache.getUpdatesFlow().collect {
                 if (ready.compareAndSet(false, true)) {
                     Log.i(TAG, "Toggles received, Unleash is ready")
+                    UnleashStats.readySince = Date()
                     listener.onReady()
                 }
                 Log.d(TAG, "Cache updated, notifying listeners that state changed")
