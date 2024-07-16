@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.colorResource
 
 @Composable
-fun unleashAndroidTheme(content: @Composable () -> Unit) {
+fun UnleashAndroidTheme(content: @Composable () -> Unit) {
 
     MaterialTheme(
         colorScheme = MaterialTheme.colorScheme.copy(

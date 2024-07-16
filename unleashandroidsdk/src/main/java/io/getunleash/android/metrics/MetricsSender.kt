@@ -2,6 +2,7 @@ package io.getunleash.android.metrics
 
 import android.util.Log
 import io.getunleash.android.UnleashConfig
+import io.getunleash.android.UnleashStats
 import io.getunleash.android.data.Bucket
 import io.getunleash.android.data.CountBucket
 import io.getunleash.android.data.MetricsPayload
@@ -63,6 +64,9 @@ class MetricsSender(
                         TAG,
                         "Received status code ${response.code} from ${request.method} $metricsUrl"
                     )
+                    if (response.code in 200..299) {
+                        UnleashStats.lastSuccessfulSentMetrics = Date()
+                    }
                     throttler.handle(response.code)
                     response.body.use { // Need to consume body to ensure we don't keep connection open
                     }
