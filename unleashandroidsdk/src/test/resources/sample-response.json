@@ -11,11 +11,12 @@
       "impressionData": false
     },
     {
-      "name": "AwsomeDemo",
+      "name": "AwesomeDemo",
       "enabled": true,
       "variant": {
         "name": "black",
         "enabled": true,
+        "feature_enabled": true,
         "payload": null
       },
       "impressionData": false

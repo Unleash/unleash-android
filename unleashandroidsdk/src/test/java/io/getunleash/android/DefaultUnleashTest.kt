@@ -191,4 +191,39 @@ class DefaultUnleashTest: BaseTest() {
             }
         }
     }
+
+    @Test
+    fun `validate we can read featureEnabled from the variants`() {
+        val server = MockWebServer()
+        server.enqueue(
+            MockResponse().setBody(
+                this::class.java.classLoader?.getResource("sample-response.json")!!.readText())
+        )
+        val unleash = DefaultUnleash(
+            androidContext = mock(Context::class.java),
+            unleashConfig = UnleashConfig.newBuilder("test-android-app")
+                .proxyUrl(server.url("").toString())
+                .clientKey("key-123")
+                .pollingStrategy.enabled(true)
+                .metricsStrategy.enabled(false)
+                .localStorageConfig.enabled(false)
+                .build(),
+            lifecycle = mock(Lifecycle::class.java),
+        )
+
+        var ready = false
+        unleash.addUnleashEventListener(object: UnleashReadyListener {
+            override fun onReady() {
+                ready = true
+            }
+        })
+        unleash.start()
+
+        await().atMost(1, TimeUnit.SECONDS).until { ready }
+        val variant = unleash.getVariant("AwesomeDemo")
+        assertThat(variant).isNotNull
+        assertThat(variant.enabled).isTrue()
+        assertThat(variant.featureEnabled).isTrue()
+        assertThat(variant.name).isEqualTo("black")
+    }
 }
