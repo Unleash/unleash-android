@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -22,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,15 +30,21 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import io.getunleash.android.Unleash
 import io.getunleash.android.events.UnleashEventListener
+import java.util.Date
+import java.util.Timer
+import kotlin.concurrent.timerTask
+
+val unleashStatsObserver = UnleashStatsObserver()
 
 class MainActivity : ComponentActivity() {
     private var isEnabledViewModel: IsEnabledViewModel = IsEnabledViewModel(initialFlagValue)
     private var initialized = false
-    @OptIn(ExperimentalMaterial3Api::class)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         val unleash = (application as TestApplication).unleash
+        var context = (application as TestApplication).unleashContext
         enableEdgeToEdge()
         Log.i("MAIN","MainActivity.onCreate | lifecycle ${lifecycle.currentState}")
 
@@ -57,14 +63,15 @@ class MainActivity : ComponentActivity() {
                         Greeting(
                             name = "Unleash",
                             modifier = Modifier.padding(innerPadding),
-                            isEnabledViewModel = isEnabledViewModel
+                            isEnabledViewModel = isEnabledViewModel,
                         )
 
                         OutlinedTextField(
                             value = userId,
                             onValueChange = { newText ->
                                 userId = newText
-                                unleash.setContext(unleash.getContext().copy(userId = newText))
+                                context = context.copy(userId = newText)
+                                unleash.setContext(context)
                             },
                             label = { Text("Enter the userId for the context") },
                             modifier = Modifier.fillMaxWidth(),
@@ -93,6 +100,10 @@ class MainActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
         Log.i("MAIN","MainActivity.onStart")
+        Timer().schedule(
+            timerTask {
+            unleashStatsObserver.checkForUpdates()
+        }, 100L, 1000L)
     }
 }
 
@@ -135,15 +146,77 @@ class IsEnabledViewModel(initialFlag: String): ViewModel() {
 }
 
 @Composable
-fun Greeting(name: String, isEnabledViewModel: IsEnabledViewModel, modifier: Modifier = Modifier) {
+fun Greeting(
+    name: String,
+    isEnabledViewModel: IsEnabledViewModel,
+    modifier: Modifier = Modifier,
+) {
     val isEnabled by isEnabledViewModel.isEnabled.observeAsState(false)
-    val text = "Hello $name"
-
     Text(
-        text = "$text, toggle ${isEnabledViewModel.getFlagName()} is ${if (isEnabled) "enabled" else "disabled"}",
+        text = "Hello $name",
         fontSize = 44.sp,
-        lineHeight = 44.sp,
+        modifier = modifier,
+        color = colorResource(id = R.color.purple_500)
+    )
+    Text(
+        text = "${isEnabledViewModel.getFlagName()} is ${if (isEnabled) "enabled" else "disabled"}",
+        fontSize = 38.sp,
+        lineHeight = 38.sp,
         color = if (isEnabled) androidx.compose.ui.graphics.Color.Green else androidx.compose.ui.graphics.Color.Red,
         modifier = modifier
     )
+
+    val stats = unleashStatsObserver.latestStats.observeAsState()
+    ElapsedTime(
+        prefix = "Unleash ready since",
+        diff = diff(stats.value?.stats?.readySince)
+    )
+    ElapsedTime(
+        prefix = "Last state update",
+        diff = diff(stats.value?.stats?.lastStateUpdate)
+    )
+}
+
+@Composable
+private fun diff(date: Date?): Long? {
+    return date?.let {
+        Date().time - it.time
+    }
+}
+
+@Composable
+fun ElapsedTime(prefix: String, diff: Long?) {
+    val text = remember(diff) {
+        if (diff == null) {
+            "never"
+        } else {
+            if (diff < 60000) {
+                val seconds = diff / 1000
+                "$seconds seconds ago"
+            } else {
+                val minutes = diff / 60000
+                "$minutes minutes ago"
+            }
+        }
+    }
+    Text(
+        text = "$prefix $text",
+        fontSize = 24.sp,
+        lineHeight = 24.sp,
+    )
+}
+
+
+data class StatsGen(val stats: UnleashStats, val time: Date = Date())
+class UnleashStatsObserver {
+    private val _latestStats = MutableLiveData<StatsGen>()
+    val latestStats: LiveData<StatsGen> = _latestStats
+
+    fun checkForUpdates() {
+        // This is a dummy implementation to simulate the stats changing
+        val newStats = StatsGen(UnleashStats)
+        if (newStats != _latestStats.value) {
+            _latestStats.postValue(newStats)
+        }
+    }
 }

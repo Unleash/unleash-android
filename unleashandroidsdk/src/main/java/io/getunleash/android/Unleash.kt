@@ -27,8 +27,6 @@ interface Unleash: Closeable {
      */
     fun setContextAsync(context: UnleashContext)
 
-    fun getContext(): UnleashContext
-
     fun addUnleashEventListener(listener: UnleashEventListener)
 
     /**
@@ -42,4 +40,5 @@ interface Unleash: Closeable {
      * Usually, this is done automatically in the background, but you can call this function to force a refresh.
      */
     fun refreshTogglesNowAsync()
+
 }

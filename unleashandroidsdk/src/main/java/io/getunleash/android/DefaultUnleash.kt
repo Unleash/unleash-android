@@ -30,6 +30,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -61,12 +62,14 @@ class DefaultUnleash(
     private val unleashContextState = MutableStateFlow(unleashContext)
     private val metrics: MetricsCollector
     private val taskManager: LifecycleAwareTaskManager
-    private val cache: ObservableToggleCache
+    private val cache: ObservableToggleCache = ObservableCache(cacheImpl)
     private var ready = AtomicBoolean(false)
+    private val readyFlow = MutableStateFlow(false)
     private val fetcher: UnleashFetcher?
     private val networkStatusHelper = NetworkStatusHelper(androidContext)
 
     init {
+        eventListener?.let { addUnleashEventListener(it) }
         val httpClientBuilder = ClientBuilder(unleashConfig, androidContext)
         val metricsSender =
             if (unleashConfig.metricsStrategy.enabled)
@@ -87,9 +90,8 @@ class DefaultUnleash(
             networkAvailable = networkStatusHelper.isAvailable()
         )
         networkStatusHelper.registerNetworkListener(taskManager)
-        cache = ObservableCache(cacheImpl)
         if (unleashConfig.localStorageConfig.enabled) {
-            val localBackup = loadFromBackup(cacheImpl, eventListener)
+            val localBackup = getLocalBackup()
             localBackup.subscribeTo(cache.getUpdatesFlow())
         }
         fetcher?.let {
@@ -97,7 +99,6 @@ class DefaultUnleash(
             cache.subscribeTo(it.getFeaturesReceivedFlow())
         }
         lifecycle.addObserver(taskManager)
-        eventListener?.let { addUnleashEventListener(it) }
     }
 
     private fun buildDataJobs(fetcher: UnleashFetcher?, metricsSender: MetricsReporter) = buildList {
@@ -121,10 +122,7 @@ class DefaultUnleash(
         }
     }.toImmutableList()
 
-    private fun loadFromBackup(
-        cacheImpl: ToggleCache,
-        eventListener: UnleashEventListener?
-    ): LocalBackup {
+    private fun getLocalBackup(): LocalBackup {
         val backupDir = CacheDirectoryProvider(unleashConfig.localStorageConfig, androidContext)
             .getCacheDirectory("unleash_backup")
         val localBackup = LocalBackup(backupDir)
@@ -133,10 +131,9 @@ class DefaultUnleash(
                 unleashContextState.asStateFlow().takeWhile { !ready.get() }.collect { ctx ->
                     Log.d(TAG, "Loading state from backup for $ctx")
                     localBackup.loadFromDisc(unleashContextState.value)?.let { state ->
-                        if (ready.compareAndSet(false, true)) {
+                        if (!ready.get()) {
                             Log.i(TAG, "Loaded state from backup for $ctx")
-                            cacheImpl.write(state)
-                            eventListener?.onReady()
+                            cache.write(state)
                         } else {
                             Log.d(TAG, "Ignoring backup, Unleash is already ready")
                         }
@@ -197,19 +194,20 @@ class DefaultUnleash(
         unleashContextState.value = context
     }
 
-    override fun getContext(): UnleashContext {
-        return unleashContextState.value
-    }
-
     override fun addUnleashEventListener(listener: UnleashEventListener) {
         unleashScope.launch {
             cache.getUpdatesFlow().collect {
                 if (ready.compareAndSet(false, true)) {
-                    Log.i(TAG, "Toggles received, Unleash is ready")
-                    listener.onReady()
+                    readyFlow.value = true
                 }
-                Log.d(TAG, "Cache updated, notifying listeners that state changed")
+                Log.d(TAG, "Cache updated, notifying $listener that state changed")
                 listener.onStateChanged()
+            }
+        }
+        unleashScope.launch {
+            readyFlow.asStateFlow().filter { it }.collect {
+                Log.d(TAG, "Ready state changed, notifying $listener")
+                listener.onReady()
             }
         }
     }

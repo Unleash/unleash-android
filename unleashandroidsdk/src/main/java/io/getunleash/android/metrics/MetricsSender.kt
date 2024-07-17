@@ -40,6 +40,10 @@ class MetricsSender(
         )
 
     override suspend fun sendMetrics() {
+        if (bucket.isEmpty()) {
+            Log.d(TAG, "No metrics to report")
+            return
+        }
         if (throttler.performAction()) {
             val toReport = swapAndFreeze()
             val payload = MetricsPayload(

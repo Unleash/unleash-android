@@ -19,6 +19,7 @@ data class Bucket(
 interface UnleashMetricsBucket {
     fun count(featureName: String, enabled: Boolean): Boolean
     fun countVariant(featureName: String, variant: Variant): Variant
+    fun isEmpty(): Boolean
 }
 
 data class CountBucket(
@@ -37,6 +38,10 @@ data class CountBucket(
     override fun countVariant(featureName: String, variant: Variant): Variant {
         variants.getOrPut(Pair(featureName, variant.name)) { AtomicInteger(0) }.incrementAndGet()
         return variant
+    }
+
+    override fun isEmpty(): Boolean {
+        return yes.isEmpty() && no.isEmpty() && variants.isEmpty()
     }
 
     fun toBucket(until: Date = Date()): Bucket {
