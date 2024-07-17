@@ -1,6 +1,8 @@
 plugins {
+    `maven-publish`
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
+    id("org.jetbrains.dokka") version "1.7.10"
 }
 
 android {
@@ -10,13 +12,16 @@ android {
     defaultConfig {
         minSdk = 21
 
+        aarMetadata {
+            minCompileSdk = 29
+        }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -29,6 +34,24 @@ android {
     }
     kotlinOptions {
         jvmTarget = "1.8"
+    }
+
+    publishing {
+        multipleVariants {
+            includeBuildTypeValues("debug", "release")
+            allVariants()
+            withJavadocJar()
+        }
+        repositories {
+            maven {
+                url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+                credentials {
+                    username = findProperty("ossrhUsername") as String? ?: System.getenv("OSSRH_USERNAME")
+                    password = findProperty("ossrhPassword") as String? ?: System.getenv("OSSRH_PASSWORD")
+                }
+            }
+            mavenLocal()
+        }
     }
 }
 

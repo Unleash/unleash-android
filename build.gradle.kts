@@ -4,3 +4,11 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android) apply false
     alias(libs.plugins.android.library) apply false
 }
+
+tasks.register("listComponents") {
+    doLast {
+        project(":unleashandroidsdk").components.forEach {
+            println(it.name)
+        }
+    }
+}
