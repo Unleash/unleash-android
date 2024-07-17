@@ -6,7 +6,6 @@ import io.getunleash.android.Unleash
 import io.getunleash.android.UnleashConfig
 import io.getunleash.android.data.DataStrategy
 import io.getunleash.android.data.UnleashContext
-import io.getunleash.android.events.UnleashAllEventsListener
 import io.getunleash.android.events.UnleashReadyListener
 import io.getunleash.android.events.UnleashStateListener
 import java.util.Date
