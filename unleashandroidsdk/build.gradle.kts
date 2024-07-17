@@ -50,6 +50,7 @@ dependencies {
     testImplementation(libs.mockito)
     testImplementation(libs.robolectric.test)
     testImplementation(libs.okhttp.mockserver)
+    testImplementation(libs.awaitility)
     androidTestImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.assertj)
     androidTestImplementation(libs.mockito)

@@ -7,4 +7,9 @@ package io.getunleash.android.data
  * @property enabled Did this toggle get evaluated to true
  * @property variant used by [io.getunleash.UnleashClientSpec.getVariant] to get the variant data
  */
-data class Toggle(val name: String, val enabled: Boolean, val variant: Variant = Variant(name = "disabled"))
+data class Toggle(
+    val name: String,
+    val enabled: Boolean,
+    val impressionData: Boolean = false,
+    val variant: Variant = Variant(name = "disabled")
+)
