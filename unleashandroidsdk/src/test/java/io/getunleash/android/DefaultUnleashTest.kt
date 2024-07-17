@@ -12,9 +12,11 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.groups.Tuple
+import org.awaitility.Awaitility.await
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.robolectric.shadows.ShadowLog
+import java.util.concurrent.TimeUnit
 
 class DefaultUnleashTest: BaseTest() {
     private val staticToggleList = listOf(
@@ -113,8 +115,8 @@ class DefaultUnleashTest: BaseTest() {
                 })
         )
 
-        while (!onReady1 || !onReady2 || !onReady3) {
-            Thread.sleep(50)
+        await().atMost(1, TimeUnit.SECONDS).until {
+            onReady1 && onReady2 && onReady3
         }
     }
 
@@ -168,16 +170,7 @@ class DefaultUnleashTest: BaseTest() {
                 Toggle(name = "without-impression", enabled = false)
             )
         )
-
-        var waits = 0
-        while (!ready) {
-            println("Waiting for unleash to be ready")
-            waits ++
-            Thread.sleep(50)
-            if (waits > 100) {
-                throw IllegalStateException("Unleash did not become ready")
-            }
-        }
+        await().atMost(1, TimeUnit.SECONDS).until { ready }
 
         unleash.isEnabled("with-impression")
         unleash.isEnabled("with-impression", true)
@@ -185,13 +178,7 @@ class DefaultUnleashTest: BaseTest() {
         unleash.isEnabled("with-impression", false)
         unleash.isEnabled("non-existing-toggle")
 
-        while (impressionEvents.size < 3) {
-            waits ++
-            Thread.sleep(50)
-            if (waits > 100) {
-                throw IllegalStateException("Impression events never arrived")
-            }
-        }
+        await().atMost(1, TimeUnit.SECONDS).until { impressionEvents.size >= 3 }
         assertThat(impressionEvents).hasSize(3)
         assertThat(impressionEvents).allMatch { it.featureName == "with-impression" }
         assertThat(impressionEvents).allMatch { it.enabled }

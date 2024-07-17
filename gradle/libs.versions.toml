@@ -30,6 +30,7 @@ androidx-work-testing = { group = "androidx.work", name = "work-testing", versio
 androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "lifecycleProcess" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
 robolectric-test = { group = "org.robolectric", name = "robolectric", version = "4.7.3" }
+awaitility = { group = "org.awaitility", name = "awaitility", version = "4.2.1" }
 
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 okhttp-mockserver = { group = "com.squareup.okhttp3", name = "mockwebserver", version.ref = "okhttp" }
