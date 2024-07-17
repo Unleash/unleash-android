@@ -2,7 +2,7 @@ package io.getunleash.android
 
 import io.getunleash.android.data.UnleashContext
 import io.getunleash.android.data.Variant
-import io.getunleash.android.events.UnleashEventListener
+import io.getunleash.android.events.UnleashListener
 import java.io.Closeable
 
 val disabledVariant = Variant("disabled")
@@ -27,7 +27,7 @@ interface Unleash: Closeable {
      */
     fun setContextAsync(context: UnleashContext)
 
-    fun addUnleashEventListener(listener: UnleashEventListener)
+    fun addUnleashEventListener(listener: UnleashListener)
 
     /**
      * This function forces a refresh of the toggles from the server and wait until the refresh is complete or failed.

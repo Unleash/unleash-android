@@ -29,7 +29,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import io.getunleash.android.Unleash
-import io.getunleash.android.events.UnleashEventListener
+import io.getunleash.android.events.UnleashStateListener
 import java.util.Date
 import java.util.Timer
 import kotlin.concurrent.timerTask
@@ -125,7 +125,7 @@ class IsEnabledViewModel(initialFlag: String): ViewModel() {
         get() = _isEnabled
 
     fun initialize(unleash: Unleash) {
-        val listener: UnleashEventListener = object: UnleashEventListener {
+        val listener: UnleashStateListener = object: UnleashStateListener {
             override fun onStateChanged() {
                 Log.i("MAIN", "Detected refresh event")
                 val flag = _flagName.value

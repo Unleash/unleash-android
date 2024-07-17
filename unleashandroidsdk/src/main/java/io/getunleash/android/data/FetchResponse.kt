@@ -1,7 +1,5 @@
 package io.getunleash.android.data
 
-import java.lang.Exception
-
 /**
  * Modelling the fetch action
  * @param status Status of the request

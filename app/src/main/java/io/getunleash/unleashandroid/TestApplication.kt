@@ -6,7 +6,8 @@ import io.getunleash.android.Unleash
 import io.getunleash.android.UnleashConfig
 import io.getunleash.android.data.DataStrategy
 import io.getunleash.android.data.UnleashContext
-import io.getunleash.android.events.UnleashEventListener
+import io.getunleash.android.events.UnleashReadyListener
+import io.getunleash.android.events.UnleashStateListener
 import java.util.Date
 
 const val initialFlagValue = "flag-1"
@@ -35,7 +36,7 @@ class TestApplication: Application() {
             ),
             unleashContext = unleashContext
         )
-        instance.start(listOf(object: UnleashEventListener {
+        instance.start(listOf(object: UnleashReadyListener, UnleashStateListener {
             override fun onReady() {
                 println("Unleash is ready")
                 UnleashStats.readySince = Date()

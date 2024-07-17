@@ -7,7 +7,8 @@ import io.getunleash.android.data.ImpressionEvent
 import io.getunleash.android.data.Toggle
 import io.getunleash.android.data.UnleashContext
 import io.getunleash.android.data.UnleashState
-import io.getunleash.android.events.UnleashEventListener
+import io.getunleash.android.events.UnleashImpressionEventListener
+import io.getunleash.android.events.UnleashReadyListener
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.assertj.core.api.Assertions.assertThat
@@ -95,7 +96,7 @@ class DefaultUnleashTest: BaseTest() {
         var onReady3 = false
 
         // adding listeners before start should not be overridden
-        unleash.addUnleashEventListener(object: UnleashEventListener {
+        unleash.addUnleashEventListener(object: UnleashReadyListener {
             override fun onReady() {
                 onReady1 = true
             }
@@ -103,12 +104,12 @@ class DefaultUnleashTest: BaseTest() {
 
         // listeners added at start should also be called
         unleash.start(
-            listOf(object : UnleashEventListener {
+            listOf(object : UnleashReadyListener {
                 override fun onReady() {
                     onReady2 = true
                 }
             },
-                object : UnleashEventListener {
+                object : UnleashReadyListener {
                     override fun onReady() {
                         onReady3 = true
                     }
@@ -157,7 +158,7 @@ class DefaultUnleashTest: BaseTest() {
         var ready = false
         val impressionEvents = mutableListOf<ImpressionEvent>()
         unleash.start(
-            eventListeners = listOf(object : UnleashEventListener {
+            eventListeners = listOf(object : UnleashReadyListener, UnleashImpressionEventListener {
                 override fun onImpression(event: ImpressionEvent) {
                     impressionEvents.add(event)
                 }
@@ -166,21 +167,28 @@ class DefaultUnleashTest: BaseTest() {
                     ready = true
                 }
             }), bootstrap = listOf(
-                Toggle(name = "with-impression", enabled = true, impressionData = true),
+                Toggle(name = "with-impression-1", enabled = true, impressionData = true),
+                Toggle(name = "with-impression-2", enabled = true, impressionData = true),
+                Toggle(name = "with-impression-3", enabled = true, impressionData = true),
                 Toggle(name = "without-impression", enabled = false)
             )
         )
         await().atMost(1, TimeUnit.SECONDS).until { ready }
 
-        unleash.isEnabled("with-impression")
-        unleash.isEnabled("with-impression", true)
+
+        unleash.isEnabled("with-impression-1")
+        unleash.isEnabled("with-impression-2", true)
         unleash.isEnabled("without-impression")
-        unleash.isEnabled("with-impression", false)
+        unleash.isEnabled("with-impression-3", false)
         unleash.isEnabled("non-existing-toggle")
 
         await().atMost(1, TimeUnit.SECONDS).until { impressionEvents.size >= 3 }
         assertThat(impressionEvents).hasSize(3)
-        assertThat(impressionEvents).allMatch { it.featureName == "with-impression" }
-        assertThat(impressionEvents).allMatch { it.enabled }
+        for (i in 1 until 4) {
+            impressionEvents[i - 1].let {
+                assertThat(it.featureName).isEqualTo("with-impression-$i")
+                assertThat(it.enabled).isTrue()
+            }
+        }
     }
 }
