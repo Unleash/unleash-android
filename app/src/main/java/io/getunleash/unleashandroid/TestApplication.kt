@@ -6,7 +6,6 @@ import io.getunleash.android.Unleash
 import io.getunleash.android.UnleashConfig
 import io.getunleash.android.data.DataStrategy
 import io.getunleash.android.data.UnleashContext
-import io.getunleash.android.data.UnleashState
 import io.getunleash.android.events.UnleashEventListener
 import java.util.Date
 
@@ -19,7 +18,7 @@ object UnleashStats {
 class TestApplication: Application() {
     val unleashContext: UnleashContext = UnleashContext(userId = initialUserId)
     val unleash: Unleash by lazy {
-        DefaultUnleash(
+        val instance = DefaultUnleash(
             androidContext = this,
             unleashConfig = UnleashConfig(
                 appName = "test-android-app",
@@ -34,18 +33,19 @@ class TestApplication: Application() {
                     pauseOnBackground = true
                 )
             ),
-            unleashContext = unleashContext,
-            eventListener = object : UnleashEventListener {
-                override fun onReady() {
-                    println("Unleash is ready")
-                    UnleashStats.readySince = Date()
-                }
-
-                override fun onStateChanged() {
-                    UnleashStats.lastStateUpdate = Date()
-                }
-            }
+            unleashContext = unleashContext
         )
+        instance.start(listOf(object: UnleashEventListener {
+            override fun onReady() {
+                println("Unleash is ready")
+                UnleashStats.readySince = Date()
+            }
+
+            override fun onStateChanged() {
+                UnleashStats.lastStateUpdate = Date()
+            }
+        }))
+        instance
     }
 
     override fun onTerminate() {

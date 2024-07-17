@@ -13,10 +13,11 @@ class ClientBuilder(private val unleashConfig: UnleashConfig, private val androi
         clientName: String,
         strategy: DataStrategy
     ): OkHttpClient {
-        return OkHttpClient.Builder()
+        val builder = OkHttpClient.Builder()
             .readTimeout(strategy.httpReadTimeout, TimeUnit.MILLISECONDS)
             .connectTimeout(strategy.httpConnectionTimeout, TimeUnit.MILLISECONDS)
-            .cache(
+        if (unleashConfig.localStorageConfig.enabled) {
+            builder.cache(
                 Cache(
                     directory = CacheDirectoryProvider(
                         unleashConfig.localStorageConfig,
@@ -26,6 +27,8 @@ class ClientBuilder(private val unleashConfig: UnleashConfig, private val androi
                     ),
                     maxSize = strategy.httpCacheSize
                 )
-            ).build()
+            )
+        }
+        return builder.build()
     }
 }

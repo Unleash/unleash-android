@@ -52,8 +52,8 @@ class DefaultUnleash(
     private val unleashConfig: UnleashConfig,
     unleashContext: UnleashContext = UnleashContext(),
     cacheImpl: ToggleCache = InMemoryToggleCache(),
-    eventListener: UnleashEventListener? = null,
-    lifecycle: Lifecycle = getLifecycle(androidContext)
+    eventListeners: List<UnleashEventListener> = emptyList(),
+    private val lifecycle: Lifecycle = getLifecycle(androidContext)
 ) : Unleash {
     companion object {
         private const val TAG = "Unleash"
@@ -63,13 +63,13 @@ class DefaultUnleash(
     private val metrics: MetricsCollector
     private val taskManager: LifecycleAwareTaskManager
     private val cache: ObservableToggleCache = ObservableCache(cacheImpl)
+    private var started = AtomicBoolean(false)
     private var ready = AtomicBoolean(false)
     private val readyFlow = MutableStateFlow(false)
     private val fetcher: UnleashFetcher?
     private val networkStatusHelper = NetworkStatusHelper(androidContext)
 
     init {
-        eventListener?.let { addUnleashEventListener(it) }
         val httpClientBuilder = ClientBuilder(unleashConfig, androidContext)
         val metricsSender =
             if (unleashConfig.metricsStrategy.enabled)
@@ -89,6 +89,19 @@ class DefaultUnleash(
             dataJobs = buildDataJobs(fetcher, metricsSender),
             networkAvailable = networkStatusHelper.isAvailable()
         )
+        if (!unleashConfig.delayedInitialization) {
+            start(eventListeners)
+        } else if (eventListeners.isNotEmpty()) {
+            throw IllegalArgumentException("Event listeners are not supported as constructor arguments with delayed initialization")
+        }
+    }
+
+    fun start(eventListeners: List<UnleashEventListener> = emptyList()) {
+        if (!started.compareAndSet(false, true)) {
+            Log.w(TAG, "Unleash already started, ignoring start call")
+            return
+        }
+        eventListeners.forEach { addUnleashEventListener(it) }
         networkStatusHelper.registerNetworkListener(taskManager)
         if (unleashConfig.localStorageConfig.enabled) {
             val localBackup = getLocalBackup()
