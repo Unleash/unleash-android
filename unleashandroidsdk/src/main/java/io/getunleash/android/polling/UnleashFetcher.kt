@@ -60,7 +60,7 @@ open class UnleashFetcher(
     private val appName = unleashConfig.appName
     private var etag: String? = null
     private val featuresReceivedFlow = MutableSharedFlow<UnleashState>(
-        extraBufferCapacity = 1,
+        replay = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
     private val coroutineContextForContextChange: CoroutineContext = Dispatchers.IO

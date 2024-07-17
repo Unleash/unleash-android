@@ -6,6 +6,7 @@ import io.getunleash.android.data.UnleashState
 import io.getunleash.android.unleashScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -17,7 +18,10 @@ class ObservableCache(private val cache: ToggleCache, private val coroutineScope
         private const val TAG = "ObservableCache"
     }
 
-    private var events = MutableSharedFlow<UnleashState>()
+    private var newStateEventFlow = MutableSharedFlow<UnleashState>(
+        replay = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
     override fun read(): Map<String, Toggle> {
         return cache.read()
     }
@@ -28,12 +32,11 @@ class ObservableCache(private val cache: ToggleCache, private val coroutineScope
 
     override fun write(state: UnleashState) {
         cache.write(state)
-        Log.d(TAG, "Done writing cache")
+        Log.d(TAG, "Done writing cache with ${newStateEventFlow.subscriptionCount.value} subscribers")
         coroutineScope.launch {
-            Log.d(TAG, "Emitting new state with ${state.toggles.size} toggles for ${state.context}")
-            events.emit(state)
+            Log.d(TAG, "Emitting new state with ${state.toggles.size} toggles")
+            newStateEventFlow.emit(state)
         }
-        Log.d(TAG, "Done sending event")
     }
 
     override fun subscribeTo(featuresReceived: Flow<UnleashState>) {
@@ -49,6 +52,6 @@ class ObservableCache(private val cache: ToggleCache, private val coroutineScope
     }
 
     override fun getUpdatesFlow(): Flow<UnleashState> {
-        return events.asSharedFlow()
+        return newStateEventFlow.asSharedFlow()
     }
 }

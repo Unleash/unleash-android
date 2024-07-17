@@ -16,7 +16,10 @@ import io.getunleash.android.data.Toggle
 import io.getunleash.android.data.UnleashContext
 import io.getunleash.android.data.UnleashState
 import io.getunleash.android.data.Variant
-import io.getunleash.android.events.UnleashEventListener
+import io.getunleash.android.events.UnleashImpressionEventListener
+import io.getunleash.android.events.UnleashListener
+import io.getunleash.android.events.UnleashReadyListener
+import io.getunleash.android.events.UnleashStateListener
 import io.getunleash.android.http.ClientBuilder
 import io.getunleash.android.http.NetworkStatusHelper
 import io.getunleash.android.metrics.MetricsCollector
@@ -35,7 +38,6 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
@@ -58,7 +60,7 @@ class DefaultUnleash(
     private val unleashConfig: UnleashConfig,
     unleashContext: UnleashContext = UnleashContext(),
     cacheImpl: ToggleCache = InMemoryToggleCache(),
-    eventListeners: List<UnleashEventListener> = emptyList(),
+    eventListeners: List<UnleashListener> = emptyList(),
     private val lifecycle: Lifecycle = getLifecycle(androidContext),
     private val coroutineScope: CoroutineScope = unleashScope
 ) : Unleash {
@@ -72,11 +74,11 @@ class DefaultUnleash(
     private val cache: ObservableToggleCache = ObservableCache(cacheImpl, coroutineScope)
     private var started = AtomicBoolean(false)
     private var ready = AtomicBoolean(false)
-    private val readyFlow = MutableStateFlow(false)
     private val fetcher: UnleashFetcher?
     private val networkStatusHelper = NetworkStatusHelper(androidContext)
     private val impressionEventsFlow = MutableSharedFlow<ImpressionEvent>(
-        extraBufferCapacity = 64,
+        replay = 1,
+        extraBufferCapacity = 1000,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
 
@@ -109,14 +111,13 @@ class DefaultUnleash(
     }
 
     fun start(
-        eventListeners: List<UnleashEventListener> = emptyList(),
+        eventListeners: List<UnleashListener> = emptyList(),
         bootstrap: List<Toggle> = emptyList()
     ) {
         if (!started.compareAndSet(false, true)) {
             Log.w(TAG, "Unleash already started, ignoring start call")
             return
         }
-        eventListeners.forEach { addUnleashEventListener(it) }
         networkStatusHelper.registerNetworkListener(taskManager)
         if (unleashConfig.localStorageConfig.enabled) {
             val localBackup = getLocalBackup()
@@ -127,6 +128,7 @@ class DefaultUnleash(
             cache.subscribeTo(it.getFeaturesReceivedFlow())
         }
         lifecycle.addObserver(taskManager)
+        eventListeners.forEach { addUnleashEventListener(it) }
         if (bootstrap.isNotEmpty()) {
             Log.i(TAG, "Using provided bootstrap toggles")
             cache.write(UnleashState(unleashContextState.value, bootstrap.associateBy { it.name }))
@@ -238,23 +240,34 @@ class DefaultUnleash(
         unleashContextState.value = context
     }
 
-    override fun addUnleashEventListener(listener: UnleashEventListener) {
-        coroutineScope.launch {
-            val firstReady = readyFlow.asStateFlow().filter { it }.first()
-            Log.d(TAG, "Ready state changed to $firstReady, notifying $listener")
+    override fun addUnleashEventListener(listener: UnleashListener) {
+
+        Log.d(TAG, "Adding listener as (ready=${listener is UnleashReadyListener}, state=${listener is UnleashStateListener}, impression=${listener is UnleashImpressionEventListener})")
+        if (listener is UnleashReadyListener) coroutineScope.launch {
+            Log.d(TAG, "UnleashReadyListener listener is added")
+            cache.getUpdatesFlow().first{
+                println("UnleashReadyListener listener is $listener, first is $it")
+                true
+            }
+            Log.d(TAG, "UnleashReadyListener consumed ready event")
+            if (ready.compareAndSet(false, true)) {
+                Log.d(TAG, "Unleash state changed to ready atomically")
+            }
+            //val firstReady = readyFlow.asStateFlow().filter { it }.first()
+            Log.d(TAG, "Unleash state changed to ready, notifying $listener")
             listener.onReady()
+            Log.d(TAG, "UnleashReadyListener listener was notified")
         }
-        coroutineScope.launch {
+        if (listener is UnleashStateListener) coroutineScope.launch {
+            println("UnleashStateListener listener is $listener")
             cache.getUpdatesFlow().collect {
-                if (ready.compareAndSet(false, true)) {
-                    Log.d(TAG, "Unleash is now ready")
-                    readyFlow.value = true
-                }
                 Log.d(TAG, "Cache updated, notifying $listener that state changed")
                 listener.onStateChanged()
             }
         }
-        coroutineScope.launch {
+
+        if (listener is UnleashImpressionEventListener) coroutineScope.launch {
+            println("UnleashImpressionEventListener listener is $listener")
             impressionEventsFlow.collect { event ->
                 listener.onImpression(event)
             }
