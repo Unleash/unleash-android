@@ -242,32 +242,23 @@ class DefaultUnleash(
 
     override fun addUnleashEventListener(listener: UnleashListener) {
 
-        Log.d(TAG, "Adding listener as (ready=${listener is UnleashReadyListener}, state=${listener is UnleashStateListener}, impression=${listener is UnleashImpressionEventListener})")
         if (listener is UnleashReadyListener) coroutineScope.launch {
-            Log.d(TAG, "UnleashReadyListener listener is added")
             cache.getUpdatesFlow().first{
-                println("UnleashReadyListener listener is $listener, first is $it")
                 true
             }
-            Log.d(TAG, "UnleashReadyListener consumed ready event")
             if (ready.compareAndSet(false, true)) {
-                Log.d(TAG, "Unleash state changed to ready atomically")
+                Log.d(TAG, "Unleash state changed to ready")
             }
-            //val firstReady = readyFlow.asStateFlow().filter { it }.first()
-            Log.d(TAG, "Unleash state changed to ready, notifying $listener")
+            Log.d(TAG, "Notifying UnleashReadyListener")
             listener.onReady()
-            Log.d(TAG, "UnleashReadyListener listener was notified")
         }
         if (listener is UnleashStateListener) coroutineScope.launch {
-            println("UnleashStateListener listener is $listener")
             cache.getUpdatesFlow().collect {
-                Log.d(TAG, "Cache updated, notifying $listener that state changed")
                 listener.onStateChanged()
             }
         }
 
         if (listener is UnleashImpressionEventListener) coroutineScope.launch {
-            println("UnleashImpressionEventListener listener is $listener")
             impressionEventsFlow.collect { event ->
                 listener.onImpression(event)
             }
