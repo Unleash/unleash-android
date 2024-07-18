@@ -142,6 +142,6 @@ val signingPassphrase: String? by project
 signing {
     if (signingKey != null && signingPassphrase != null) {
         useInMemoryPgpKeys(signingKey, signingPassphrase)
-        sign(publishing.publications["mavenJava"])
+        sign(publishing.publications)
     }
 }
