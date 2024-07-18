@@ -1,3 +1,6 @@
+import org.jetbrains.dokka.gradle.DokkaTask
+import java.net.URL
+
 plugins {
     `maven-publish`
     signing
@@ -143,5 +146,18 @@ signing {
     if (signingKey != null && signingPassphrase != null) {
         useInMemoryPgpKeys(signingKey, signingPassphrase)
         sign(publishing.publications)
+    }
+}
+
+tasks.withType<DokkaTask>().configureEach {
+    dokkaSourceSets {
+        named("main") {
+            moduleName.set("Unleash Android SDK")
+            sourceLink {
+                localDirectory.set(file("unleashandroidsdk/src/main/java"))
+                remoteUrl.set(URL("https://github.com/Unleash/unleash-android/tree/${tagVersion ?: "main"}/unleashandroidsdk/src/main/java"))
+                remoteLineSuffix.set("#L")
+            }
+        }
     }
 }
