@@ -9,9 +9,9 @@ data class FetchResponse(
     val status: Status,
     val config: ProxyResponse? = null,
     val error: Exception? = null) {
-    fun isFetched() = status == Status.FETCHED
-    fun isNotModified() = status == Status.NOTMODIFIED
-    fun isFailed() = status == Status.FAILED
+    fun isSuccess() = status.isSuccess()
+    fun isNotModified() = status.isNotModified()
+    fun isFailed() = status.isFailed()
 }
 
 /**
@@ -23,12 +23,18 @@ data class ToggleResponse(
     val status: Status,
     val toggles: Map<String, Toggle> = emptyMap(),
     val error: Exception? = null) {
-    fun isFetched() = status == Status.FETCHED
-    fun isNotModified() = status == Status.NOTMODIFIED
-    fun isFailed() = status == Status.FAILED
+    fun isFetched() = status.isSuccess()
+    fun isNotModified() = status.isNotModified()
+    fun isFailed() = status.isFailed()
 }
 enum class Status {
-    FETCHED,
-    NOTMODIFIED,
-    FAILED
+    SUCCESS,
+    NOT_MODIFIED,
+    FAILED,
+    THROTTLED;
+
+    fun isSuccess() = this == SUCCESS
+
+    fun isNotModified() = this == NOT_MODIFIED
+    fun isFailed() = this == FAILED || this == THROTTLED
 }

@@ -14,3 +14,9 @@ interface UnleashStateListener: UnleashListener {
 interface UnleashImpressionEventListener: UnleashListener {
     fun onImpression(event: ImpressionEvent)
 }
+
+interface UnleashFetcherHeartbeatListener: UnleashListener {
+    fun onError(event: HeartbeatEvent)
+    fun togglesChecked()
+    fun togglesUpdated()
+}

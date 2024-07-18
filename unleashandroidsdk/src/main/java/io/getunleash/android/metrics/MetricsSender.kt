@@ -73,7 +73,7 @@ class MetricsSender(
                 }
             })
         } else {
-            throttler.skipped();
+            throttler.skipped()
         }
     }
 
