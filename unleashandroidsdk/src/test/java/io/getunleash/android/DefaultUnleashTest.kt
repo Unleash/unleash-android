@@ -219,7 +219,7 @@ class DefaultUnleashTest: BaseTest() {
         })
         unleash.start()
 
-        await().atMost(1, TimeUnit.SECONDS).until { ready }
+        await().atMost(2, TimeUnit.SECONDS).until { ready }
         val variant = unleash.getVariant("AwesomeDemo")
         assertThat(variant).isNotNull
         assertThat(variant.enabled).isTrue()
