@@ -3,7 +3,7 @@ plugins {
     signing
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
-    id("org.jetbrains.dokka") version "1.7.10"
+    id("org.jetbrains.dokka") version "1.9.20"
     id("pl.allegro.tech.build.axion-release") version "1.18.2"
 }
 
