@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>UnleashConfig</title>
+    <link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">
+    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async="async"></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer="defer"></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer="defer"></script>
+</head>
+<body>
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+                    <a class="library-name--link" href="../../../index.html">
+                            Unleash Android SDK
+                    </a>
+            </div>
+            <div class="library-version">
+0.1.0-SNAPSHOT            </div>
+        </div>
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":unleashandroidsdk:dokkaHtml/release">androidJvm</button>
+        </div>
+    </div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
+    </div>
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageIds="Unleash Android SDK::io.getunleash.android/UnleashConfig///PointingToDeclaration//-1069558929">
+  <div class="breadcrumbs"><a href="../../../index.html">Unleash Android SDK</a><span class="delimiter">/</span><a href="../index.html">io.getunleash.android</a><span class="delimiter">/</span><span class="current">UnleashConfig</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Unleash</span><wbr></wbr><span><span>Config</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":unleashandroidsdk:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="index.html">UnleashConfig</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>proxyUrl<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>clientKey<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>appName<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>localStorageConfig<span class="token operator">: </span><a href="../../io.getunleash.android.backup/-local-storage-config/index.html">LocalStorageConfig</a><span class="token operator"> = </span>LocalStorageConfig()<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>pollingStrategy<span class="token operator">: </span><a href="../../io.getunleash.android.data/-data-strategy/index.html">DataStrategy</a><span class="token operator"> = </span>DataStrategy(
+        pauseOnBackground = true,
+    )<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>metricsStrategy<span class="token operator">: </span><a href="../../io.getunleash.android.data/-data-strategy/index.html">DataStrategy</a><span class="token operator"> = </span>DataStrategy(
+        pauseOnBackground = true,
+    )<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>delayedInitialization<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">true</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>forceImpressionData<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span></div><p class="paragraph">Represents configuration for Unleash.</p></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="">Constructors</h2>
+        <div class="table"><a data-name="1704536516%2FConstructors%2F-1069558929" anchor-label="UnleashConfig" id="1704536516%2FConstructors%2F-1069558929" data-filterable-set=":unleashandroidsdk:dokkaHtml/release"></a>
+          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":unleashandroidsdk:dokkaHtml/release" data-filterable-set=":unleashandroidsdk:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-unleash-config.html"><span>Unleash</span><wbr></wbr><span><span>Config</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1704536516%2FConstructors%2F-1069558929"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":unleashandroidsdk:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">proxyUrl<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">clientKey<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">appName<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">localStorageConfig<span class="token operator">: </span><a href="../../io.getunleash.android.backup/-local-storage-config/index.html">LocalStorageConfig</a><span class="token operator"> = </span>LocalStorageConfig()<span class="token punctuation">, </span></span><span class="parameter ">pollingStrategy<span class="token operator">: </span><a href="../../io.getunleash.android.data/-data-strategy/index.html">DataStrategy</a><span class="token operator"> = </span>DataStrategy(
+        pauseOnBackground = true,
+    )<span class="token punctuation">, </span></span><span class="parameter ">metricsStrategy<span class="token operator">: </span><a href="../../io.getunleash.android.data/-data-strategy/index.html">DataStrategy</a><span class="token operator"> = </span>DataStrategy(
+        pauseOnBackground = true,
+    )<span class="token punctuation">, </span></span><span class="parameter ">delayedInitialization<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">true</span><span class="token punctuation">, </span></span><span class="parameter ">forceImpressionData<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="TYPE">
+        <h2 class="">Types</h2>
+        <div class="table"><a data-name="-1595281450%2FClasslikes%2F-1069558929" anchor-label="Builder" id="-1595281450%2FClasslikes%2F-1069558929" data-filterable-set=":unleashandroidsdk:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":unleashandroidsdk:dokkaHtml/release" data-filterable-set=":unleashandroidsdk:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-builder/index.html"><span><span>Builder</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1595281450%2FClasslikes%2F-1069558929"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":unleashandroidsdk:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-builder/index.html">Builder</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">appName<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">proxyUrl<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token operator"> = </span>null<span class="token punctuation">, </span></span><span class="parameter ">clientKey<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token operator"> = </span>null</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Builder for <a href="index.html">io.getunleash.android.UnleashConfig</a></p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1037522309%2FClasslikes%2F-1069558929" anchor-label="Companion" id="1037522309%2FClasslikes%2F-1069558929" data-filterable-set=":unleashandroidsdk:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":unleashandroidsdk:dokkaHtml/release" data-filterable-set=":unleashandroidsdk:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-companion/index.html"><span><span>Companion</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1037522309%2FClasslikes%2F-1069558929"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":unleashandroidsdk:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">object </span><a href="-companion/index.html">Companion</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="1902308786%2FProperties%2F-1069558929" anchor-label="appName" id="1902308786%2FProperties%2F-1069558929" data-filterable-set=":unleashandroidsdk:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":unleashandroidsdk:dokkaHtml/release" data-filterable-set=":unleashandroidsdk:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="app-name.html"><span>app</span><wbr></wbr><span><span>Name</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1902308786%2FProperties%2F-1069558929"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":unleashandroidsdk:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="app-name.html">appName</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></div><div class="brief "><p class="paragraph">: name of the underlying application. Will be used as default in the <a href="../../io.getunleash.android.data/-unleash-context/index.html">io.getunleash.android.data.UnleashContext</a> call (Required).</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1751238614%2FProperties%2F-1069558929" anchor-label="clientKey" id="-1751238614%2FProperties%2F-1069558929" data-filterable-set=":unleashandroidsdk:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":unleashandroidsdk:dokkaHtml/release" data-filterable-set=":unleashandroidsdk:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="client-key.html"><span>client</span><wbr></wbr><span><span>Key</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1751238614%2FProperties%2F-1069558929"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":unleashandroidsdk:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="client-key.html">clientKey</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></div><div class="brief "><p class="paragraph">the key added as the Authorization header sent to the unleash-proxy (Required)</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1833173596%2FProperties%2F-1069558929" anchor-label="delayedInitialization" id="1833173596%2FProperties%2F-1069558929" data-filterable-set=":unleashandroidsdk:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":unleashandroidsdk:dokkaHtml/release" data-filterable-set=":unleashandroidsdk:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="delayed-initialization.html"><span>delayed</span><wbr></wbr><span><span>Initialization</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1833173596%2FProperties%2F-1069558929"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":unleashandroidsdk:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="delayed-initialization.html">delayedInitialization</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">true</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-955757664%2FProperties%2F-1069558929" anchor-label="forceImpressionData" id="-955757664%2FProperties%2F-1069558929" data-filterable-set=":unleashandroidsdk:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":unleashandroidsdk:dokkaHtml/release" data-filterable-set=":unleashandroidsdk:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="force-impression-data.html"><span>force</span><wbr></wbr><span>Impression</span><wbr></wbr><span><span>Data</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-955757664%2FProperties%2F-1069558929"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":unleashandroidsdk:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="force-impression-data.html">forceImpressionData</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1925793996%2FProperties%2F-1069558929" anchor-label="instanceId" id="1925793996%2FProperties%2F-1069558929" data-filterable-set=":unleashandroidsdk:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":unleashandroidsdk:dokkaHtml/release" data-filterable-set=":unleashandroidsdk:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="instance-id.html"><span>instance</span><wbr></wbr><span><span>Id</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1925793996%2FProperties%2F-1069558929"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":unleashandroidsdk:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="instance-id.html">instanceId</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1098619050%2FProperties%2F-1069558929" anchor-label="localStorageConfig" id="1098619050%2FProperties%2F-1069558929" data-filterable-set=":unleashandroidsdk:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":unleashandroidsdk:dokkaHtml/release" data-filterable-set=":unleashandroidsdk:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="local-storage-config.html"><span>local</span><wbr></wbr><span>Storage</span><wbr></wbr><span><span>Config</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1098619050%2FProperties%2F-1069558929"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":unleashandroidsdk:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="local-storage-config.html">localStorageConfig</a><span class="token operator">: </span><a href="../../io.getunleash.android.backup/-local-storage-config/index.html">LocalStorageConfig</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1913743640%2FProperties%2F-1069558929" anchor-label="metricsStrategy" id="-1913743640%2FProperties%2F-1069558929" data-filterable-set=":unleashandroidsdk:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":unleashandroidsdk:dokkaHtml/release" data-filterable-set=":unleashandroidsdk:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="metrics-strategy.html"><span>metrics</span><wbr></wbr><span><span>Strategy</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1913743640%2FProperties%2F-1069558929"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":unleashandroidsdk:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="metrics-strategy.html">metricsStrategy</a><span class="token operator">: </span><a href="../../io.getunleash.android.data/-data-strategy/index.html">DataStrategy</a></div><div class="brief "><p class="paragraph">How to poll for metrics. (Optional - Defaults to <a href="../../io.getunleash.android.data/-data-strategy/index.html">io.getunleash.android.data.DataStrategy</a> with poll interval set to 60 seconds).</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2057389032%2FProperties%2F-1069558929" anchor-label="pollingStrategy" id="2057389032%2FProperties%2F-1069558929" data-filterable-set=":unleashandroidsdk:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":unleashandroidsdk:dokkaHtml/release" data-filterable-set=":unleashandroidsdk:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="polling-strategy.html"><span>polling</span><wbr></wbr><span><span>Strategy</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2057389032%2FProperties%2F-1069558929"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":unleashandroidsdk:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="polling-strategy.html">pollingStrategy</a><span class="token operator">: </span><a href="../../io.getunleash.android.data/-data-strategy/index.html">DataStrategy</a></div><div class="brief "><p class="paragraph">How to poll for features. (Optional - Defaults to <a href="../../io.getunleash.android.data/-data-strategy/index.html">io.getunleash.android.data.DataStrategy</a> with poll interval set to 60 seconds).</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1210637797%2FProperties%2F-1069558929" anchor-label="proxyUrl" id="-1210637797%2FProperties%2F-1069558929" data-filterable-set=":unleashandroidsdk:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":unleashandroidsdk:dokkaHtml/release" data-filterable-set=":unleashandroidsdk:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="proxy-url.html"><span>proxy</span><wbr></wbr><span><span>Url</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1210637797%2FProperties%2F-1069558929"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":unleashandroidsdk:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="proxy-url.html">proxyUrl</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></div><div class="brief "><p class="paragraph">HTTP(s) URL to the Unleash Proxy (Required).</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="837854982%2FFunctions%2F-1069558929" anchor-label="getApplicationHeaders" id="837854982%2FFunctions%2F-1069558929" data-filterable-set=":unleashandroidsdk:dokkaHtml/release"></a>
+          <div class="table-row" data-filterable-current=":unleashandroidsdk:dokkaHtml/release" data-filterable-set=":unleashandroidsdk:dokkaHtml/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-application-headers.html"><span>get</span><wbr></wbr><span>Application</span><wbr></wbr><span><span>Headers</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="837854982%2FFunctions%2F-1069558929"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":unleashandroidsdk:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="get-application-headers.html"><span class="token function">getApplicationHeaders</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">strategy<span class="token operator">: </span><a href="../../io.getunleash.android.data/-data-strategy/index.html">DataStrategy</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2024 Copyright</span><span
+                class="pull-right"><span>Generated by </span><a
+                href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
