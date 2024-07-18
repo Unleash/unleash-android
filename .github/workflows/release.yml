@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy-release:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags')
     steps:
       - uses: actions/checkout@v4
