@@ -19,7 +19,7 @@ jobs:
           distribution: 'temurin'
           cache: gradle
       - uses: burrunan/gradle-cache-action@v1
-        name: Deploy Release
+        name: Deploy Release to Maven central
         env:
           ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SONATYPE_USERNAME }}
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SONATYPE_PASSWORD }}
@@ -28,7 +28,7 @@ jobs:
         with:
           job-id: release
           arguments: publishToSonatype closeAndReleaseSonatypeStagingRepository
-      - name: Create release
+      - name: Create Github release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
