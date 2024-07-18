@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
     id("org.jetbrains.dokka") version "1.7.10"
-    id("pl.allegro.tech.build.axion-release") version "1.13.6"
+    id("pl.allegro.tech.build.axion-release") version "1.18.2"
 }
 
 val tagVersion = System.getenv("GITHUB_REF")?.split('/')?.last()
