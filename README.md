@@ -57,7 +57,7 @@ Your app will need internet permission in order to reach the proxy and access ne
 ### Step 3: Initialize Unleash SDK
 
 Configure your client instance (use a single instance to avoid file contention on cache directory). 
-For all configuration options check the [UnleashConfig](https://unleash.github.io/unleash-android/io.getunleash/-unleash-config/index.html) class.
+For all configuration options check the [UnleashConfig.Builder](https://gh.getunleash.io/unleash-android/-unleash%20-android%20-s-d-k/io.getunleash.android/-unleash-config/-builder/index.html) class.
 ```kotlin
 val unleash = DefaultUnleash(
     androidContext = applicationContext, // likely a reference to your Android application context
