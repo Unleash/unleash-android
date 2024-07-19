@@ -25,7 +25,7 @@ class MetricsSender(
     private val config: UnleashConfig,
     private val httpClient: OkHttpClient,
     private val applicationHeaders: Map<String, String> = config.getApplicationHeaders(config.metricsStrategy)
-): MetricsCollector, MetricsReporter {
+): MetricsHandler {
     companion object {
         private const val TAG: String = "MetricsSender"
     }

@@ -23,7 +23,7 @@ import io.getunleash.android.events.UnleashReadyListener
 import io.getunleash.android.events.UnleashStateListener
 import io.getunleash.android.http.ClientBuilder
 import io.getunleash.android.http.NetworkStatusHelper
-import io.getunleash.android.metrics.MetricsCollector
+import io.getunleash.android.metrics.MetricsHandler
 import io.getunleash.android.metrics.MetricsReporter
 import io.getunleash.android.metrics.MetricsSender
 import io.getunleash.android.metrics.NoOpMetrics
@@ -40,7 +40,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
@@ -72,8 +71,7 @@ class DefaultUnleash(
     }
 
     private val unleashContextState = MutableStateFlow(unleashContext)
-    private val metrics: MetricsCollector
-    private val metricsSender: MetricsReporter
+    private val metrics: MetricsHandler
     private val taskManager: LifecycleAwareTaskManager
     private val cache: ObservableToggleCache = ObservableCache(cacheImpl, coroutineScope)
     private var started = AtomicBoolean(false)
@@ -88,15 +86,13 @@ class DefaultUnleash(
 
     init {
         val httpClientBuilder = ClientBuilder(unleashConfig, androidContext)
-        val metricsImpl =
+        metrics =
             if (unleashConfig.metricsStrategy.enabled)
                 MetricsSender(
                     unleashConfig,
                     httpClientBuilder.build("metrics", unleashConfig.metricsStrategy)
                 )
             else NoOpMetrics()
-        metrics = metricsImpl
-        metricsSender = metricsImpl
         fetcher = if (unleashConfig.pollingStrategy.enabled)
             UnleashFetcher(
                 unleashConfig,
@@ -104,7 +100,7 @@ class DefaultUnleash(
                 unleashContextState.asStateFlow()
             ) else null
         taskManager = LifecycleAwareTaskManager(
-            dataJobs = buildDataJobs(fetcher, metricsSender),
+            dataJobs = buildDataJobs(fetcher, metrics),
             networkAvailable = networkStatusHelper.isAvailable(),
             scope = coroutineScope
         )
@@ -229,7 +225,7 @@ class DefaultUnleash(
     override fun sendMetricsNow() {
         if (!unleashConfig.metricsStrategy.enabled) return
         runBlocking {
-            metricsSender.sendMetrics()
+            metrics.sendMetrics()
         }
     }
 
@@ -237,7 +233,7 @@ class DefaultUnleash(
         if (!unleashConfig.metricsStrategy.enabled) return
         coroutineScope.launch {
             withContext(Dispatchers.IO) {
-                metricsSender.sendMetrics()
+                metrics.sendMetrics()
             }
         }
     }
