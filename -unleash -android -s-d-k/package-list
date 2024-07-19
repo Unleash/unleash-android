@@ -107,8 +107,8 @@ $dokka.location:io.getunleash.android.data/FetchResponse/FetchResponse/#io.getun
 $dokka.location:io.getunleash.android.data/FetchResponse/config/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-fetch-response/config.html
 $dokka.location:io.getunleash.android.data/FetchResponse/error/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-fetch-response/error.html
 $dokka.location:io.getunleash.android.data/FetchResponse/isFailed/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-fetch-response/is-failed.html
-$dokka.location:io.getunleash.android.data/FetchResponse/isFetched/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-fetch-response/is-fetched.html
 $dokka.location:io.getunleash.android.data/FetchResponse/isNotModified/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-fetch-response/is-not-modified.html
+$dokka.location:io.getunleash.android.data/FetchResponse/isSuccess/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-fetch-response/is-success.html
 $dokka.location:io.getunleash.android.data/FetchResponse/status/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-fetch-response/status.html
 $dokka.location:io.getunleash.android.data/ImpressionEvent///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-impression-event/index.html
 $dokka.location:io.getunleash.android.data/ImpressionEvent/ImpressionEvent/#kotlin.String#kotlin.Boolean#io.getunleash.android.data.UnleashContext#kotlin.String?#kotlin.String/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-impression-event/-impression-event.html
@@ -132,10 +132,14 @@ $dokka.location:io.getunleash.android.data/ProxyResponse///PointingToDeclaration
 $dokka.location:io.getunleash.android.data/ProxyResponse/ProxyResponse/#kotlin.collections.List[io.getunleash.android.data.Toggle]/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-proxy-response/-proxy-response.html
 $dokka.location:io.getunleash.android.data/ProxyResponse/toggles/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-proxy-response/toggles.html
 $dokka.location:io.getunleash.android.data/Status.FAILED///PointingToDeclaration/{"org.jetbrains.dokka.links.EnumEntryDRIExtra":{"key":"org.jetbrains.dokka.links.EnumEntryDRIExtra"}}-unleash -android -s-d-k/io.getunleash.android.data/-status/-f-a-i-l-e-d/index.html
-$dokka.location:io.getunleash.android.data/Status.FETCHED///PointingToDeclaration/{"org.jetbrains.dokka.links.EnumEntryDRIExtra":{"key":"org.jetbrains.dokka.links.EnumEntryDRIExtra"}}-unleash -android -s-d-k/io.getunleash.android.data/-status/-f-e-t-c-h-e-d/index.html
-$dokka.location:io.getunleash.android.data/Status.NOTMODIFIED///PointingToDeclaration/{"org.jetbrains.dokka.links.EnumEntryDRIExtra":{"key":"org.jetbrains.dokka.links.EnumEntryDRIExtra"}}-unleash -android -s-d-k/io.getunleash.android.data/-status/-n-o-t-m-o-d-i-f-i-e-d/index.html
+$dokka.location:io.getunleash.android.data/Status.NOT_MODIFIED///PointingToDeclaration/{"org.jetbrains.dokka.links.EnumEntryDRIExtra":{"key":"org.jetbrains.dokka.links.EnumEntryDRIExtra"}}-unleash -android -s-d-k/io.getunleash.android.data/-status/-n-o-t_-m-o-d-i-f-i-e-d/index.html
+$dokka.location:io.getunleash.android.data/Status.SUCCESS///PointingToDeclaration/{"org.jetbrains.dokka.links.EnumEntryDRIExtra":{"key":"org.jetbrains.dokka.links.EnumEntryDRIExtra"}}-unleash -android -s-d-k/io.getunleash.android.data/-status/-s-u-c-c-e-s-s/index.html
+$dokka.location:io.getunleash.android.data/Status.THROTTLED///PointingToDeclaration/{"org.jetbrains.dokka.links.EnumEntryDRIExtra":{"key":"org.jetbrains.dokka.links.EnumEntryDRIExtra"}}-unleash -android -s-d-k/io.getunleash.android.data/-status/-t-h-r-o-t-t-l-e-d/index.html
 $dokka.location:io.getunleash.android.data/Status///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-status/index.html
 $dokka.location:io.getunleash.android.data/Status/entries/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-status/entries.html
+$dokka.location:io.getunleash.android.data/Status/isFailed/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-status/is-failed.html
+$dokka.location:io.getunleash.android.data/Status/isNotModified/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-status/is-not-modified.html
+$dokka.location:io.getunleash.android.data/Status/isSuccess/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-status/is-success.html
 $dokka.location:io.getunleash.android.data/Status/valueOf/#kotlin.String/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-status/value-of.html
 $dokka.location:io.getunleash.android.data/Status/values/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-status/values.html
 $dokka.location:io.getunleash.android.data/Toggle///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-toggle/index.html
@@ -192,7 +196,17 @@ $dokka.location:io.getunleash.android.errors/NoBodyException///PointingToDeclara
 $dokka.location:io.getunleash.android.errors/NoBodyException/NoBodyException/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.errors/-no-body-exception/-no-body-exception.html
 $dokka.location:io.getunleash.android.errors/NotAuthorizedException///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.errors/-not-authorized-exception/index.html
 $dokka.location:io.getunleash.android.errors/NotAuthorizedException/NotAuthorizedException/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.errors/-not-authorized-exception/-not-authorized-exception.html
+$dokka.location:io.getunleash.android.errors/ServerException///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.errors/-server-exception/index.html
+$dokka.location:io.getunleash.android.errors/ServerException/ServerException/#kotlin.Int/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.errors/-server-exception/-server-exception.html
 $dokka.location:io.getunleash.android.events////PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.events/index.html
+$dokka.location:io.getunleash.android.events/HeartbeatEvent///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.events/-heartbeat-event/index.html
+$dokka.location:io.getunleash.android.events/HeartbeatEvent/HeartbeatEvent/#io.getunleash.android.data.Status#kotlin.String?/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.events/-heartbeat-event/-heartbeat-event.html
+$dokka.location:io.getunleash.android.events/HeartbeatEvent/message/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.events/-heartbeat-event/message.html
+$dokka.location:io.getunleash.android.events/HeartbeatEvent/status/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.events/-heartbeat-event/status.html
+$dokka.location:io.getunleash.android.events/UnleashFetcherHeartbeatListener///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.events/-unleash-fetcher-heartbeat-listener/index.html
+$dokka.location:io.getunleash.android.events/UnleashFetcherHeartbeatListener/onError/#io.getunleash.android.events.HeartbeatEvent/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.events/-unleash-fetcher-heartbeat-listener/on-error.html
+$dokka.location:io.getunleash.android.events/UnleashFetcherHeartbeatListener/togglesChecked/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.events/-unleash-fetcher-heartbeat-listener/toggles-checked.html
+$dokka.location:io.getunleash.android.events/UnleashFetcherHeartbeatListener/togglesUpdated/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.events/-unleash-fetcher-heartbeat-listener/toggles-updated.html
 $dokka.location:io.getunleash.android.events/UnleashImpressionEventListener///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.events/-unleash-impression-event-listener/index.html
 $dokka.location:io.getunleash.android.events/UnleashImpressionEventListener/onImpression/#io.getunleash.android.data.ImpressionEvent/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.events/-unleash-impression-event-listener/on-impression.html
 $dokka.location:io.getunleash.android.events/UnleashListener///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.events/-unleash-listener/index.html
@@ -245,6 +259,7 @@ $dokka.location:io.getunleash.android.polling/UnleashFetcher///PointingToDeclara
 $dokka.location:io.getunleash.android.polling/UnleashFetcher/UnleashFetcher/#io.getunleash.android.UnleashConfig#okhttp3.OkHttpClient#kotlinx.coroutines.flow.StateFlow[io.getunleash.android.data.UnleashContext]/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.polling/-unleash-fetcher/-unleash-fetcher.html
 $dokka.location:io.getunleash.android.polling/UnleashFetcher/close/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.polling/-unleash-fetcher/close.html
 $dokka.location:io.getunleash.android.polling/UnleashFetcher/getFeaturesReceivedFlow/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.polling/-unleash-fetcher/get-features-received-flow.html
+$dokka.location:io.getunleash.android.polling/UnleashFetcher/getHeartbeatFlow/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.polling/-unleash-fetcher/get-heartbeat-flow.html
 $dokka.location:io.getunleash.android.polling/UnleashFetcher/refreshToggles/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.polling/-unleash-fetcher/refresh-toggles.html
 $dokka.location:io.getunleash.android.polling/UnleashFetcher/startWatchingContext/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.polling/-unleash-fetcher/start-watching-context.html
 $dokka.location:io.getunleash.android.tasks////PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.tasks/index.html
@@ -313,9 +328,6 @@ $dokka.location:io.getunleash.android/UnleashConfig/localStorageConfig/#/Pointin
 $dokka.location:io.getunleash.android/UnleashConfig/metricsStrategy/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android/-unleash-config/metrics-strategy.html
 $dokka.location:io.getunleash.android/UnleashConfig/pollingStrategy/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android/-unleash-config/polling-strategy.html
 $dokka.location:io.getunleash.android/UnleashConfig/proxyUrl/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android/-unleash-config/proxy-url.html
-$dokka.location:io.getunleash.errors////PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.errors/index.html
-$dokka.location:io.getunleash.errors/ServerException///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.errors/-server-exception/index.html
-$dokka.location:io.getunleash.errors/ServerException/ServerException/#kotlin.Int/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.errors/-server-exception/-server-exception.html
 io.getunleash.android
 io.getunleash.android.backup
 io.getunleash.android.cache
@@ -326,5 +338,4 @@ io.getunleash.android.http
 io.getunleash.android.metrics
 io.getunleash.android.polling
 io.getunleash.android.tasks
-io.getunleash.errors
 
