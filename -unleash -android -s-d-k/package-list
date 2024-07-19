@@ -240,6 +240,7 @@ $dokka.location:io.getunleash.android.metrics////PointingToDeclaration/-unleash
 $dokka.location:io.getunleash.android.metrics/MetricsCollector///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.metrics/-metrics-collector/index.html
 $dokka.location:io.getunleash.android.metrics/MetricsCollector/count/#kotlin.String#kotlin.Boolean/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.metrics/-metrics-collector/count.html
 $dokka.location:io.getunleash.android.metrics/MetricsCollector/countVariant/#kotlin.String#io.getunleash.android.data.Variant/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.metrics/-metrics-collector/count-variant.html
+$dokka.location:io.getunleash.android.metrics/MetricsHandler///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.metrics/-metrics-handler/index.html
 $dokka.location:io.getunleash.android.metrics/MetricsReporter///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.metrics/-metrics-reporter/index.html
 $dokka.location:io.getunleash.android.metrics/MetricsReporter/sendMetrics/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.metrics/-metrics-reporter/send-metrics.html
 $dokka.location:io.getunleash.android.metrics/MetricsSender.Companion///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.metrics/-metrics-sender/-companion/index.html
@@ -286,8 +287,11 @@ $dokka.location:io.getunleash.android/DefaultUnleash/addUnleashEventListener/#io
 $dokka.location:io.getunleash.android/DefaultUnleash/close/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android/-default-unleash/close.html
 $dokka.location:io.getunleash.android/DefaultUnleash/getVariant/#kotlin.String#io.getunleash.android.data.Variant/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android/-default-unleash/get-variant.html
 $dokka.location:io.getunleash.android/DefaultUnleash/isEnabled/#kotlin.String#kotlin.Boolean/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android/-default-unleash/is-enabled.html
+$dokka.location:io.getunleash.android/DefaultUnleash/isReady/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android/-default-unleash/is-ready.html
 $dokka.location:io.getunleash.android/DefaultUnleash/refreshTogglesNow/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android/-default-unleash/refresh-toggles-now.html
 $dokka.location:io.getunleash.android/DefaultUnleash/refreshTogglesNowAsync/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android/-default-unleash/refresh-toggles-now-async.html
+$dokka.location:io.getunleash.android/DefaultUnleash/sendMetricsNow/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android/-default-unleash/send-metrics-now.html
+$dokka.location:io.getunleash.android/DefaultUnleash/sendMetricsNowAsync/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android/-default-unleash/send-metrics-now-async.html
 $dokka.location:io.getunleash.android/DefaultUnleash/setContext/#io.getunleash.android.data.UnleashContext/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android/-default-unleash/set-context.html
 $dokka.location:io.getunleash.android/DefaultUnleash/setContextAsync/#io.getunleash.android.data.UnleashContext/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android/-default-unleash/set-context-async.html
 $dokka.location:io.getunleash.android/DefaultUnleash/setContextWithTimeout/#io.getunleash.android.data.UnleashContext#kotlin.Long/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android/-default-unleash/set-context-with-timeout.html
@@ -298,8 +302,11 @@ $dokka.location:io.getunleash.android/Unleash///PointingToDeclaration/-unleash 
 $dokka.location:io.getunleash.android/Unleash/addUnleashEventListener/#io.getunleash.android.events.UnleashListener/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android/-unleash/add-unleash-event-listener.html
 $dokka.location:io.getunleash.android/Unleash/getVariant/#kotlin.String#io.getunleash.android.data.Variant/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android/-unleash/get-variant.html
 $dokka.location:io.getunleash.android/Unleash/isEnabled/#kotlin.String#kotlin.Boolean/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android/-unleash/is-enabled.html
+$dokka.location:io.getunleash.android/Unleash/isReady/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android/-unleash/is-ready.html
 $dokka.location:io.getunleash.android/Unleash/refreshTogglesNow/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android/-unleash/refresh-toggles-now.html
 $dokka.location:io.getunleash.android/Unleash/refreshTogglesNowAsync/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android/-unleash/refresh-toggles-now-async.html
+$dokka.location:io.getunleash.android/Unleash/sendMetricsNow/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android/-unleash/send-metrics-now.html
+$dokka.location:io.getunleash.android/Unleash/sendMetricsNowAsync/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android/-unleash/send-metrics-now-async.html
 $dokka.location:io.getunleash.android/Unleash/setContext/#io.getunleash.android.data.UnleashContext/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android/-unleash/set-context.html
 $dokka.location:io.getunleash.android/Unleash/setContextAsync/#io.getunleash.android.data.UnleashContext/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android/-unleash/set-context-async.html
 $dokka.location:io.getunleash.android/Unleash/setContextWithTimeout/#io.getunleash.android.data.UnleashContext#kotlin.Long/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android/-unleash/set-context-with-timeout.html
