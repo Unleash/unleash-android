@@ -12,12 +12,14 @@ import io.getunleash.android.data.UnleashContext
 import io.getunleash.android.data.UnleashState
 import io.getunleash.android.errors.NoBodyException
 import io.getunleash.android.errors.NotAuthorizedException
+import io.getunleash.android.errors.ServerException
+import io.getunleash.android.events.HeartbeatEvent
 import io.getunleash.android.http.Throttler
 import io.getunleash.android.unleashScope
-import io.getunleash.errors.ServerException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -63,6 +65,10 @@ open class UnleashFetcher(
         replay = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
+    private val fetcherHeartbeatFlow = MutableSharedFlow<HeartbeatEvent>(
+        extraBufferCapacity = 5,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
     private val coroutineContextForContextChange: CoroutineContext = Dispatchers.IO
     private val currentCall = AtomicReference<Call?>(null)
     private val throttler =
@@ -88,15 +94,18 @@ open class UnleashFetcher(
     suspend fun refreshToggles(): ToggleResponse {
         if (throttler.performAction()) {
             Log.d(TAG, "Refreshing toggles")
-            return refreshTogglesWithContext(unleashContext.value)
+            val response = refreshTogglesWithContext(unleashContext.value)
+            fetcherHeartbeatFlow.emit(HeartbeatEvent(response.status, response.error?.message))
+            return response
         }
         Log.i(TAG, "Skipping refresh toggles due to throttling")
-        return ToggleResponse(Status.FAILED)
+        fetcherHeartbeatFlow.emit(HeartbeatEvent(Status.THROTTLED))
+        return ToggleResponse(Status.THROTTLED)
     }
 
     internal suspend fun refreshTogglesWithContext(ctx: UnleashContext): ToggleResponse {
         val response = fetchToggles(ctx)
-        if (response.isFetched()) {
+        if (response.isSuccess()) {
 
             val toggles = response.config!!.toggles.groupBy { it.name }
                 .mapValues { (_, v) -> v.first() }
@@ -153,7 +162,7 @@ open class UnleashFetcher(
                             try {
                                 val proxyResponse: ProxyResponse =
                                     Parser.jackson.readValue(b.string())
-                                FetchResponse(Status.FETCHED, proxyResponse)
+                                FetchResponse(Status.SUCCESS, proxyResponse)
                             } catch (e: Exception) {
                                 // If we fail to parse, just keep data
                                 FetchResponse(Status.FAILED, error = e)
@@ -162,7 +171,7 @@ open class UnleashFetcher(
                     }
 
                     res.code == 304 -> {
-                        FetchResponse(Status.NOTMODIFIED)
+                        FetchResponse(Status.NOT_MODIFIED)
                     }
 
                     res.code == 401 -> {
@@ -225,5 +234,9 @@ open class UnleashFetcher(
         httpClient.dispatcher.executorService.shutdownNow()
         httpClient.connectionPool.evictAll()
         httpClient.cache?.closeQuietly()
+    }
+
+    fun getHeartbeatFlow(): SharedFlow<HeartbeatEvent> {
+        return fetcherHeartbeatFlow.asSharedFlow()
     }
 }

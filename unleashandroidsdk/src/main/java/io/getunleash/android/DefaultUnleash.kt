@@ -16,6 +16,7 @@ import io.getunleash.android.data.Toggle
 import io.getunleash.android.data.UnleashContext
 import io.getunleash.android.data.UnleashState
 import io.getunleash.android.data.Variant
+import io.getunleash.android.events.UnleashFetcherHeartbeatListener
 import io.getunleash.android.events.UnleashImpressionEventListener
 import io.getunleash.android.events.UnleashListener
 import io.getunleash.android.events.UnleashReadyListener
@@ -37,7 +38,9 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
@@ -252,6 +255,7 @@ class DefaultUnleash(
             Log.d(TAG, "Notifying UnleashReadyListener")
             listener.onReady()
         }
+
         if (listener is UnleashStateListener) coroutineScope.launch {
             cache.getUpdatesFlow().collect {
                 listener.onStateChanged()
@@ -259,8 +263,20 @@ class DefaultUnleash(
         }
 
         if (listener is UnleashImpressionEventListener) coroutineScope.launch {
-            impressionEventsFlow.collect { event ->
+            impressionEventsFlow.asSharedFlow().collect { event ->
                 listener.onImpression(event)
+            }
+        }
+
+        if (fetcher != null && listener is UnleashFetcherHeartbeatListener) coroutineScope.launch {
+            fetcher.getHeartbeatFlow().collect { event ->
+                if (event.status.isFailed()) {
+                    listener.onError(event)
+                } else if (event.status.isNotModified()) {
+                    listener.togglesChecked()
+                } else if (event.status.isSuccess()) {
+                    listener.togglesUpdated()
+                }
             }
         }
     }
