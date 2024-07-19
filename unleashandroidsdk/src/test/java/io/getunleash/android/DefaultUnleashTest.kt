@@ -12,10 +12,6 @@ import io.getunleash.android.events.HeartbeatEvent
 import io.getunleash.android.events.UnleashFetcherHeartbeatListener
 import io.getunleash.android.events.UnleashImpressionEventListener
 import io.getunleash.android.events.UnleashReadyListener
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.advanceTimeBy
-import kotlinx.coroutines.test.runTest
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.assertj.core.api.Assertions.assertThat
@@ -26,12 +22,12 @@ import org.mockito.Mockito.mock
 import org.robolectric.shadows.ShadowLog
 import java.util.concurrent.TimeUnit
 
-class DefaultUnleashTest: BaseTest() {
+class DefaultUnleashTest : BaseTest() {
     private val staticToggleList = listOf(
         Toggle(name = "feature1", enabled = true),
         Toggle(name = "feature2", enabled = false),
     )
-    private val testCache = object: ToggleCache {
+    private val testCache = object : ToggleCache {
         val staticToggles = staticToggleList.associateBy { it.name }
         override fun read(): Map<String, Toggle> {
             return staticToggles
@@ -45,6 +41,7 @@ class DefaultUnleashTest: BaseTest() {
             TODO("Should not be used")
         }
     }
+
     @Test
     fun testDefaultUnleashWithStaticCache() {
         val unleash = DefaultUnleash(
@@ -84,7 +81,8 @@ class DefaultUnleashTest: BaseTest() {
         val server = MockWebServer()
         server.enqueue(
             MockResponse().setBody(
-                this::class.java.classLoader?.getResource("sample-response.json")!!.readText())
+                this::class.java.classLoader?.getResource("sample-response.json")!!.readText()
+            )
         )
         val unleash = DefaultUnleash(
             androidContext = mock(Context::class.java),
@@ -103,7 +101,7 @@ class DefaultUnleashTest: BaseTest() {
         var onReady3 = false
 
         // adding listeners before start should not be overridden
-        unleash.addUnleashEventListener(object: UnleashReadyListener {
+        unleash.addUnleashEventListener(object : UnleashReadyListener {
             override fun onReady() {
                 onReady1 = true
             }
@@ -204,7 +202,8 @@ class DefaultUnleashTest: BaseTest() {
         val server = MockWebServer()
         server.enqueue(
             MockResponse().setBody(
-                this::class.java.classLoader?.getResource("sample-response.json")!!.readText())
+                this::class.java.classLoader?.getResource("sample-response.json")!!.readText()
+            )
         )
         val unleash = DefaultUnleash(
             androidContext = mock(Context::class.java),
@@ -219,7 +218,7 @@ class DefaultUnleashTest: BaseTest() {
         )
 
         var ready = false
-        unleash.addUnleashEventListener(object: UnleashReadyListener {
+        unleash.addUnleashEventListener(object : UnleashReadyListener {
             override fun onReady() {
                 ready = true
             }
@@ -234,13 +233,13 @@ class DefaultUnleashTest: BaseTest() {
         assertThat(variant.name).isEqualTo("black")
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `can listen to heartbeat events when polling`() {
         val server = MockWebServer()
         server.enqueue(
             MockResponse().setBody(
-                this::class.java.classLoader?.getResource("sample-response.json")!!.readText())
+                this::class.java.classLoader?.getResource("sample-response.json")!!.readText()
+            )
         )
         server.enqueue(
             MockResponse().setResponseCode(304)
@@ -279,7 +278,7 @@ class DefaultUnleashTest: BaseTest() {
             }
 
             override fun onError(event: HeartbeatEvent) {
-                if (event.status == Status.THROTTLED) togglesThrottled ++ else togglesFailed++
+                if (event.status == Status.THROTTLED) togglesThrottled++ else togglesFailed++
             }
         }))
 
@@ -305,5 +304,43 @@ class DefaultUnleashTest: BaseTest() {
         assertThat(togglesChecked).isEqualTo(1)
         assertThat(togglesFailed).isEqualTo(1)
         assertThat(togglesThrottled).isEqualTo(1)
+    }
+
+
+    @Test
+    fun `if unleash is not started, setting context does not poll, until start is called`() {
+        val server = MockWebServer()
+        server.enqueue(
+            MockResponse().setBody(
+                this::class.java.classLoader?.getResource("sample-response.json")!!.readText()
+            )
+        )
+        val unleash = DefaultUnleash(
+            androidContext = mock(Context::class.java),
+            unleashConfig = UnleashConfig.newBuilder("test-android-app")
+                .proxyUrl(server.url("").toString())
+                .clientKey("key-123")
+                .pollingStrategy.enabled(true)
+                .metricsStrategy.enabled(false)
+                .localStorageConfig.enabled(false)
+                .build(),
+            lifecycle = mock(Lifecycle::class.java),
+        )
+
+        unleash.setContext(UnleashContext(userId = "123"))
+        Thread.sleep(100)
+        assertThat(server.requestCount).isEqualTo(0)
+
+        var ready = false
+        unleash.addUnleashEventListener(object : UnleashReadyListener {
+            override fun onReady() {
+                ready = true
+            }
+        })
+        unleash.start()
+
+        await().atMost(2, TimeUnit.SECONDS).until { ready }
+        assertThat(server.requestCount).isEqualTo(1)
+        assertThat(server.takeRequest().requestUrl?.queryParameter("userId")).isEqualTo("123")
     }
 }

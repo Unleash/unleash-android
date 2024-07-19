@@ -21,19 +21,13 @@ class TestApplication: Application() {
     val unleash: Unleash by lazy {
         val instance = DefaultUnleash(
             androidContext = this,
-            unleashConfig = UnleashConfig(
-                appName = "test-android-app",
-                proxyUrl = "https://sandbox.getunleash.io/enterprise/api/frontend",
-                clientKey = "gaston:development.8c5d8ce0fd7233c268b74da276eb3c110caf8d2c67eb8dc5b29b4644",
-                pollingStrategy = DataStrategy(
-                    interval = 3000, // this is just for testing purposes
-                    pauseOnBackground = true
-                ),
-                metricsStrategy = DataStrategy(
-                    interval = 5000, // this is just for testing purposes
-                    pauseOnBackground = true
-                )
-            ),
+            unleashConfig = UnleashConfig.newBuilder(appName = "test-android-app")
+                .proxyUrl("https://eu.app.unleash-hosted.com/demo/api/frontend")
+                .clientKey("default:development.5d6b7aaeb6a9165f28e91290d13ba0ed39f56f6d9e6952c642fed7cc")
+                .pollingStrategy.interval(3000) // 3 secs is just for testing purposes, not recommended for production
+                .metricsStrategy.interval(3000) // 3 secs is just for testing purposes, not recommended for production
+                .build()
+            ,
             unleashContext = unleashContext
         )
         instance.start(listOf(object: UnleashReadyListener, UnleashStateListener {
