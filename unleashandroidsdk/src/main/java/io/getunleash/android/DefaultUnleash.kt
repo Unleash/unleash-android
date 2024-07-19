@@ -210,7 +210,9 @@ class DefaultUnleash(
 
     override fun refreshTogglesNow() {
         runBlocking {
-            fetcher?.refreshToggles()
+            withContext(Dispatchers.IO) {
+                fetcher?.refreshToggles()
+            }
         }
     }
 
@@ -225,7 +227,9 @@ class DefaultUnleash(
     override fun sendMetricsNow() {
         if (!unleashConfig.metricsStrategy.enabled) return
         runBlocking {
-            metrics.sendMetrics()
+            withContext(Dispatchers.IO) {
+                metrics.sendMetrics()
+            }
         }
     }
 
