@@ -70,6 +70,7 @@ class DefaultUnleash(
 
     private val unleashContextState = MutableStateFlow(unleashContext)
     private val metrics: MetricsCollector
+    private val metricsSender: MetricsReporter
     private val taskManager: LifecycleAwareTaskManager
     private val cache: ObservableToggleCache = ObservableCache(cacheImpl, coroutineScope)
     private var started = AtomicBoolean(false)
@@ -84,14 +85,15 @@ class DefaultUnleash(
 
     init {
         val httpClientBuilder = ClientBuilder(unleashConfig, androidContext)
-        val metricsSender =
+        val metricsImpl =
             if (unleashConfig.metricsStrategy.enabled)
                 MetricsSender(
                     unleashConfig,
                     httpClientBuilder.build("metrics", unleashConfig.metricsStrategy)
                 )
             else NoOpMetrics()
-        metrics = metricsSender
+        metrics = metricsImpl
+        metricsSender = metricsImpl
         fetcher = if (unleashConfig.pollingStrategy.enabled)
             UnleashFetcher(
                 unleashConfig,
@@ -221,17 +223,41 @@ class DefaultUnleash(
         }
     }
 
+    override fun sendMetricsNow() {
+        if (!unleashConfig.metricsStrategy.enabled) return
+        runBlocking {
+            metricsSender.sendMetrics()
+        }
+    }
+
+    override fun sendMetricsNowAsync() {
+        if (!unleashConfig.metricsStrategy.enabled) return
+        coroutineScope.launch {
+            withContext(Dispatchers.IO) {
+                metricsSender.sendMetrics()
+            }
+        }
+    }
+
+    override fun isReady(): Boolean {
+        return ready.get()
+    }
+
     override fun setContext(context: UnleashContext) {
         unleashContextState.value = context
-        refreshTogglesNow()
+        if (started.get()) {
+            refreshTogglesNow()
+        }
     }
 
     @Throws(TimeoutException::class)
     override fun setContextWithTimeout(context: UnleashContext, timeout: Long) {
         unleashContextState.value = context
-        runBlocking {
-            withTimeout(timeout) {
-                fetcher?.refreshToggles()
+        if (started.get()) {
+            runBlocking {
+                withTimeout(timeout) {
+                    fetcher?.refreshToggles()
+                }
             }
         }
     }

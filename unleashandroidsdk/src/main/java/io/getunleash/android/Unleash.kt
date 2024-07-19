@@ -41,4 +41,17 @@ interface Unleash: Closeable {
      */
     fun refreshTogglesNowAsync()
 
+    /**
+     * This function forces send metrics to the server and wait until the send is complete or failed.
+     * Usually, this is done automatically in the background, but you can call this function to force a send.
+     */
+    fun sendMetricsNow()
+
+    /**
+     * This function forces send metrics to the server asynchronously using the IO dispatcher.
+     * Usually, this is done automatically in the background, but you can call this function to force a send.
+     */
+    fun sendMetricsNowAsync()
+
+    fun isReady(): Boolean
 }

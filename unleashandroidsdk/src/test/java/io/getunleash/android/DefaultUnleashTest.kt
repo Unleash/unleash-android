@@ -226,4 +226,40 @@ class DefaultUnleashTest: BaseTest() {
         assertThat(variant.featureEnabled).isTrue()
         assertThat(variant.name).isEqualTo("black")
     }
+
+    @Test
+    fun `if unleash is not started, setting context does not poll, until start is called`() {
+        val server = MockWebServer()
+        server.enqueue(
+            MockResponse().setBody(
+                this::class.java.classLoader?.getResource("sample-response.json")!!.readText())
+        )
+        val unleash = DefaultUnleash(
+            androidContext = mock(Context::class.java),
+            unleashConfig = UnleashConfig.newBuilder("test-android-app")
+                .proxyUrl(server.url("").toString())
+                .clientKey("key-123")
+                .pollingStrategy.enabled(true)
+                .metricsStrategy.enabled(false)
+                .localStorageConfig.enabled(false)
+                .build(),
+            lifecycle = mock(Lifecycle::class.java),
+        )
+
+        unleash.setContext(UnleashContext(userId = "123"))
+        Thread.sleep(100)
+        assertThat(server.requestCount).isEqualTo(0)
+
+        var ready = false
+        unleash.addUnleashEventListener(object: UnleashReadyListener {
+            override fun onReady() {
+                ready = true
+            }
+        })
+        unleash.start()
+
+        await().atMost(2, TimeUnit.SECONDS).until { ready }
+        assertThat(server.requestCount).isEqualTo(1)
+        assertThat(server.takeRequest().requestUrl?.queryParameter("userId")).isEqualTo("123")
+    }
 }
