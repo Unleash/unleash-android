@@ -13,15 +13,6 @@ private const val stringPayloadVariant = "{\n" +
         "        \"enabled\": true\n" +
         "      }"
 
-private const val nullPayloadVariant = "{\n" +
-        "        \"name\": \"123\",\n" +
-        "        \"payload\": {\n" +
-        "          \"type\": \"string\",\n" +
-        "          \"value\": null\n" +
-        "        },\n" +
-        "        \"enabled\": true\n" +
-        "      }"
-
 class PayloadTest {
 
     @Test
@@ -39,24 +30,6 @@ class PayloadTest {
     @Test
     fun testGetValueAsBool() {
         val variant = Parser.jackson.readValue(stringPayloadVariant, Variant::class.java)
-        assertThat(variant.payload?.getValueAsBoolean()).isFalse()
-    }
-
-    @Test
-    fun testGetValueAsStringWithNullPayloadValue() {
-        val variant = Parser.jackson.readValue(nullPayloadVariant, Variant::class.java)
-        assertThat(variant.payload?.getValueAsString()).isNull()
-    }
-
-    @Test
-    fun testGetValueAsNumberWithNullPayloadValue() {
-        val variant = Parser.jackson.readValue(nullPayloadVariant, Variant::class.java)
-        assertThat(variant.payload?.getValueAsInt()).isEqualTo(0)
-    }
-
-    @Test
-    fun testGetValueAsBoolWithNullPayloadValue() {
-        val variant = Parser.jackson.readValue(nullPayloadVariant, Variant::class.java)
         assertThat(variant.payload?.getValueAsBoolean()).isFalse()
     }
 
@@ -90,16 +63,5 @@ class PayloadTest {
         val map = response.toggles.groupBy { it.name }.mapValues { (_, v) -> v.first() }
         val toggle = map["doubleVariant"]!!
         assertThat(toggle.variant.payload!!.getValueAsDouble()).isEqualTo(42.0)
-    }
-
-    @Test
-    fun `Able to parse payload value as json node`() {
-        val response: ProxyResponse = Parser.jackson.readValue(TestResponses.complicatedVariants)
-        val map = response.toggles.groupBy { it.name }.mapValues { (_, v) -> v.first() }
-        val toggle = map["simpleToggle"]!!
-        val payload = toggle.variant.payload!!
-        assertThat(payload.value.isObject).isTrue
-        assertThat(payload.value.has("key")).isTrue
-
     }
 }

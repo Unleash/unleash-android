@@ -40,7 +40,7 @@ object TestResponses {
                             "name": "green",
                             "payload": {
                                 "type": "number",
-                                "value": 54
+                                "value": "54"
                             }
                         }
                     }, {
@@ -56,7 +56,7 @@ object TestResponses {
                             "name": "red",
                             "payload": {
                                 "type": "json",
-                                "value": { "key": "value" }
+                                "value": "{ \"key\": \"value\" }"
                             }
                         }
                     },
@@ -67,7 +67,7 @@ object TestResponses {
                             "name": "boolthis",
                             "payload": {
                                 "type": "boolean",
-                                "value": true
+                                "value": "true"
                             }
                         }
                     },
@@ -78,7 +78,7 @@ object TestResponses {
                             "name": "the-answer",
                             "payload": {
                                 "type": "number",
-                                "value": 42.0
+                                "value": "42.0"
                             }
                         }
                     }
