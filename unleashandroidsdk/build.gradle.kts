@@ -58,8 +58,6 @@ android {
 dependencies {
 
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.androidx.work.ktx)
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.jackson.databind)
     implementation(libs.jackson.core)
