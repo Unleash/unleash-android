@@ -6,13 +6,18 @@ on:
       release:
         description: 'Release version'
         required: true
+        type: choice
         options:
           - major
           - minor
           - patch
           - pre-release
+
+permissions:
+    contents: write
+
 jobs:
-  deploy-release:
+  create-tag:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags')
     steps:
