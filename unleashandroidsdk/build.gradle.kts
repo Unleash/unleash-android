@@ -48,10 +48,7 @@ android {
     }
 
     publishing {
-        multipleVariants {
-            includeBuildTypeValues("debug", "release")
-            withJavadocJar()
-        }
+        singleVariant("release")
     }
 }
 
