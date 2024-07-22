@@ -149,6 +149,61 @@ class DefaultUnleashTest : BaseTest() {
     }
 
     @Test
+    fun `configuring impression event to true at config level will emit an impression event on all features`() {
+        val unleash = DefaultUnleash(
+            androidContext = mock(Context::class.java),
+            unleashConfig = UnleashConfig.newBuilder("test-android-app")
+                .pollingStrategy.enabled(false)
+                .metricsStrategy.enabled(false)
+                .localStorageConfig.enabled(false)
+                .forceImpressionData(true)
+                .build(),
+            unleashContext = UnleashContext(userId = "123"),
+            lifecycle = mock(Lifecycle::class.java)
+        )
+
+        var ready = false
+        val impressionEvents = mutableListOf<ImpressionEvent>()
+        unleash.start(
+            eventListeners = listOf(object : UnleashReadyListener, UnleashImpressionEventListener {
+                override fun onImpression(event: ImpressionEvent) {
+                    println("Impression event received: ${event.featureName}")
+                    impressionEvents.add(event)
+                }
+
+                override fun onReady() {
+                    ready = true
+                }
+            }), bootstrap = listOf(
+                Toggle(name = "with-impression-1", enabled = true, impressionData = true),
+                Toggle(name = "with-impression-2", enabled = true, impressionData = true),
+                Toggle(name = "with-impression-3", enabled = true, impressionData = true),
+                Toggle(name = "without-impression", enabled = false)
+            )
+        )
+        await().atMost(1, TimeUnit.SECONDS).until { ready }
+
+
+        unleash.isEnabled("with-impression-1")
+        unleash.isEnabled("with-impression-2", true)
+        unleash.isEnabled("without-impression")
+        unleash.isEnabled("with-impression-3", false)
+        unleash.isEnabled("non-existing-toggle")
+
+        await().atMost(1, TimeUnit.SECONDS).until { impressionEvents.size >= 5 }
+        assertThat(impressionEvents).hasSize(5)
+        assertThat(impressionEvents)
+            .extracting("featureName")
+            .containsExactlyInAnyOrder(
+                "with-impression-1",
+                "with-impression-2",
+                "without-impression",
+                "with-impression-3",
+                "non-existing-toggle"
+            )
+    }
+
+    @Test
     fun `feature with impression event set to true will emit an impression event`() {
         val unleash = DefaultUnleash(
             androidContext = mock(Context::class.java),
@@ -190,12 +245,9 @@ class DefaultUnleashTest : BaseTest() {
 
         await().atMost(1, TimeUnit.SECONDS).until { impressionEvents.size >= 3 }
         assertThat(impressionEvents).hasSize(3)
-        for (i in 1 until 4) {
-            impressionEvents[i - 1].let {
-                assertThat(it.featureName).isEqualTo("with-impression-$i")
-                assertThat(it.enabled).isTrue()
-            }
-        }
+        assertThat(impressionEvents)
+            .extracting("featureName")
+            .containsExactlyInAnyOrder("with-impression-1", "with-impression-2", "with-impression-3")
     }
 
     @Test
