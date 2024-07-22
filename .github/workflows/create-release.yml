@@ -8,10 +8,10 @@ on:
         required: true
         type: choice
         options:
-          - major
-          - minor
-          - patch
           - pre-release
+          - patch
+          - minor
+          - major
 
 permissions:
     contents: write
