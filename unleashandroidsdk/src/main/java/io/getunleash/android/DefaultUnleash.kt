@@ -182,7 +182,7 @@ class DefaultUnleash(
     override fun isEnabled(toggleName: String, defaultValue: Boolean): Boolean {
         val toggle = cache.get(toggleName)
         val enabled = toggle?.enabled ?: defaultValue
-        val impressionData = toggle?.impressionData ?: unleashConfig.forceImpressionData
+        val impressionData = unleashConfig.forceImpressionData || toggle?.impressionData ?: false
         if (impressionData) {
             emit(ImpressionEvent(toggleName, enabled, unleashContextState.value))
         }
