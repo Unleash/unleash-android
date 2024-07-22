@@ -20,6 +20,7 @@ import org.awaitility.Awaitility.await
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.robolectric.shadows.ShadowLog
+import java.io.File
 import java.util.concurrent.TimeUnit
 
 class DefaultUnleashTest : BaseTest() {
@@ -343,4 +344,45 @@ class DefaultUnleashTest : BaseTest() {
         assertThat(server.requestCount).isEqualTo(1)
         assertThat(server.takeRequest().requestUrl?.queryParameter("userId")).isEqualTo("123")
     }
+
+    @Test
+    fun `can load from disk using a backup`() {
+        val sampleBackupResponse = File(this::class.java.classLoader?.getResource("sample-response.json")!!.path)
+        val inspectionableCache = object : ToggleCache {
+            var toggles: Map<String, Toggle> = emptyMap()
+            override fun read(): Map<String, Toggle> {
+                TODO("Not needed")
+            }
+
+            override fun get(key: String): Toggle? {
+                TODO("Not needed")
+            }
+
+            override fun write(state: UnleashState) {
+                toggles = state.toggles
+            }
+
+        }
+        val unleash = DefaultUnleash(
+            androidContext = mock(Context::class.java),
+            unleashConfig = UnleashConfig.newBuilder("test-android-app")
+                .pollingStrategy.enabled(false)
+                .metricsStrategy.enabled(false)
+                .localStorageConfig.enabled(false)
+                .build(),
+            lifecycle = mock(Lifecycle::class.java),
+            cacheImpl = inspectionableCache
+        )
+
+        unleash.start(bootstrapFile = sampleBackupResponse)
+
+        await().atMost(2, TimeUnit.SECONDS).until { inspectionableCache.toggles.isNotEmpty() }
+        assertThat(inspectionableCache.toggles).hasSize(8)
+        val aToggle = inspectionableCache.toggles["AwesomeDemo"]
+        assertThat(aToggle).isNotNull
+        assertThat(aToggle!!.enabled).isTrue()
+        assertThat(aToggle.variant).isNotNull
+        assertThat(aToggle.variant.name).isEqualTo("black")
+    }
+
 }

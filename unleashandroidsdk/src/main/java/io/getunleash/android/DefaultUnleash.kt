@@ -12,6 +12,8 @@ import io.getunleash.android.cache.ObservableCache
 import io.getunleash.android.cache.ObservableToggleCache
 import io.getunleash.android.cache.ToggleCache
 import io.getunleash.android.data.ImpressionEvent
+import io.getunleash.android.data.Parser
+import io.getunleash.android.data.ProxyResponse
 import io.getunleash.android.data.Toggle
 import io.getunleash.android.data.UnleashContext
 import io.getunleash.android.data.UnleashState
@@ -47,6 +49,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import okhttp3.internal.toImmutableList
+import java.io.File
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -113,6 +116,7 @@ class DefaultUnleash(
 
     fun start(
         eventListeners: List<UnleashListener> = emptyList(),
+        bootstrapFile: File? = null,
         bootstrap: List<Toggle> = emptyList()
     ) {
         if (!started.compareAndSet(false, true)) {
@@ -130,7 +134,14 @@ class DefaultUnleash(
         }
         lifecycle.addObserver(taskManager)
         eventListeners.forEach { addUnleashEventListener(it) }
-        if (bootstrap.isNotEmpty()) {
+        if (bootstrapFile != null && bootstrapFile.exists()) {
+            Log.i(TAG, "Using provided bootstrap file")
+            Parser.jackson.readValue(bootstrapFile, ProxyResponse::class.java)?.let { state ->
+                val toggles = state.toggles.groupBy { it.name }
+                    .mapValues { (_, v) -> v.first() }
+                cache.write(UnleashState(unleashContextState.value, toggles))
+            }
+        } else if (bootstrap.isNotEmpty()) {
             Log.i(TAG, "Using provided bootstrap toggles")
             cache.write(UnleashState(unleashContextState.value, bootstrap.associateBy { it.name }))
         }
