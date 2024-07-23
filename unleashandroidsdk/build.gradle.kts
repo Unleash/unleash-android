@@ -8,6 +8,8 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     id("org.jetbrains.dokka") version "1.9.20"
     id("pl.allegro.tech.build.axion-release") version "1.18.2"
+    jacoco
+    id("com.github.nbaztec.coveralls-jacoco") version "1.2.20"
 }
 
 val tagVersion = System.getenv("GITHUB_REF")?.split('/')?.last()
@@ -157,4 +159,43 @@ tasks.withType<DokkaTask>().configureEach {
             }
         }
     }
+}
+
+jacoco {
+    toolVersion = "0.8.8"
+}
+
+val jacocoTestReport by tasks.register<JacocoReport>("jacocoTestReport") {
+    dependsOn("testDebugUnitTest")
+
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+
+    val fileTreeConfig: (ConfigurableFileTree) -> Unit = {
+        it.exclude("**/R.class", "**/R$*.class", "**/BuildConfig.*", "**/Manifest*.*", "android/**/*.*")
+    }
+
+    sourceDirectories.setFrom(files("${projectDir}/src/main/java"))
+    classDirectories.setFrom(listOf(
+        fileTree("${buildDir}/classes", fileTreeConfig),
+        fileTree("${buildDir}/intermediates/javac/debug", fileTreeConfig),
+        fileTree("${buildDir}/tmp/kotlin-classes/debug", fileTreeConfig)
+    ))
+    executionData.setFrom(fileTree(buildDir) {
+        include("jacoco/*.exec")
+    })
+}
+
+tasks.named("check") {
+    finalizedBy("jacocoTestReport")
+}
+
+coverallsJacoco {
+    reportPath = "${buildDir}/reports/jacoco/jacocoTestReport/jacocoTestReport.xml"
+}
+
+tasks.coverallsJacoco {
+    dependsOn(jacocoTestReport)
 }
