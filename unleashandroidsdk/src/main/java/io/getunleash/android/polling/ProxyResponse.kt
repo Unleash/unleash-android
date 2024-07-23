@@ -1,4 +1,6 @@
-package io.getunleash.android.data
+package io.getunleash.android.polling
+
+import io.getunleash.android.data.Toggle
 
 /**
  * Holder for parsing response from proxy

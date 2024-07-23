@@ -30,10 +30,12 @@ android {
 
     buildTypes {
         debug {
+            //enableUnitTestCoverage = true
+            isMinifyEnabled = false
 
         }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -188,6 +190,12 @@ val jacocoTestReport by tasks.register<JacocoReport>("jacocoTestReport") {
     })
 }
 
-tasks.named("check") {
-    finalizedBy("jacocoTestReport")
+tasks.withType<Test> {
+    testLogging {
+        showExceptions = true
+        showStackTraces = true
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        events("passed", "skipped", "failed")
+    }
+    finalizedBy(jacocoTestReport)
 }

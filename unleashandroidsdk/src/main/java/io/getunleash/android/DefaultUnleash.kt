@@ -13,7 +13,7 @@ import io.getunleash.android.cache.ObservableToggleCache
 import io.getunleash.android.cache.ToggleCache
 import io.getunleash.android.data.ImpressionEvent
 import io.getunleash.android.data.Parser
-import io.getunleash.android.data.ProxyResponse
+import io.getunleash.android.polling.ProxyResponse
 import io.getunleash.android.data.Toggle
 import io.getunleash.android.data.UnleashContext
 import io.getunleash.android.data.UnleashState

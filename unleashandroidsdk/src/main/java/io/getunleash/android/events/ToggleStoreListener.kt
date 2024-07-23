@@ -1,4 +1,4 @@
-package io.getunleash.android.cache
+package io.getunleash.android.events
 
 import io.getunleash.android.data.Toggle
 

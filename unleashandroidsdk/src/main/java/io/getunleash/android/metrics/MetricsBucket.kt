@@ -1,5 +1,6 @@
-package io.getunleash.android.data
+package io.getunleash.android.metrics
 
+import io.getunleash.android.data.Variant
 import java.util.Date
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger

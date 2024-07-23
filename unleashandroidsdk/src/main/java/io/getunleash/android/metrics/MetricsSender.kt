@@ -2,9 +2,6 @@ package io.getunleash.android.metrics
 
 import android.util.Log
 import io.getunleash.android.UnleashConfig
-import io.getunleash.android.data.Bucket
-import io.getunleash.android.data.CountBucket
-import io.getunleash.android.data.MetricsPayload
 import io.getunleash.android.data.Parser
 import io.getunleash.android.data.Variant
 import io.getunleash.android.http.Throttler
