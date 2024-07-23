@@ -14,6 +14,10 @@ plugins {
 val tagVersion = System.getenv("GITHUB_REF")?.split('/')?.last()
 project.version = scmVersion.version
 
+jacoco {
+    toolVersion = "0.8.8"
+}
+
 android {
     namespace = "io.getunleash.android"
     compileSdk = 34
@@ -30,9 +34,7 @@ android {
 
     buildTypes {
         debug {
-            //enableUnitTestCoverage = true
             isMinifyEnabled = false
-
         }
         release {
             isMinifyEnabled = true
@@ -162,10 +164,6 @@ tasks.withType<DokkaTask>().configureEach {
     }
 }
 
-jacoco {
-    toolVersion = "0.8.8"
-}
-
 val jacocoTestReport by tasks.register<JacocoReport>("jacocoTestReport") {
     dependsOn("testDebugUnitTest")
 
@@ -196,6 +194,10 @@ tasks.withType<Test> {
         showStackTraces = true
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
         events("passed", "skipped", "failed")
+    }
+    configure<JacocoTaskExtension> {
+        isIncludeNoLocationClasses = true
+        excludes = listOf("jdk.internal.*")
     }
     finalizedBy(jacocoTestReport)
 }
