@@ -173,7 +173,7 @@ val jacocoTestReport by tasks.register<JacocoReport>("jacocoTestReport") {
     }
 
     val fileTreeConfig: (ConfigurableFileTree) -> Unit = {
-        it.exclude("**/R.class", "**/R$*.class", "**/BuildConfig.*", "**/Manifest*.*", "android/**/*.*")
+        it.exclude("**/data/**")
     }
 
     sourceDirectories.setFrom(files("${projectDir}/src/main/java"))
