@@ -9,7 +9,6 @@ plugins {
     id("org.jetbrains.dokka") version "1.9.20"
     id("pl.allegro.tech.build.axion-release") version "1.18.2"
     jacoco
-    id("com.github.nbaztec.coveralls-jacoco") version "1.2.20"
 }
 
 val tagVersion = System.getenv("GITHUB_REF")?.split('/')?.last()
@@ -190,12 +189,4 @@ val jacocoTestReport by tasks.register<JacocoReport>("jacocoTestReport") {
 
 tasks.named("check") {
     finalizedBy("jacocoTestReport")
-}
-
-coverallsJacoco {
-    reportPath = "${buildDir}/reports/jacoco/jacocoTestReport/jacocoTestReport.xml"
-}
-
-tasks.coverallsJacoco {
-    dependsOn(jacocoTestReport)
 }
