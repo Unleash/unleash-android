@@ -38,9 +38,10 @@ class DefaultUnleashTest : BaseTest() {
                 .pollingStrategy.enabled(false)
                 .metricsStrategy.enabled(false)
                 .localStorageConfig.enabled(false)
+                .delayedInitialization(false) // start immediately
                 .build(),
             cacheImpl = InspectableCache(staticToggleList.associateBy { it.name }),
-            lifecycle = mock(Lifecycle::class.java),
+            lifecycle = mock(Lifecycle::class.java)
         )
         assertThat(unleash.isEnabled("feature1")).isTrue()
         assertThat(unleash.isEnabled("feature2")).isFalse()
