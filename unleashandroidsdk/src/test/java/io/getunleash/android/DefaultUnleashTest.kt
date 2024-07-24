@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.lifecycle.Lifecycle
 import io.getunleash.android.cache.ToggleCache
 import io.getunleash.android.data.ImpressionEvent
-import io.getunleash.android.data.Status
+import io.getunleash.android.polling.Status
 import io.getunleash.android.data.Toggle
 import io.getunleash.android.data.UnleashContext
 import io.getunleash.android.data.UnleashState

@@ -99,10 +99,10 @@ class Throttler(
 
     fun handle(statusCode: Int) {
         if (statusCode in 200..399) {
-            decrementFailureCountAndResetSkips();
+            decrementFailureCountAndResetSkips()
         }
         if (statusCode >= 400) {
-            handleHttpErrorCodes(statusCode);
+            handleHttpErrorCodes(statusCode)
         }
     }
 

@@ -13,7 +13,7 @@ import io.getunleash.android.cache.ObservableToggleCache
 import io.getunleash.android.cache.ToggleCache
 import io.getunleash.android.data.ImpressionEvent
 import io.getunleash.android.data.Parser
-import io.getunleash.android.data.ProxyResponse
+import io.getunleash.android.polling.ProxyResponse
 import io.getunleash.android.data.Toggle
 import io.getunleash.android.data.UnleashContext
 import io.getunleash.android.data.UnleashState
@@ -103,7 +103,7 @@ class DefaultUnleash(
                 unleashContextState.asStateFlow()
             ) else null
         taskManager = LifecycleAwareTaskManager(
-            dataJobs = buildDataJobs(fetcher, metrics),
+            dataJobs = buildDataJobs(metrics, fetcher),
             networkAvailable = networkStatusHelper.isAvailable(),
             scope = coroutineScope
         )
@@ -147,7 +147,7 @@ class DefaultUnleash(
         }
     }
 
-    private fun buildDataJobs(fetcher: UnleashFetcher?, metricsSender: MetricsReporter) = buildList {
+    private fun buildDataJobs(metricsSender: MetricsReporter, fetcher: UnleashFetcher?) = buildList {
         if (fetcher != null) {
             add(
                 DataJob(

@@ -1,6 +1,7 @@
 package io.getunleash.android.data
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.getunleash.android.polling.ProxyResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
