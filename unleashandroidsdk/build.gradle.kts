@@ -14,6 +14,10 @@ plugins {
 val tagVersion = System.getenv("GITHUB_REF")?.split('/')?.last()
 project.version = scmVersion.version
 
+jacoco {
+    toolVersion = "0.8.8"
+}
+
 android {
     namespace = "io.getunleash.android"
     compileSdk = 34
@@ -30,10 +34,10 @@ android {
 
     buildTypes {
         debug {
-
+            isMinifyEnabled = false
         }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -160,10 +164,6 @@ tasks.withType<DokkaTask>().configureEach {
     }
 }
 
-jacoco {
-    toolVersion = "0.8.8"
-}
-
 val jacocoTestReport by tasks.register<JacocoReport>("jacocoTestReport") {
     dependsOn("testDebugUnitTest")
 
@@ -173,7 +173,8 @@ val jacocoTestReport by tasks.register<JacocoReport>("jacocoTestReport") {
     }
 
     val fileTreeConfig: (ConfigurableFileTree) -> Unit = {
-        it.exclude("**/R.class", "**/R$*.class", "**/BuildConfig.*", "**/Manifest*.*", "android/**/*.*")
+        it.exclude("**/R.class", "**/R$*.class", "**/BuildConfig.*", "**/Manifest*.*", "android/**/*.*",
+            "**/data/**", "**/errors/**", "**/events/**")
     }
 
     sourceDirectories.setFrom(files("${projectDir}/src/main/java"))
@@ -187,6 +188,16 @@ val jacocoTestReport by tasks.register<JacocoReport>("jacocoTestReport") {
     })
 }
 
-tasks.named("check") {
-    finalizedBy("jacocoTestReport")
+tasks.withType<Test> {
+    testLogging {
+        showExceptions = true
+        showStackTraces = true
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        events("passed", "skipped", "failed")
+    }
+    configure<JacocoTaskExtension> {
+        isIncludeNoLocationClasses = true
+        excludes = listOf("jdk.internal.*")
+    }
+    finalizedBy(jacocoTestReport)
 }
