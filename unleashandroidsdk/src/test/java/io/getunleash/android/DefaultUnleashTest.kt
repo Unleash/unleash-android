@@ -15,6 +15,7 @@ import io.getunleash.android.polling.Status
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.assertj.core.groups.Tuple
 import org.awaitility.Awaitility.await
 import org.junit.Test
@@ -22,6 +23,7 @@ import org.mockito.Mockito.mock
 import org.robolectric.shadows.ShadowLog
 import java.io.File
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import kotlin.io.path.createTempDirectory
 
 class DefaultUnleashTest : BaseTest() {
@@ -411,7 +413,7 @@ class DefaultUnleashTest : BaseTest() {
     }
 
     @Test
-    fun `can load a local backup`() {
+    fun `can load state from a local backup`() {
         val backupFile = this::class.java.classLoader?.getResource("unleash-state.json")!!.path
         val tmpDir = createTempDirectory().toFile()
         File(backupFile).copyTo(File(tmpDir, "${DefaultUnleash.BACKUP_DIR_NAME}/${LocalBackup.STATE_BACKUP_FILE}"))
