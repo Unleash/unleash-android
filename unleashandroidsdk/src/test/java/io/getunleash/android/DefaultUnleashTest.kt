@@ -296,6 +296,7 @@ class DefaultUnleashTest : BaseTest() {
                 .proxyUrl(server.url("").toString())
                 .clientKey("key-123")
                 .pollingStrategy.enabled(true)
+                .pollingStrategy.delay(10000) // delay enough so it won't trigger a new request
                 .metricsStrategy.enabled(false)
                 .localStorageConfig.enabled(false)
                 .build(),
