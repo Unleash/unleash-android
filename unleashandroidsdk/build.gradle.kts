@@ -78,13 +78,6 @@ dependencies {
     testImplementation(libs.okhttp.mockserver)
     testImplementation(libs.awaitility)
     testImplementation(libs.jsonunit)
-    androidTestImplementation(libs.kotlinx.coroutines.test)
-    androidTestImplementation(libs.assertj)
-    androidTestImplementation(libs.mockito)
-    androidTestImplementation(libs.androidx.work.testing)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(libs.okhttp.mockserver)
 }
 
 publishing {
@@ -180,8 +173,6 @@ val jacocoTestReport by tasks.register<JacocoReport>("jacocoTestReport") {
 
     sourceDirectories.setFrom(files("${projectDir}/src/main/java"))
     classDirectories.setFrom(listOf(
-        fileTree("${buildDir}/classes", fileTreeConfig),
-        fileTree("${buildDir}/intermediates/javac/debug", fileTreeConfig),
         fileTree("${buildDir}/tmp/kotlin-classes/debug", fileTreeConfig)
     ))
     executionData.setFrom(fileTree(buildDir) {

@@ -124,6 +124,7 @@ class DefaultUnleash(
             Log.w(TAG, "Unleash already started, ignoring start call")
             return
         }
+        eventListeners.forEach { addUnleashEventListener(it) }
         networkStatusHelper.registerNetworkListener(taskManager)
         if (unleashConfig.localStorageConfig.enabled) {
             val localBackup = getLocalBackup()
@@ -134,7 +135,6 @@ class DefaultUnleash(
             cache.subscribeTo(it.getFeaturesReceivedFlow())
         }
         lifecycle.addObserver(taskManager)
-        eventListeners.forEach { addUnleashEventListener(it) }
         if (bootstrapFile != null && bootstrapFile.exists()) {
             Log.i(TAG, "Using provided bootstrap file")
             Parser.jackson.readValue(bootstrapFile, ProxyResponse::class.java)?.let { state ->
