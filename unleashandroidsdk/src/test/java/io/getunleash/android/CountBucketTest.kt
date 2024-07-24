@@ -1,6 +1,6 @@
 package io.getunleash.android
 
-import io.getunleash.android.data.CountBucket
+import io.getunleash.android.metrics.CountBucket
 import io.getunleash.android.data.Variant
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test

@@ -1,6 +1,7 @@
 package io.getunleash.android.data
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.getunleash.android.polling.ProxyResponse
 
 object TestResponses {
     val threeToggles = """

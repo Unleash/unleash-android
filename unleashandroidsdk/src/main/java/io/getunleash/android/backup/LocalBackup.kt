@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
-data class BackupState(val contextId: String, val toggles: Map<String, Toggle>)
+private data class BackupState(val contextId: String, val toggles: Map<String, Toggle>)
 
 /**
  * Local backup of the last state of the Unleash SDK.
