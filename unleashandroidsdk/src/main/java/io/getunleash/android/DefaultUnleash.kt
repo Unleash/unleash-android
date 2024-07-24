@@ -103,7 +103,7 @@ class DefaultUnleash(
                 unleashContextState.asStateFlow()
             ) else null
         taskManager = LifecycleAwareTaskManager(
-            dataJobs = buildDataJobs(fetcher, metrics),
+            dataJobs = buildDataJobs(metrics, fetcher),
             networkAvailable = networkStatusHelper.isAvailable(),
             scope = coroutineScope
         )
@@ -147,7 +147,7 @@ class DefaultUnleash(
         }
     }
 
-    private fun buildDataJobs(fetcher: UnleashFetcher?, metricsSender: MetricsReporter) = buildList {
+    private fun buildDataJobs(metricsSender: MetricsReporter, fetcher: UnleashFetcher?) = buildList {
         if (fetcher != null) {
             add(
                 DataJob(
