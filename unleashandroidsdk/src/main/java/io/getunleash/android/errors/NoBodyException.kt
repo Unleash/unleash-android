@@ -1,4 +1,3 @@
 package io.getunleash.android.errors
 
-class NoBodyException : Exception("Got response from proxy but had no body") {
-}
+class NoBodyException : Exception("Got response from proxy but had no body")

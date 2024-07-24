@@ -1,6 +1,6 @@
 package io.getunleash.android.events
 
-import io.getunleash.android.data.Status
+import io.getunleash.android.polling.Status
 
 
 /**
