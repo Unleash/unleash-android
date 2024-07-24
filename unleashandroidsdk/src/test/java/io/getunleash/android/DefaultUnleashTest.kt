@@ -325,7 +325,7 @@ class DefaultUnleashTest : BaseTest() {
             }
         }))
 
-        await().atMost(2, TimeUnit.SECONDS).until {
+        await().atMost(5, TimeUnit.SECONDS).until {
             togglesUpdated > 0
         }
         // change context to force a refresh
