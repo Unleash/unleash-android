@@ -79,7 +79,8 @@ class DefaultUnleashTest : BaseTest() {
                 .proxyUrl(server.url("").toString())
                 .clientKey("key-123")
                 .pollingStrategy.enabled(true)
-                .metricsStrategy.enabled(false)
+                .metricsStrategy.enabled(true)
+                .metricsStrategy.delay(10000) // delay enough so it won't trigger a new request
                 .localStorageConfig.enabled(false)
                 .build(),
             lifecycle = mock(Lifecycle::class.java),
