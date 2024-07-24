@@ -7,7 +7,7 @@ import io.getunleash.android.data.UnleashState
 /**
  * This class is used to expose the cache for inspection during tests
  */
-class InspectionableCache(
+class InspectableCache(
     var toggles: Map<String, Toggle> = emptyMap()
 ): ToggleCache {
 

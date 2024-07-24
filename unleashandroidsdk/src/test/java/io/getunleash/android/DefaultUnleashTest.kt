@@ -15,7 +15,6 @@ import io.getunleash.android.polling.Status
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.assertj.core.groups.Tuple
 import org.awaitility.Awaitility.await
 import org.junit.Test
@@ -23,7 +22,6 @@ import org.mockito.Mockito.mock
 import org.robolectric.shadows.ShadowLog
 import java.io.File
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
 import kotlin.io.path.createTempDirectory
 
 class DefaultUnleashTest : BaseTest() {
@@ -41,7 +39,7 @@ class DefaultUnleashTest : BaseTest() {
                 .metricsStrategy.enabled(false)
                 .localStorageConfig.enabled(false)
                 .build(),
-            cacheImpl = InspectionableCache(staticToggleList.associateBy { it.name }),
+            cacheImpl = InspectableCache(staticToggleList.associateBy { it.name }),
             lifecycle = mock(Lifecycle::class.java),
         )
         assertThat(unleash.isEnabled("feature1")).isTrue()
@@ -125,7 +123,7 @@ class DefaultUnleashTest : BaseTest() {
                 .metricsStrategy.enabled(false)
                 .localStorageConfig.enabled(false)
                 .build(),
-            cacheImpl = InspectionableCache(staticToggleList.associateBy { it.name }),
+            cacheImpl = InspectableCache(staticToggleList.associateBy { it.name }),
             lifecycle = mock(Lifecycle::class.java),
         )
 
@@ -389,7 +387,7 @@ class DefaultUnleashTest : BaseTest() {
     @Test
     fun `can load from disk using a backup`() {
         val sampleBackupResponse = File(this::class.java.classLoader?.getResource("sample-response.json")!!.path)
-        val inspectionableCache = InspectionableCache()
+        val inspectableCache = InspectableCache()
         val unleash = DefaultUnleash(
             androidContext = mock(Context::class.java),
             unleashConfig = UnleashConfig.newBuilder("test-android-app")
@@ -398,14 +396,14 @@ class DefaultUnleashTest : BaseTest() {
                 .localStorageConfig.enabled(false)
                 .build(),
             lifecycle = mock(Lifecycle::class.java),
-            cacheImpl = inspectionableCache
+            cacheImpl = inspectableCache
         )
 
         unleash.start(bootstrapFile = sampleBackupResponse)
 
-        await().atMost(2, TimeUnit.SECONDS).until { inspectionableCache.toggles.isNotEmpty() }
-        assertThat(inspectionableCache.toggles).hasSize(8)
-        val aToggle = inspectionableCache.toggles["AwesomeDemo"]
+        await().atMost(2, TimeUnit.SECONDS).until { inspectableCache.toggles.isNotEmpty() }
+        assertThat(inspectableCache.toggles).hasSize(8)
+        val aToggle = inspectableCache.toggles["AwesomeDemo"]
         assertThat(aToggle).isNotNull
         assertThat(aToggle!!.enabled).isTrue()
         assertThat(aToggle.variant).isNotNull
@@ -418,7 +416,7 @@ class DefaultUnleashTest : BaseTest() {
         val tmpDir = createTempDirectory().toFile()
         File(backupFile).copyTo(File(tmpDir, "${DefaultUnleash.BACKUP_DIR_NAME}/${LocalBackup.STATE_BACKUP_FILE}"))
 
-        val inspectionableCache = InspectionableCache()
+        val inspectableCache = InspectableCache()
 
         val unleash = DefaultUnleash(
             androidContext = mock(Context::class.java),
@@ -428,7 +426,7 @@ class DefaultUnleashTest : BaseTest() {
                 .localStorageConfig.enabled(true)
                 .localStorageConfig.dir(tmpDir.path)
                 .build(),
-            cacheImpl = inspectionableCache,
+            cacheImpl = inspectableCache,
             unleashContext = UnleashContext(userId = "123"),
             lifecycle = mock(Lifecycle::class.java),
         )
@@ -441,6 +439,6 @@ class DefaultUnleashTest : BaseTest() {
         }))
 
         await().atMost(2, TimeUnit.SECONDS).until { stateSet }
-        assertThat(inspectionableCache.toggles).hasSize(3)
+        assertThat(inspectableCache.toggles).hasSize(3)
     }
 }
