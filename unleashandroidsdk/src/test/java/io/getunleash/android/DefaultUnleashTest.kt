@@ -2,16 +2,16 @@ package io.getunleash.android
 
 import android.content.Context
 import androidx.lifecycle.Lifecycle
-import io.getunleash.android.cache.ToggleCache
+import io.getunleash.android.backup.LocalBackup
 import io.getunleash.android.data.ImpressionEvent
-import io.getunleash.android.polling.Status
 import io.getunleash.android.data.Toggle
 import io.getunleash.android.data.UnleashContext
-import io.getunleash.android.data.UnleashState
 import io.getunleash.android.events.HeartbeatEvent
 import io.getunleash.android.events.UnleashFetcherHeartbeatListener
 import io.getunleash.android.events.UnleashImpressionEventListener
 import io.getunleash.android.events.UnleashReadyListener
+import io.getunleash.android.events.UnleashStateListener
+import io.getunleash.android.polling.Status
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.assertj.core.api.Assertions.assertThat
@@ -22,26 +22,13 @@ import org.mockito.Mockito.mock
 import org.robolectric.shadows.ShadowLog
 import java.io.File
 import java.util.concurrent.TimeUnit
+import kotlin.io.path.createTempDirectory
 
 class DefaultUnleashTest : BaseTest() {
     private val staticToggleList = listOf(
         Toggle(name = "feature1", enabled = true),
         Toggle(name = "feature2", enabled = false),
     )
-    private val testCache = object : ToggleCache {
-        val staticToggles = staticToggleList.associateBy { it.name }
-        override fun read(): Map<String, Toggle> {
-            return staticToggles
-        }
-
-        override fun get(key: String): Toggle? {
-            return staticToggles[key]
-        }
-
-        override fun write(state: UnleashState) {
-            TODO("Should not be used")
-        }
-    }
 
     @Test
     fun testDefaultUnleashWithStaticCache() {
@@ -52,7 +39,7 @@ class DefaultUnleashTest : BaseTest() {
                 .metricsStrategy.enabled(false)
                 .localStorageConfig.enabled(false)
                 .build(),
-            cacheImpl = testCache,
+            cacheImpl = InspectableCache(staticToggleList.associateBy { it.name }),
             lifecycle = mock(Lifecycle::class.java),
         )
         assertThat(unleash.isEnabled("feature1")).isTrue()
@@ -136,7 +123,7 @@ class DefaultUnleashTest : BaseTest() {
                 .metricsStrategy.enabled(false)
                 .localStorageConfig.enabled(false)
                 .build(),
-            cacheImpl = testCache,
+            cacheImpl = InspectableCache(staticToggleList.associateBy { it.name }),
             lifecycle = mock(Lifecycle::class.java),
         )
 
@@ -400,21 +387,7 @@ class DefaultUnleashTest : BaseTest() {
     @Test
     fun `can load from disk using a backup`() {
         val sampleBackupResponse = File(this::class.java.classLoader?.getResource("sample-response.json")!!.path)
-        val inspectionableCache = object : ToggleCache {
-            var toggles: Map<String, Toggle> = emptyMap()
-            override fun read(): Map<String, Toggle> {
-                TODO("Not needed")
-            }
-
-            override fun get(key: String): Toggle? {
-                TODO("Not needed")
-            }
-
-            override fun write(state: UnleashState) {
-                toggles = state.toggles
-            }
-
-        }
+        val inspectableCache = InspectableCache()
         val unleash = DefaultUnleash(
             androidContext = mock(Context::class.java),
             unleashConfig = UnleashConfig.newBuilder("test-android-app")
@@ -423,18 +396,49 @@ class DefaultUnleashTest : BaseTest() {
                 .localStorageConfig.enabled(false)
                 .build(),
             lifecycle = mock(Lifecycle::class.java),
-            cacheImpl = inspectionableCache
+            cacheImpl = inspectableCache
         )
 
         unleash.start(bootstrapFile = sampleBackupResponse)
 
-        await().atMost(2, TimeUnit.SECONDS).until { inspectionableCache.toggles.isNotEmpty() }
-        assertThat(inspectionableCache.toggles).hasSize(8)
-        val aToggle = inspectionableCache.toggles["AwesomeDemo"]
+        await().atMost(2, TimeUnit.SECONDS).until { inspectableCache.toggles.isNotEmpty() }
+        assertThat(inspectableCache.toggles).hasSize(8)
+        val aToggle = inspectableCache.toggles["AwesomeDemo"]
         assertThat(aToggle).isNotNull
         assertThat(aToggle!!.enabled).isTrue()
         assertThat(aToggle.variant).isNotNull
         assertThat(aToggle.variant.name).isEqualTo("black")
     }
 
+    @Test
+    fun `can load state from a local backup`() {
+        val backupFile = this::class.java.classLoader?.getResource("unleash-state.json")!!.path
+        val tmpDir = createTempDirectory().toFile()
+        File(backupFile).copyTo(File(tmpDir, "${DefaultUnleash.BACKUP_DIR_NAME}/${LocalBackup.STATE_BACKUP_FILE}"))
+
+        val inspectableCache = InspectableCache()
+
+        val unleash = DefaultUnleash(
+            androidContext = mock(Context::class.java),
+            unleashConfig = UnleashConfig.newBuilder("test-android-app")
+                .pollingStrategy.enabled(false)
+                .metricsStrategy.enabled(false)
+                .localStorageConfig.enabled(true)
+                .localStorageConfig.dir(tmpDir.path)
+                .build(),
+            cacheImpl = inspectableCache,
+            unleashContext = UnleashContext(userId = "123"),
+            lifecycle = mock(Lifecycle::class.java),
+        )
+
+        var stateSet = false
+        unleash.start(eventListeners = listOf(object : UnleashStateListener {
+            override fun onStateChanged() {
+                stateSet = true
+            }
+        }))
+
+        await().atMost(2, TimeUnit.SECONDS).until { stateSet }
+        assertThat(inspectableCache.toggles).hasSize(3)
+    }
 }
