@@ -71,6 +71,7 @@ class DefaultUnleash(
 ) : Unleash {
     companion object {
         private const val TAG = "Unleash"
+        internal const val BACKUP_DIR_NAME = "unleash_backup"
     }
 
     private val unleashContextState = MutableStateFlow(unleashContext)
@@ -170,7 +171,7 @@ class DefaultUnleash(
 
     private fun getLocalBackup(): LocalBackup {
         val backupDir = CacheDirectoryProvider(unleashConfig.localStorageConfig, androidContext)
-            .getCacheDirectory("unleash_backup")
+            .getCacheDirectory(BACKUP_DIR_NAME)
         val localBackup = LocalBackup(backupDir)
         coroutineScope.launch {
             withContext(Dispatchers.IO) {

@@ -26,7 +26,7 @@ class LocalBackup(
 ) {
     companion object {
         private const val TAG = "LocalBackup"
-        private const val STATE_BACKUP_FILE = "unleash_state.json"
+        internal const val STATE_BACKUP_FILE = "unleash_state.json"
     }
 
     private var lastContext: UnleashContext? = null
@@ -63,7 +63,7 @@ class LocalBackup(
             if (stateBackup.exists()) {
                 val backupState = Parser.jackson.readValue<BackupState>(stateBackup.readBytes())
                 if (backupState.contextId != id(context)) {
-                    Log.i(TAG, "Context id mismatch, ignoring backup")
+                    Log.i(TAG, "Context id mismatch, ignoring backup for context id ${backupState.contextId}")
                     return null
                 }
                 return UnleashState(context, backupState.toggles)
