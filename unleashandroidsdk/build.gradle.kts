@@ -15,7 +15,7 @@ val tagVersion = System.getenv("GITHUB_REF")?.split('/')?.last()
 project.version = scmVersion.version
 
 jacoco {
-    toolVersion = "0.8.8"
+    toolVersion = "0.8.12"
 }
 
 android {
