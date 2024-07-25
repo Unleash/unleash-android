@@ -1,4 +1,4 @@
-# Migration Guide from io.getunleash:unleash-android-proxy-sdk:0.5.0 to io.getunleash:unleash-android:2.0.0
+# Migration Guide from unleash-android-proxy-sdk
 
 This guide provides detailed steps for migrating your project from the Unleash Android Proxy SDK version to the newer Unleash Android SDK.
 
