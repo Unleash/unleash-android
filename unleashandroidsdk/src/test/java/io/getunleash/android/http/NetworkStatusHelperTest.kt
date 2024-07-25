@@ -7,6 +7,7 @@ import android.net.NetworkCapabilities
 import io.getunleash.android.BaseTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
+import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
@@ -103,6 +104,29 @@ class NetworkStatusHelperTest : BaseTest() {
         assertThat(networkStatusHelper.isAvailable()).isTrue()
     }
 
+    @Test
+    @Config(sdk = [23])
+    fun `can register a network listener with API level above 23`() {
+        val network = mock(Network::class.java)
+        val context = contextWithNetwork(
+            network,
+            NetworkCapabilities.NET_CAPABILITY_VALIDATED,
+            NetworkCapabilities.NET_CAPABILITY_INTERNET
+        )
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkStatusHelper = NetworkStatusHelper(context)
+        val listener = mock(NetworkListener::class.java)
+        networkStatusHelper.registerNetworkListener(listener)
+        verify(connectivityManager).registerNetworkCallback(any(), any<ConnectivityManager.NetworkCallback>())
+
+        networkStatusHelper.networkCallbacks[0].onAvailable(network)
+        verify(listener).onAvailable()
+        networkStatusHelper.networkCallbacks[0].onLost(network)
+        verify(listener).onLost()
+        networkStatusHelper.networkCallbacks[0].onUnavailable()
+        verify(listener, times(2)).onLost()
+    }
+
     private fun contextWithNetwork(network: Network?, vararg capabilities: Int): Context {
         val context = mock(Context::class.java)
         val connectivityManager = mock(ConnectivityManager::class.java)
@@ -119,4 +143,6 @@ class NetworkStatusHelperTest : BaseTest() {
         )
         return context
     }
+
+
 }
