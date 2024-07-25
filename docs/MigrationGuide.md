@@ -9,7 +9,8 @@ We will focus on the [previous sample application](https://github.com/Unleash/un
 This version of the Unleash Android SDK introduces several improvements, including:
 - No need for SLF4J dependency and the usage of the native Android logging system.
 - Respecting the Android lifecycle to stop polling and sending metrics in the background.
-- Monitoring network connectivity to avoid unnecessary polling.
+- The new SDK respects the minimum Android API level 21, but we recommend API level 23.
+- Monitoring network connectivity to avoid unnecessary polling (requires API level 23 or above).
 
 ## Overview
 
