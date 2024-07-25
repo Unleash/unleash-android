@@ -97,7 +97,6 @@ The previous SDK used a builder to construct the Unleash instance while the new 
 ```kotlin
 UnleashClient.newBuilder()
     .unleashConfig(unleashConfig)
-    .cache(InMemoryToggleCache()) // This was optional in the previous SDK and in the new one so we are ignoring it
     .unleashContext(unleashContext)
     .build()
 ```
