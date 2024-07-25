@@ -5,7 +5,11 @@ import android.util.Log
 import io.getunleash.android.backup.LocalStorageConfig
 import java.io.File
 
-class CacheDirectoryProvider(private val config: LocalStorageConfig, private val context: Context) {
+class CacheDirectoryProvider(
+    private val config: LocalStorageConfig,
+    private val context: Context,
+    private val runtime: Runtime = Runtime.getRuntime()
+) {
 
     companion object {
         private const val TAG = "CacheDirProvider"
@@ -35,7 +39,7 @@ class CacheDirectoryProvider(private val config: LocalStorageConfig, private val
     }
 
     private fun addShutdownHook(file: File) {
-        Runtime.getRuntime().addShutdownHook(DeleteFileShutdownHook(file))
+        runtime.addShutdownHook(DeleteFileShutdownHook(file))
     }
 
     private class DeleteFileShutdownHook(file: File) : Thread(Runnable {

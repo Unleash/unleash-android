@@ -22,14 +22,13 @@ private data class BackupState(val contextId: String, val toggles: Map<String, T
  * is the same when loading the state from disc.
  */
 class LocalBackup(
-    private val localDir: File
+    private val localDir: File,
+    private var lastContext: UnleashContext? = null
 ) {
     companion object {
         private const val TAG = "LocalBackup"
         internal const val STATE_BACKUP_FILE = "unleash_state.json"
     }
-
-    private var lastContext: UnleashContext? = null
 
     fun subscribeTo(state: Flow<UnleashState>) {
         unleashScope.launch {
