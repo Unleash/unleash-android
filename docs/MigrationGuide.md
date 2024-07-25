@@ -37,7 +37,7 @@ We won't cover all the details here as most of the configuration can be set usin
  
 #### Unleash context initialization
 The main differences are:
-1. The application name is no longer configurable through the context as it is unique across the application. The `appName` should be set using the `UnleashConfig` builder.
+1. The application name is no longer configurable through the context, as it is constant throughout the application's lifetime. The `appName` should be set using the `UnleashConfig` builder.
 2. The instance ID is no longer configurable. The SDK will generate a unique instance ID for each instance.
 3. Update the import statements to use the new SDK classes.
 
