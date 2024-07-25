@@ -3,7 +3,7 @@ $dokka.linkExtension:html
 $dokka.location:io.getunleash.android.backup////PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.backup/index.html
 $dokka.location:io.getunleash.android.backup/LocalBackup.Companion///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.backup/-local-backup/-companion/index.html
 $dokka.location:io.getunleash.android.backup/LocalBackup///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.backup/-local-backup/index.html
-$dokka.location:io.getunleash.android.backup/LocalBackup/LocalBackup/#java.io.File/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.backup/-local-backup/-local-backup.html
+$dokka.location:io.getunleash.android.backup/LocalBackup/LocalBackup/#java.io.File#io.getunleash.android.data.UnleashContext?/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.backup/-local-backup/-local-backup.html
 $dokka.location:io.getunleash.android.backup/LocalBackup/loadFromDisc/#io.getunleash.android.data.UnleashContext/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.backup/-local-backup/load-from-disc.html
 $dokka.location:io.getunleash.android.backup/LocalBackup/subscribeTo/#kotlinx.coroutines.flow.Flow[io.getunleash.android.data.UnleashState]/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.backup/-local-backup/subscribe-to.html
 $dokka.location:io.getunleash.android.backup/LocalStorageConfig.Builder///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.backup/-local-storage-config/-builder/index.html
@@ -22,7 +22,7 @@ $dokka.location:io.getunleash.android.backup/LocalStorageConfig/newBuilder/#io.g
 $dokka.location:io.getunleash.android.cache////PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.cache/index.html
 $dokka.location:io.getunleash.android.cache/CacheDirectoryProvider.Companion///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.cache/-cache-directory-provider/-companion/index.html
 $dokka.location:io.getunleash.android.cache/CacheDirectoryProvider///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.cache/-cache-directory-provider/index.html
-$dokka.location:io.getunleash.android.cache/CacheDirectoryProvider/CacheDirectoryProvider/#io.getunleash.android.backup.LocalStorageConfig#android.content.Context/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.cache/-cache-directory-provider/-cache-directory-provider.html
+$dokka.location:io.getunleash.android.cache/CacheDirectoryProvider/CacheDirectoryProvider/#io.getunleash.android.backup.LocalStorageConfig#android.content.Context#java.lang.Runtime/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.cache/-cache-directory-provider/-cache-directory-provider.html
 $dokka.location:io.getunleash.android.cache/CacheDirectoryProvider/getCacheDirectory/#kotlin.String#kotlin.Boolean/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.cache/-cache-directory-provider/get-cache-directory.html
 $dokka.location:io.getunleash.android.cache/InMemoryToggleCache///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.cache/-in-memory-toggle-cache/index.html
 $dokka.location:io.getunleash.android.cache/InMemoryToggleCache/InMemoryToggleCache/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.cache/-in-memory-toggle-cache/-in-memory-toggle-cache.html
@@ -248,9 +248,6 @@ $dokka.location:io.getunleash.android.polling/Status/values/#/PointingToDeclarat
 $dokka.location:io.getunleash.android.polling/ToggleResponse///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.polling/-toggle-response/index.html
 $dokka.location:io.getunleash.android.polling/ToggleResponse/ToggleResponse/#io.getunleash.android.polling.Status#kotlin.collections.Map[kotlin.String,io.getunleash.android.data.Toggle]#java.lang.Exception?/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.polling/-toggle-response/-toggle-response.html
 $dokka.location:io.getunleash.android.polling/ToggleResponse/error/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.polling/-toggle-response/error.html
-$dokka.location:io.getunleash.android.polling/ToggleResponse/isFailed/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.polling/-toggle-response/is-failed.html
-$dokka.location:io.getunleash.android.polling/ToggleResponse/isFetched/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.polling/-toggle-response/is-fetched.html
-$dokka.location:io.getunleash.android.polling/ToggleResponse/isNotModified/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.polling/-toggle-response/is-not-modified.html
 $dokka.location:io.getunleash.android.polling/ToggleResponse/status/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.polling/-toggle-response/status.html
 $dokka.location:io.getunleash.android.polling/ToggleResponse/toggles/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.polling/-toggle-response/toggles.html
 $dokka.location:io.getunleash.android.polling/UnleashFetcher.Companion///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.polling/-unleash-fetcher/-companion/index.html
