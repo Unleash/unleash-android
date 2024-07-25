@@ -20,4 +20,6 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 -keep public class io.getunleash.** { *; }
--keep class com.fasterxml.** { *; }
+-keepclasseswithmembers class * {
+    @com.squareup.moshi.* methods;
+}

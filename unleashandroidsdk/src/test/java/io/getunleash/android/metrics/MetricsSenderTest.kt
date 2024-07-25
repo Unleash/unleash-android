@@ -68,9 +68,7 @@ class MetricsSenderTest : BaseTest() {
         )!!
         assertThat(request.method).isEqualTo("POST")
         assertThat(request.path).isEqualTo("/proxy/client/metrics")
-        val body = request.body.readUtf8()
-        println(body)
-        assertThatJson(body) {
+        assertThatJson(request.body.readUtf8()) {
             node("appName").isString().isEqualTo("my-test-app")
             node("instanceId").isString().matches(".+")
             node("bucket").apply {
