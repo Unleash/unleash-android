@@ -2,15 +2,15 @@
 
 This guide provides detailed steps for migrating your project from the Unleash Android Proxy SDK version to the newer Unleash Android SDK.
 
-We will focus on the [previous sample application](https://github.com/Unleash/unleash-android-proxy-sdk/tree/main/samples/android) and specifically highlighting the changes from this pull request: https://github.com/Unleash/unleash-android-proxy-sdk/pull/83
+We will focus on the [previous sample application](https://github.com/Unleash/unleash-android-proxy-sdk/tree/main/samples/android), specifically highlighting the changes from this pull request: https://github.com/Unleash/unleash-android-proxy-sdk/pull/83
 
 ## Benefits of Migrating
 
 This version of the Unleash Android SDK introduces several improvements, including:
-- No need for SLF4J dependency and the usage of the native Android logging system.
-- Respecting the Android lifecycle to stop polling and sending metrics in the background.
-- The new SDK respects the minimum Android API level 21, but we recommend API level 23.
-- Monitoring network connectivity to avoid unnecessary polling (requires API level 23 or above).
+- Uses the native Android logging system instead of SLF4J.
+- Respects the Android lifecycle and stops polling and sending metrics in the background.
+- Respects the minimum Android API level 21, but we recommend API level 23.
+- Monitors network connectivity to avoid unnecessary polling (requires API level 23 or above).
 
 ## Overview
 
@@ -33,11 +33,11 @@ dependencies {
 ```
 
 ### 2. Update the initialization code
-We won't cover all the details here as most of the configuration can be set using the builders fluent methods. However, the main difference is that the new SDK requires an `Application` context to be passed to the `Unleash` constructor. This is necessary to monitor the network connectivity and respect the Android lifecycle (usually it can be injected if using hilt with `@ApplicationContext context`).
+We won't cover all the details here as most of the configuration can be set using the builders fluent methods. However, the main difference is that the new SDK requires an `Application` context to be passed to the `Unleash` constructor. This is necessary to monitor the network connectivity and respect the Android lifecycle. If you use hilt, this can be injected with `@ApplicationContext context`.
  
 #### Unleash context initialization
 The main differences are:
-1. The application name is no longer configurable through the context as it is unique across the application. The `appName` should be set using the `UnleashConfig` builder.
+1. The application name is no longer configurable through the context, as it is constant throughout the application's lifetime. The `appName` should be set using the `UnleashConfig` builder.
 2. The instance ID is no longer configurable. The SDK will generate a unique instance ID for each instance.
 3. Update the import statements to use the new SDK classes.
 
