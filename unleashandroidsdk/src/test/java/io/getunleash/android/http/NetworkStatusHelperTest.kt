@@ -4,8 +4,6 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
-import android.net.NetworkInfo
-
 import io.getunleash.android.BaseTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
@@ -29,7 +27,7 @@ class NetworkStatusHelperTest : BaseTest() {
     fun `when api version is 21 check active network info`() {
         val context = mock(Context::class.java)
         val connectivityManager = mock(ConnectivityManager::class.java)
-        val activeNetwork = mock(NetworkInfo::class.java)
+        val activeNetwork = mock(android.net.NetworkInfo::class.java)
         `when`(context.getSystemService(Context.CONNECTIVITY_SERVICE)).thenReturn(connectivityManager)
         `when`(connectivityManager.activeNetworkInfo).thenReturn(activeNetwork)
         `when`(activeNetwork.isConnected).thenReturn(true)
@@ -53,5 +51,72 @@ class NetworkStatusHelperTest : BaseTest() {
         val networkStatusHelper = NetworkStatusHelper(context)
         assertThat(networkStatusHelper.isAvailable()).isTrue()
         verify(networkCapabilities, times(2)).hasCapability(anyInt())
+    }
+
+    @Test
+    @Config(sdk = [23])
+    fun `when no active network the network is not available`() {
+        val context = contextWithNetwork(null)
+        val networkStatusHelper = NetworkStatusHelper(context)
+        assertThat(networkStatusHelper.isAvailable()).isFalse()
+    }
+
+    @Test
+    @Config(sdk = [23])
+    fun `when active network has no capability the network is not available`() {
+        val context = contextWithNetwork(mock(Network::class.java))
+        val networkStatusHelper = NetworkStatusHelper(context)
+        assertThat(networkStatusHelper.isAvailable()).isFalse()
+    }
+
+    @Test
+    @Config(sdk = [23])
+    fun `when no internet capability then the network is not available`() {
+        val context = contextWithNetwork(
+            mock(Network::class.java),
+            NetworkCapabilities.NET_CAPABILITY_VALIDATED
+        )
+        val networkStatusHelper = NetworkStatusHelper(context)
+        assertThat(networkStatusHelper.isAvailable()).isFalse()
+    }
+
+    @Test
+    @Config(sdk = [23])
+    fun `when network not validated then the network is not available`() {
+        val context = contextWithNetwork(
+            mock(Network::class.java),
+            NetworkCapabilities.NET_CAPABILITY_INTERNET
+        )
+        val networkStatusHelper = NetworkStatusHelper(context)
+        assertThat(networkStatusHelper.isAvailable()).isFalse()
+    }
+
+    @Test
+    @Config(sdk = [23])
+    fun `when network is validated and has internet then the network is available`() {
+        val context = contextWithNetwork(
+            mock(Network::class.java),
+            NetworkCapabilities.NET_CAPABILITY_VALIDATED,
+            NetworkCapabilities.NET_CAPABILITY_INTERNET
+        )
+        val networkStatusHelper = NetworkStatusHelper(context)
+        assertThat(networkStatusHelper.isAvailable()).isTrue()
+    }
+
+    private fun contextWithNetwork(network: Network?, vararg capabilities: Int): Context {
+        val context = mock(Context::class.java)
+        val connectivityManager = mock(ConnectivityManager::class.java)
+        if (network != null) {
+            `when`(connectivityManager.activeNetwork).thenReturn(network)
+            val mockedCapabilities = mock<NetworkCapabilities>()
+            capabilities.forEach {
+                `when`(mockedCapabilities.hasCapability(it)).thenReturn(true)
+            }
+            `when`(connectivityManager.getNetworkCapabilities(network)).thenReturn(mockedCapabilities)
+        }
+        `when`(context.getSystemService(Context.CONNECTIVITY_SERVICE)).thenReturn(
+            connectivityManager
+        )
+        return context
     }
 }
