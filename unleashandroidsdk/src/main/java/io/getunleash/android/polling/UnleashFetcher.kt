@@ -1,9 +1,8 @@
 package io.getunleash.android.polling
 
 import android.util.Log
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.getunleash.android.UnleashConfig
-import io.getunleash.android.data.Parser
+import io.getunleash.android.data.Parser.proxyResponseAdapter
 import io.getunleash.android.data.UnleashContext
 import io.getunleash.android.data.UnleashState
 import io.getunleash.android.errors.NoBodyException
@@ -157,7 +156,7 @@ open class UnleashFetcher(
                         res.body?.use { b ->
                             try {
                                 val proxyResponse: ProxyResponse =
-                                    Parser.jackson.readValue(b.string())
+                                    proxyResponseAdapter.fromJson(b.string())!!
                                 FetchResponse(Status.SUCCESS, proxyResponse)
                             } catch (e: Exception) {
                                 // If we fail to parse, just keep data

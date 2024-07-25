@@ -1,8 +1,8 @@
 package io.getunleash.android.backup
 
 import android.util.Log
-import com.fasterxml.jackson.module.kotlin.readValue
-import io.getunleash.android.data.Parser
+import com.squareup.moshi.JsonAdapter
+import io.getunleash.android.data.Parser.moshi
 import io.getunleash.android.data.Toggle
 import io.getunleash.android.data.UnleashContext
 import io.getunleash.android.data.UnleashState
@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
-private data class BackupState(val contextId: String, val toggles: Map<String, Toggle>)
+data class BackupState(val contextId: String, val toggles: Map<String, Toggle>)
 
 /**
  * Local backup of the last state of the Unleash SDK.
@@ -29,6 +29,7 @@ class LocalBackup(
         private const val TAG = "LocalBackup"
         internal const val STATE_BACKUP_FILE = "unleash_state.json"
     }
+    private val backupAdapter: JsonAdapter<BackupState> = moshi.adapter(BackupState::class.java)
 
     fun subscribeTo(state: Flow<UnleashState>) {
         unleashScope.launch {
@@ -49,7 +50,14 @@ class LocalBackup(
         try {
             // write only the last state
             val contextBackup = File(localDir.absolutePath, STATE_BACKUP_FILE)
-            contextBackup.writeBytes(Parser.jackson.writeValueAsBytes(BackupState(id(state.context), state.toggles)))
+            contextBackup.writeBytes(
+                backupAdapter.toJson(
+                    BackupState(
+                        id(state.context),
+                        state.toggles
+                    )
+                ).toByteArray(Charsets.UTF_8)
+            )
             Log.d(TAG, "Written state to ${contextBackup.absolutePath}")
         } catch (e: Exception) {
             Log.i(TAG, "Error writing to disc", e)
@@ -60,7 +68,8 @@ class LocalBackup(
         val stateBackup = File(localDir.absolutePath, STATE_BACKUP_FILE)
         try {
             if (stateBackup.exists()) {
-                val backupState = Parser.jackson.readValue<BackupState>(stateBackup.readBytes())
+                val backupState =
+                    backupAdapter.fromJson(stateBackup.readText(Charsets.UTF_8)) ?: return null
                 if (backupState.contextId != id(context)) {
                     Log.i(TAG, "Context id mismatch, ignoring backup for context id ${backupState.contextId}")
                     return null

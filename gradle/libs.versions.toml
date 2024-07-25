@@ -8,9 +8,9 @@ androidxTestExt = "1.2.1"
 espressoCore = "3.6.1"
 appcompat = "1.7.0"
 material = "1.12.0"
+moshi = "1.15.1"
 work = "2.9.0"
 okhttp = "4.12.0"
-jackson = "2.17.2"
 assertj = "3.26.3"
 lifecycleProcess = "2.8.3"
 kotlinxCoroutinesTest = "1.8.1"
@@ -30,15 +30,13 @@ androidx-work-ktx = { group = "androidx.work", name = "work-runtime-ktx", versio
 androidx-work-testing = { group = "androidx.work", name = "work-testing", version.ref = "work" }
 androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "lifecycleProcess" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
+moshi-kotlin = { group = "com.squareup.moshi", name="moshi-kotlin", version.ref = "moshi" }
+moshi-adapters = { group = "com.squareup.moshi", name="moshi-adapters", version.ref = "moshi" }
 robolectric-test = { group = "org.robolectric", name = "robolectric", version = "4.13" }
 awaitility = { group = "org.awaitility", name = "awaitility", version = "4.2.1" }
 
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 okhttp-mockserver = { group = "com.squareup.okhttp3", name = "mockwebserver", version.ref = "okhttp" }
-jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson" }
-jackson-core = { group = "com.fasterxml.jackson.core", name = "jackson-core", version.ref = "jackson" }
-jackson-module-kotlin = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version.ref = "jackson" }
-jackson-datatype-jsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310", version.ref = "jackson" }
 assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
 jsonunit = { group = "net.javacrumbs.json-unit", name = "json-unit-assertj", version.ref = "jsonunit" }
 

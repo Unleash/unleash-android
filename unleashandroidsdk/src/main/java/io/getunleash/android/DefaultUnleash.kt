@@ -137,7 +137,7 @@ class DefaultUnleash(
         lifecycle.addObserver(taskManager)
         if (bootstrapFile != null && bootstrapFile.exists()) {
             Log.i(TAG, "Using provided bootstrap file")
-            Parser.jackson.readValue(bootstrapFile, ProxyResponse::class.java)?.let { state ->
+            Parser.proxyResponseAdapter.fromJson(bootstrapFile.readText())?.let { state ->
                 val toggles = state.toggles.groupBy { it.name }
                     .mapValues { (_, v) -> v.first() }
                 cache.write(UnleashState(unleashContextState.value, toggles))
