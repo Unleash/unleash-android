@@ -1,6 +1,10 @@
 $dokka.format:html-v1
 $dokka.linkExtension:html
 $dokka.location:io.getunleash.android.backup////PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.backup/index.html
+$dokka.location:io.getunleash.android.backup/BackupState///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.backup/-backup-state/index.html
+$dokka.location:io.getunleash.android.backup/BackupState/BackupState/#kotlin.String#kotlin.collections.Map[kotlin.String,io.getunleash.android.data.Toggle]/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.backup/-backup-state/-backup-state.html
+$dokka.location:io.getunleash.android.backup/BackupState/contextId/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.backup/-backup-state/context-id.html
+$dokka.location:io.getunleash.android.backup/BackupState/toggles/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.backup/-backup-state/toggles.html
 $dokka.location:io.getunleash.android.backup/LocalBackup.Companion///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.backup/-local-backup/-companion/index.html
 $dokka.location:io.getunleash.android.backup/LocalBackup///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.backup/-local-backup/index.html
 $dokka.location:io.getunleash.android.backup/LocalBackup/LocalBackup/#java.io.File#io.getunleash.android.data.UnleashContext?/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.backup/-local-backup/-local-backup.html
@@ -83,8 +87,14 @@ $dokka.location:io.getunleash.android.data/ImpressionEvent/enabled/#/PointingToD
 $dokka.location:io.getunleash.android.data/ImpressionEvent/eventId/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-impression-event/event-id.html
 $dokka.location:io.getunleash.android.data/ImpressionEvent/featureName/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-impression-event/feature-name.html
 $dokka.location:io.getunleash.android.data/ImpressionEvent/variant/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-impression-event/variant.html
+$dokka.location:io.getunleash.android.data/Parser.DefaultOnNull///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-parser/-default-on-null/index.html
+$dokka.location:io.getunleash.android.data/Parser.DefaultOnNullAdapterFactory///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-parser/-default-on-null-adapter-factory/index.html
+$dokka.location:io.getunleash.android.data/Parser.DefaultOnNullAdapterFactory/DefaultOnNullAdapterFactory/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-parser/-default-on-null-adapter-factory/-default-on-null-adapter-factory.html
+$dokka.location:io.getunleash.android.data/Parser.DefaultOnNullAdapterFactory/create/#java.lang.reflect.Type#kotlin.collections.MutableSet[kotlin.Annotation]#com.squareup.moshi.Moshi/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-parser/-default-on-null-adapter-factory/create.html
 $dokka.location:io.getunleash.android.data/Parser///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-parser/index.html
-$dokka.location:io.getunleash.android.data/Parser/jackson/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-parser/jackson.html
+$dokka.location:io.getunleash.android.data/Parser/metricsBodyAdapter/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-parser/metrics-body-adapter.html
+$dokka.location:io.getunleash.android.data/Parser/moshi/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-parser/moshi.html
+$dokka.location:io.getunleash.android.data/Parser/proxyResponseAdapter/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-parser/proxy-response-adapter.html
 $dokka.location:io.getunleash.android.data/Payload///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-payload/index.html
 $dokka.location:io.getunleash.android.data/Payload/Payload/#kotlin.String#kotlin.String/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-payload/-payload.html
 $dokka.location:io.getunleash.android.data/Payload/getValueAsBoolean/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.data/-payload/get-value-as-boolean.html
@@ -177,7 +187,7 @@ $dokka.location:io.getunleash.android.http/Throttler/performAction/#/PointingToD
 $dokka.location:io.getunleash.android.http/Throttler/skipped/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.http/-throttler/skipped.html
 $dokka.location:io.getunleash.android.metrics////PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.metrics/index.html
 $dokka.location:io.getunleash.android.metrics/Bucket///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.metrics/-bucket/index.html
-$dokka.location:io.getunleash.android.metrics/Bucket/Bucket/#java.util.Date#java.util.Date#java.util.concurrent.ConcurrentHashMap[kotlin.String,io.getunleash.android.metrics.EvaluationCount]/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.metrics/-bucket/-bucket.html
+$dokka.location:io.getunleash.android.metrics/Bucket/Bucket/#java.util.Date#java.util.Date#kotlin.collections.MutableMap[kotlin.String,io.getunleash.android.metrics.EvaluationCount]/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.metrics/-bucket/-bucket.html
 $dokka.location:io.getunleash.android.metrics/Bucket/start/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.metrics/-bucket/start.html
 $dokka.location:io.getunleash.android.metrics/Bucket/stop/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.metrics/-bucket/stop.html
 $dokka.location:io.getunleash.android.metrics/Bucket/toggles/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.metrics/-bucket/toggles.html
@@ -192,7 +202,7 @@ $dokka.location:io.getunleash.android.metrics/CountBucket/toBucket/#java.util.Da
 $dokka.location:io.getunleash.android.metrics/CountBucket/variants/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.metrics/-count-bucket/variants.html
 $dokka.location:io.getunleash.android.metrics/CountBucket/yes/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.metrics/-count-bucket/yes.html
 $dokka.location:io.getunleash.android.metrics/EvaluationCount///PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.metrics/-evaluation-count/index.html
-$dokka.location:io.getunleash.android.metrics/EvaluationCount/EvaluationCount/#kotlin.Int#kotlin.Int#java.util.concurrent.ConcurrentHashMap[kotlin.String,kotlin.Int]/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.metrics/-evaluation-count/-evaluation-count.html
+$dokka.location:io.getunleash.android.metrics/EvaluationCount/EvaluationCount/#kotlin.Int#kotlin.Int#kotlin.collections.MutableMap[kotlin.String,kotlin.Int]/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.metrics/-evaluation-count/-evaluation-count.html
 $dokka.location:io.getunleash.android.metrics/EvaluationCount/no/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.metrics/-evaluation-count/no.html
 $dokka.location:io.getunleash.android.metrics/EvaluationCount/variants/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.metrics/-evaluation-count/variants.html
 $dokka.location:io.getunleash.android.metrics/EvaluationCount/yes/#/PointingToDeclaration/-unleash -android -s-d-k/io.getunleash.android.metrics/-evaluation-count/yes.html
