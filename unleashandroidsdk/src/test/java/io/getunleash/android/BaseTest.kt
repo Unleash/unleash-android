@@ -20,7 +20,7 @@ abstract class BaseTest {
         ShadowLog.setTimeSupplier {
             df.format(Date())
         }
-
+        System.setProperty("json-unit.libraries", "moshi")
     }
 }
 

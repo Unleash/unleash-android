@@ -8,13 +8,13 @@ import java.util.concurrent.atomic.AtomicInteger
 data class EvaluationCount(
     var yes: Int,
     var no: Int,
-    val variants: ConcurrentHashMap<String, Int> = ConcurrentHashMap()
+    val variants: MutableMap<String, Int> = mutableMapOf()
 )
 
 data class Bucket(
     val start: Date,
     val stop: Date,
-    val toggles: ConcurrentHashMap<String, EvaluationCount> = ConcurrentHashMap()
+    val toggles: MutableMap<String, EvaluationCount> = mutableMapOf()
 )
 
 interface UnleashMetricsBucket {

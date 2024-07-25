@@ -64,10 +64,8 @@ dependencies {
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.process)
-    implementation(libs.jackson.databind)
-    implementation(libs.jackson.core)
-    implementation(libs.jackson.module.kotlin)
-    implementation(libs.jackson.datatype.jsr310)
+    implementation(libs.moshi.kotlin)
+    implementation(libs.moshi.adapters)
     api(libs.okhttp)
 
     testImplementation(libs.junit)
