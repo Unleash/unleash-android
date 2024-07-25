@@ -11,7 +11,4 @@ data class ToggleResponse(
     val status: Status,
     val toggles: Map<String, Toggle> = emptyMap(),
     val error: Exception? = null) {
-    fun isFetched() = status.isSuccess()
-    fun isNotModified() = status.isNotModified()
-    fun isFailed() = status.isFailed()
 }

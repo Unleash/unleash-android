@@ -38,9 +38,10 @@ class DefaultUnleashTest : BaseTest() {
                 .pollingStrategy.enabled(false)
                 .metricsStrategy.enabled(false)
                 .localStorageConfig.enabled(false)
+                .delayedInitialization(false) // start immediately
                 .build(),
             cacheImpl = InspectableCache(staticToggleList.associateBy { it.name }),
-            lifecycle = mock(Lifecycle::class.java),
+            lifecycle = mock(Lifecycle::class.java)
         )
         assertThat(unleash.isEnabled("feature1")).isTrue()
         assertThat(unleash.isEnabled("feature2")).isFalse()
@@ -78,7 +79,8 @@ class DefaultUnleashTest : BaseTest() {
                 .proxyUrl(server.url("").toString())
                 .clientKey("key-123")
                 .pollingStrategy.enabled(true)
-                .metricsStrategy.enabled(false)
+                .metricsStrategy.enabled(true)
+                .metricsStrategy.delay(10000) // delay enough so it won't trigger a new request
                 .localStorageConfig.enabled(false)
                 .build(),
             lifecycle = mock(Lifecycle::class.java),
@@ -323,7 +325,7 @@ class DefaultUnleashTest : BaseTest() {
             }
         }))
 
-        await().atMost(2, TimeUnit.SECONDS).until {
+        await().atMost(5, TimeUnit.SECONDS).until {
             togglesUpdated > 0
         }
         // change context to force a refresh
