@@ -1,0 +1,36 @@
+{
+  "contextId": "1450523790",
+  "toggles": {
+    "ff1": {
+      "name": "ff1",
+      "enabled": false,
+      "variant": {
+        "name": "disabled",
+        "enabled": false,
+        "payload": null
+      },
+      "impressionData": false
+    },
+    "ff2": {
+      "name": "ff2",
+      "enabled": true,
+      "variant": {
+        "name": "black",
+        "enabled": true,
+        "feature_enabled": true,
+        "payload": null
+      },
+      "impressionData": false
+    },
+    "ff3": {
+      "name": "ff3",
+      "enabled": false,
+      "variant": {
+        "name": "disabled",
+        "enabled": false,
+        "payload": null
+      },
+      "impressionData": true
+    }
+  }
+}

@@ -3,6 +3,7 @@ agp = "8.5.1"
 kotlin = "1.9.25"
 coreKtx = "1.13.1"
 junit = "4.13.2"
+jsonunit = "3.4.1"
 androidxTestExt = "1.2.1"
 espressoCore = "3.6.1"
 appcompat = "1.7.0"
@@ -39,6 +40,7 @@ jackson-core = { group = "com.fasterxml.jackson.core", name = "jackson-core", ve
 jackson-module-kotlin = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version.ref = "jackson" }
 jackson-datatype-jsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310", version.ref = "jackson" }
 assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
+jsonunit = { group = "net.javacrumbs.json-unit", name = "json-unit-assertj", version.ref = "jsonunit" }
 
 ## sample app
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }

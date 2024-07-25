@@ -1,0 +1,41 @@
+name: Create a new release tag
+
+on:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: 'Release version'
+        required: true
+        type: choice
+        options:
+          - pre-release
+          - patch
+          - minor
+          - major
+
+permissions:
+    contents: write
+    actions: write
+
+jobs:
+  create-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        name: Checkout code
+        with:
+          fetch-depth: 0
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+          cache: gradle
+      - run: ./gradlew release -Prelease.versionIncrementer=incrementMajor
+        if: github.event.inputs.release == 'major'
+      - run: ./gradlew release -Prelease.versionIncrementer=incrementMinor
+        if: github.event.inputs.release == 'minor'
+      - run: ./gradlew release -Prelease.versionIncrementer=incrementPatch
+        if: github.event.inputs.release == 'patch'
+      - run: ./gradlew release -Prelease.versionIncrementer=incrementPrerelease -Prelease.versionIncrementer.initialPreReleaseIfNotOnPrerelease=-rc1
+        if: github.event.inputs.release == 'pre-release'

@@ -9,11 +9,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         name: Checkout code
+        with:
+          fetch-depth: 0
       - name: Setup JDK
         uses: actions/setup-java@v4
         with:
           java-version: 17
           distribution: 'temurin'
           cache: gradle
-      - name: Build and test
-        run: ./gradlew build
+      - name: Check for changes in app directory
+        id: check-changes
+        run: |
+          CHANGED=$(git diff --name-only origin/main...HEAD -- app/)
+          if [ -z "$CHANGED" ]; then
+            echo "No changes in app/ directory."
+            echo "skip-build-app=true" >> $GITHUB_ENV
+          fi
+      - name: Build and test SDK
+        if: env.skip-build-app == 'true'
+        run: ./gradlew unleashandroidsdk:build unleashandroidsdk:jacocoTestReport
+      - name: Build and test all
+        if: env.skip-build-app != 'true'
+        run: ./gradlew build jacocoTestReport
+      - name: Coveralls
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          allow-empty: true
+          base-path: unleashandroidsdk/src/main/java

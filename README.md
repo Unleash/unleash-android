@@ -6,15 +6,17 @@
 
 ## Getting started
 
-This is the Android SDK for Unleash Proxy. It is a lightweight SDK that allows you to connect to the Unleash Proxy and fetch feature toggles.
+This is the Android SDK for [Unleash Frontend API](https://docs.getunleash.io/reference/front-end-api) provided by the [Unleash server](https://github.com/Unleash/unleash) or [Unleash Edge](https://github.com/Unleash/unleash-edge). It is a lightweight SDK that allows you to connect to the Unleash Proxy and fetch feature toggles.
 
 This supersedes the [previous Unleash Android Proxy SDK](https://github.com/Unleash/unleash-android-proxy-sdk/) this one is a an Android library instead of a Java library. 
 
 It's not a drop-in replacement of the previous one, so it requires code changes to use it.
 
 **What are the benefits of migrating?**
-1. This SDK will respect the Android lifecycle and stop polling when the app is in the background.
-2. It will also respect the network state and only poll when the device is connected to the internet.
+1. Respects the Android lifecycle and stops polling and sending metrics in the background.
+2. Monitors network connectivity to avoid unnecessary polling (requires API level 23 or above).
+3. Uses the native Android logging system instead of SLF4J.
+4. Respects the minimum Android API level 21, but we recommend API level 23.
 
 ### Step 1
 

@@ -12,6 +12,8 @@ import io.getunleash.android.cache.ObservableCache
 import io.getunleash.android.cache.ObservableToggleCache
 import io.getunleash.android.cache.ToggleCache
 import io.getunleash.android.data.ImpressionEvent
+import io.getunleash.android.data.Parser
+import io.getunleash.android.polling.ProxyResponse
 import io.getunleash.android.data.Toggle
 import io.getunleash.android.data.UnleashContext
 import io.getunleash.android.data.UnleashState
@@ -47,6 +49,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import okhttp3.internal.toImmutableList
+import java.io.File
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -68,6 +71,7 @@ class DefaultUnleash(
 ) : Unleash {
     companion object {
         private const val TAG = "Unleash"
+        internal const val BACKUP_DIR_NAME = "unleash_backup"
     }
 
     private val unleashContextState = MutableStateFlow(unleashContext)
@@ -100,7 +104,7 @@ class DefaultUnleash(
                 unleashContextState.asStateFlow()
             ) else null
         taskManager = LifecycleAwareTaskManager(
-            dataJobs = buildDataJobs(fetcher, metrics),
+            dataJobs = buildDataJobs(metrics, fetcher),
             networkAvailable = networkStatusHelper.isAvailable(),
             scope = coroutineScope
         )
@@ -113,12 +117,14 @@ class DefaultUnleash(
 
     fun start(
         eventListeners: List<UnleashListener> = emptyList(),
+        bootstrapFile: File? = null,
         bootstrap: List<Toggle> = emptyList()
     ) {
         if (!started.compareAndSet(false, true)) {
             Log.w(TAG, "Unleash already started, ignoring start call")
             return
         }
+        eventListeners.forEach { addUnleashEventListener(it) }
         networkStatusHelper.registerNetworkListener(taskManager)
         if (unleashConfig.localStorageConfig.enabled) {
             val localBackup = getLocalBackup()
@@ -129,14 +135,20 @@ class DefaultUnleash(
             cache.subscribeTo(it.getFeaturesReceivedFlow())
         }
         lifecycle.addObserver(taskManager)
-        eventListeners.forEach { addUnleashEventListener(it) }
-        if (bootstrap.isNotEmpty()) {
+        if (bootstrapFile != null && bootstrapFile.exists()) {
+            Log.i(TAG, "Using provided bootstrap file")
+            Parser.jackson.readValue(bootstrapFile, ProxyResponse::class.java)?.let { state ->
+                val toggles = state.toggles.groupBy { it.name }
+                    .mapValues { (_, v) -> v.first() }
+                cache.write(UnleashState(unleashContextState.value, toggles))
+            }
+        } else if (bootstrap.isNotEmpty()) {
             Log.i(TAG, "Using provided bootstrap toggles")
             cache.write(UnleashState(unleashContextState.value, bootstrap.associateBy { it.name }))
         }
     }
 
-    private fun buildDataJobs(fetcher: UnleashFetcher?, metricsSender: MetricsReporter) = buildList {
+    private fun buildDataJobs(metricsSender: MetricsReporter, fetcher: UnleashFetcher?) = buildList {
         if (fetcher != null) {
             add(
                 DataJob(
@@ -159,7 +171,7 @@ class DefaultUnleash(
 
     private fun getLocalBackup(): LocalBackup {
         val backupDir = CacheDirectoryProvider(unleashConfig.localStorageConfig, androidContext)
-            .getCacheDirectory("unleash_backup")
+            .getCacheDirectory(BACKUP_DIR_NAME)
         val localBackup = LocalBackup(backupDir)
         coroutineScope.launch {
             withContext(Dispatchers.IO) {

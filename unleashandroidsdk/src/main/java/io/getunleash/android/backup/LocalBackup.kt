@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
-data class BackupState(val contextId: String, val toggles: Map<String, Toggle>)
+private data class BackupState(val contextId: String, val toggles: Map<String, Toggle>)
 
 /**
  * Local backup of the last state of the Unleash SDK.
@@ -22,14 +22,13 @@ data class BackupState(val contextId: String, val toggles: Map<String, Toggle>)
  * is the same when loading the state from disc.
  */
 class LocalBackup(
-    private val localDir: File
+    private val localDir: File,
+    private var lastContext: UnleashContext? = null
 ) {
     companion object {
         private const val TAG = "LocalBackup"
-        private const val STATE_BACKUP_FILE = "unleash_state.json"
+        internal const val STATE_BACKUP_FILE = "unleash_state.json"
     }
-
-    private var lastContext: UnleashContext? = null
 
     fun subscribeTo(state: Flow<UnleashState>) {
         unleashScope.launch {
@@ -63,7 +62,7 @@ class LocalBackup(
             if (stateBackup.exists()) {
                 val backupState = Parser.jackson.readValue<BackupState>(stateBackup.readBytes())
                 if (backupState.contextId != id(context)) {
-                    Log.i(TAG, "Context id mismatch, ignoring backup")
+                    Log.i(TAG, "Context id mismatch, ignoring backup for context id ${backupState.contextId}")
                     return null
                 }
                 return UnleashState(context, backupState.toggles)

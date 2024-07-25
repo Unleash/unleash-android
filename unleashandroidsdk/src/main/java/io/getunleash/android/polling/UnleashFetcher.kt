@@ -3,11 +3,7 @@ package io.getunleash.android.polling
 import android.util.Log
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.getunleash.android.UnleashConfig
-import io.getunleash.android.data.FetchResponse
 import io.getunleash.android.data.Parser
-import io.getunleash.android.data.ProxyResponse
-import io.getunleash.android.data.Status
-import io.getunleash.android.data.ToggleResponse
 import io.getunleash.android.data.UnleashContext
 import io.getunleash.android.data.UnleashState
 import io.getunleash.android.errors.NoBodyException

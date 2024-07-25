@@ -8,10 +8,15 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     id("org.jetbrains.dokka") version "1.9.20"
     id("pl.allegro.tech.build.axion-release") version "1.18.2"
+    jacoco
 }
 
 val tagVersion = System.getenv("GITHUB_REF")?.split('/')?.last()
 project.version = scmVersion.version
+
+jacoco {
+    toolVersion = "0.8.12"
+}
 
 android {
     namespace = "io.getunleash.android"
@@ -29,7 +34,7 @@ android {
 
     buildTypes {
         debug {
-
+            isMinifyEnabled = false
         }
         release {
             isMinifyEnabled = false
@@ -48,9 +53,8 @@ android {
     }
 
     publishing {
-        multipleVariants {
-            includeBuildTypeValues("debug", "release")
-            allVariants()
+        singleVariant("release") {
+            withSourcesJar()
             withJavadocJar()
         }
     }
@@ -59,8 +63,6 @@ android {
 dependencies {
 
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.androidx.work.ktx)
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.jackson.databind)
     implementation(libs.jackson.core)
@@ -75,13 +77,7 @@ dependencies {
     testImplementation(libs.robolectric.test)
     testImplementation(libs.okhttp.mockserver)
     testImplementation(libs.awaitility)
-    androidTestImplementation(libs.kotlinx.coroutines.test)
-    androidTestImplementation(libs.assertj)
-    androidTestImplementation(libs.mockito)
-    androidTestImplementation(libs.androidx.work.testing)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(libs.okhttp.mockserver)
+    testImplementation(libs.jsonunit)
 }
 
 publishing {
@@ -160,4 +156,40 @@ tasks.withType<DokkaTask>().configureEach {
             }
         }
     }
+}
+
+val jacocoTestReport by tasks.register<JacocoReport>("jacocoTestReport") {
+    dependsOn("testDebugUnitTest")
+
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+
+    val fileTreeConfig: (ConfigurableFileTree) -> Unit = {
+        it.exclude("**/R.class", "**/R$*.class", "**/BuildConfig.*", "**/Manifest*.*", "android/**/*.*",
+            "**/data/**", "**/errors/**", "**/events/**")
+    }
+
+    sourceDirectories.setFrom(files("${projectDir}/src/main/java"))
+    classDirectories.setFrom(listOf(
+        fileTree("${buildDir}/tmp/kotlin-classes/debug", fileTreeConfig)
+    ))
+    executionData.setFrom(fileTree(buildDir) {
+        include("jacoco/*.exec")
+    })
+}
+
+tasks.withType<Test> {
+    testLogging {
+        showExceptions = true
+        showStackTraces = true
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        events("passed", "skipped", "failed")
+    }
+    configure<JacocoTaskExtension> {
+        isIncludeNoLocationClasses = true
+        excludes = listOf("jdk.internal.*")
+    }
+    finalizedBy(jacocoTestReport)
 }
