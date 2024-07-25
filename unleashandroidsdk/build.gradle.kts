@@ -134,14 +134,17 @@ publishing {
     }
 }
 
-val signingKey: String? by project
-val signingPassphrase: String? by project
-signing {
-    if (signingKey != null && signingPassphrase != null) {
-        useInMemoryPgpKeys(signingKey, signingPassphrase)
-        sign(publishing.publications)
+if (System.getenv("CI") == "true") {
+    val signingKey: String? by project
+    val signingPassphrase: String? by project
+    signing {
+        if (signingKey != null && signingPassphrase != null) {
+            useInMemoryPgpKeys(signingKey, signingPassphrase)
+            sign(publishing.publications)
+        }
     }
 }
+
 
 tasks.withType<DokkaTask>().configureEach {
     dokkaSourceSets {
