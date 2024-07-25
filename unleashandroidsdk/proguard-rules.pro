@@ -20,3 +20,4 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 -keep public class io.getunleash.** { *; }
+-keep public class com.squareup.moshi.** { *; }
