@@ -1,8 +1,5 @@
 package io.getunleash.android.data
 
-import com.fasterxml.jackson.module.kotlin.readValue
-import io.getunleash.android.polling.ProxyResponse
-
 object TestResponses {
     val threeToggles = """
         {
@@ -86,8 +83,4 @@ object TestResponses {
                 ]
             }""".trimIndent()
 
-    fun String.toToggleMap(): Map<String, Toggle> {
-        val response: ProxyResponse = Parser.jackson.readValue(this)
-        return response.toggles.groupBy { it.name }.mapValues { (_, v) -> v.first() }
-    }
 }

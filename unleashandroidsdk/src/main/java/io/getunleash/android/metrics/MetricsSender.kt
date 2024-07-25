@@ -2,7 +2,7 @@ package io.getunleash.android.metrics
 
 import android.util.Log
 import io.getunleash.android.UnleashConfig
-import io.getunleash.android.data.Parser
+import io.getunleash.android.data.Parser.metricsBodyAdapter
 import io.getunleash.android.data.Variant
 import io.getunleash.android.http.Throttler
 import okhttp3.Call
@@ -51,7 +51,7 @@ class MetricsSender(
             val request = Request.Builder()
                 .headers(applicationHeaders.toHeaders())
                 .url(metricsUrl).post(
-                    Parser.jackson.writeValueAsString(payload)
+                    metricsBodyAdapter.toJson(payload)
                         .toRequestBody("application/json".toMediaType())
                 ).build()
             httpClient.newCall(request).enqueue(object : Callback {
