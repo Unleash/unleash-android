@@ -19,6 +19,7 @@ import org.assertj.core.groups.Tuple
 import org.awaitility.Awaitility.await
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 import org.robolectric.shadows.ShadowLog
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -475,11 +476,11 @@ class DefaultUnleashTest : BaseTest() {
                 readyState = true
             }
         }))
-
         await().atMost(3, TimeUnit.SECONDS).until { readyState }
         assertThat(inspectableCache.toggles).hasSize(staticToggleList.size)
 
         unleash.refreshTogglesNow()
         await().atMost(2, TimeUnit.SECONDS).until { inspectableCache.toggles.size == 8 }
+        assertThat(server.requestCount).isEqualTo(1)
     }
 }

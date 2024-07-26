@@ -128,10 +128,10 @@ class DefaultUnleash(
             val localBackup = getLocalBackup()
             localBackup.subscribeTo(cache.getUpdatesFlow())
         }
-        fetcher.let {
-            it.startWatchingContext()
-            cache.subscribeTo(it.getFeaturesReceivedFlow())
+        if (unleashConfig.pollingStrategy.enabled) {
+            fetcher.startWatchingContext()
         }
+        cache.subscribeTo(fetcher.getFeaturesReceivedFlow())
         lifecycle.addObserver(taskManager)
         if (bootstrapFile != null && bootstrapFile.exists()) {
             Log.i(TAG, "Using provided bootstrap file")
