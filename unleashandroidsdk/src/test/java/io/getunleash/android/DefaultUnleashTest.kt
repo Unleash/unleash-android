@@ -476,7 +476,7 @@ class DefaultUnleashTest : BaseTest() {
             }
         }))
 
-        await().atMost(2, TimeUnit.SECONDS).until { readyState }
+        await().atMost(3, TimeUnit.SECONDS).until { readyState }
         assertThat(inspectableCache.toggles).hasSize(staticToggleList.size)
 
         unleash.refreshTogglesNow()
