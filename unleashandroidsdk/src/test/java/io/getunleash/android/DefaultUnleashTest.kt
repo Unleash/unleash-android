@@ -469,14 +469,14 @@ class DefaultUnleashTest : BaseTest() {
             lifecycle = mock(Lifecycle::class.java),
         )
 
-        var stateSet = false
-        unleash.start(bootstrap = staticToggleList, eventListeners = listOf(object : UnleashStateListener {
-            override fun onStateChanged() {
-                stateSet = true
+        var readyState = false
+        unleash.start(bootstrap = staticToggleList, eventListeners = listOf(object : UnleashReadyListener {
+            override fun onReady() {
+                readyState = true
             }
         }))
 
-        await().atMost(2, TimeUnit.SECONDS).until { stateSet }
+        await().atMost(2, TimeUnit.SECONDS).until { readyState }
         assertThat(inspectableCache.toggles).hasSize(staticToggleList.size)
 
         unleash.refreshTogglesNow()
