@@ -13,7 +13,6 @@ import io.getunleash.android.cache.ObservableToggleCache
 import io.getunleash.android.cache.ToggleCache
 import io.getunleash.android.data.ImpressionEvent
 import io.getunleash.android.data.Parser
-import io.getunleash.android.polling.ProxyResponse
 import io.getunleash.android.data.Toggle
 import io.getunleash.android.data.UnleashContext
 import io.getunleash.android.data.UnleashState
@@ -80,7 +79,7 @@ class DefaultUnleash(
     private val cache: ObservableToggleCache = ObservableCache(cacheImpl, coroutineScope)
     private var started = AtomicBoolean(false)
     private var ready = AtomicBoolean(false)
-    private val fetcher: UnleashFetcher?
+    private val fetcher: UnleashFetcher
     private val networkStatusHelper = NetworkStatusHelper(androidContext)
     private val impressionEventsFlow = MutableSharedFlow<ImpressionEvent>(
         replay = 1,
@@ -97,12 +96,11 @@ class DefaultUnleash(
                     httpClientBuilder.build("metrics", unleashConfig.metricsStrategy)
                 )
             else NoOpMetrics()
-        fetcher = if (unleashConfig.pollingStrategy.enabled)
-            UnleashFetcher(
+        fetcher = UnleashFetcher(
                 unleashConfig,
                 httpClientBuilder.build("poller", unleashConfig.pollingStrategy),
                 unleashContextState.asStateFlow()
-            ) else null
+            )
         taskManager = LifecycleAwareTaskManager(
             dataJobs = buildDataJobs(metrics, fetcher),
             networkAvailable = networkStatusHelper.isAvailable(),
@@ -130,7 +128,7 @@ class DefaultUnleash(
             val localBackup = getLocalBackup()
             localBackup.subscribeTo(cache.getUpdatesFlow())
         }
-        fetcher?.let {
+        fetcher.let {
             it.startWatchingContext()
             cache.subscribeTo(it.getFeaturesReceivedFlow())
         }
@@ -148,8 +146,8 @@ class DefaultUnleash(
         }
     }
 
-    private fun buildDataJobs(metricsSender: MetricsReporter, fetcher: UnleashFetcher?) = buildList {
-        if (fetcher != null) {
+    private fun buildDataJobs(metricsSender: MetricsReporter, fetcher: UnleashFetcher) = buildList {
+        if (unleashConfig.pollingStrategy.enabled) {
             add(
                 DataJob(
                     "fetchToggles",
@@ -223,7 +221,7 @@ class DefaultUnleash(
     override fun refreshTogglesNow() {
         runBlocking {
             withContext(Dispatchers.IO) {
-                fetcher?.refreshToggles()
+                fetcher.refreshToggles()
             }
         }
     }
@@ -231,7 +229,7 @@ class DefaultUnleash(
     override fun refreshTogglesNowAsync() {
         coroutineScope.launch {
             withContext(Dispatchers.IO) {
-                fetcher?.refreshToggles()
+                fetcher.refreshToggles()
             }
         }
     }
@@ -271,7 +269,7 @@ class DefaultUnleash(
         if (started.get()) {
             runBlocking {
                 withTimeout(timeout) {
-                    fetcher?.refreshToggles()
+                    fetcher.refreshToggles()
                 }
             }
         }
@@ -306,7 +304,7 @@ class DefaultUnleash(
             }
         }
 
-        if (fetcher != null && listener is UnleashFetcherHeartbeatListener) coroutineScope.launch {
+        if (listener is UnleashFetcherHeartbeatListener) coroutineScope.launch {
             fetcher.getHeartbeatFlow().collect { event ->
                 if (event.status.isFailed()) {
                     listener.onError(event)

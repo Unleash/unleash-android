@@ -444,4 +444,42 @@ class DefaultUnleashTest : BaseTest() {
         await().atMost(2, TimeUnit.SECONDS).until { stateSet }
         assertThat(inspectableCache.toggles).hasSize(3)
     }
+
+    @Test
+    fun `when polling is disable should still be able to poll on demand`() {
+        val server = MockWebServer()
+        server.enqueue(
+            MockResponse().setBody(
+                this::class.java.classLoader?.getResource("sample-response.json")!!.readText()
+            )
+        )
+
+        val inspectableCache = InspectableCache()
+        val unleash = DefaultUnleash(
+            androidContext = mock(Context::class.java),
+            unleashConfig = UnleashConfig.newBuilder("test-android-app")
+                .proxyUrl(server.url("").toString())
+                .clientKey("key-123")
+                .pollingStrategy.enabled(false)
+                .metricsStrategy.enabled(false)
+                .localStorageConfig.enabled(false)
+                .build(),
+            unleashContext = UnleashContext(userId = "123"),
+            cacheImpl = inspectableCache,
+            lifecycle = mock(Lifecycle::class.java),
+        )
+
+        var stateSet = false
+        unleash.start(bootstrap = staticToggleList, eventListeners = listOf(object : UnleashStateListener {
+            override fun onStateChanged() {
+                stateSet = true
+            }
+        }))
+
+        await().atMost(2, TimeUnit.SECONDS).until { stateSet }
+        assertThat(inspectableCache.toggles).hasSize(staticToggleList.size)
+
+        unleash.refreshTogglesNow()
+        await().atMost(2, TimeUnit.SECONDS).until { inspectableCache.toggles.size == 8 }
+    }
 }
