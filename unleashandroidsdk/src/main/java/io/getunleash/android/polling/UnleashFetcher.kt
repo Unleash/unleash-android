@@ -52,7 +52,7 @@ open class UnleashFetcher(
         private const val TAG = "UnleashFetcher"
     }
 
-    private val proxyUrl = unleashConfig.proxyUrl.toHttpUrl()
+    private val proxyUrl = unleashConfig.proxyUrl?.toHttpUrl()
     private val applicationHeaders = unleashConfig.getApplicationHeaders(unleashConfig.pollingStrategy)
     private val appName = unleashConfig.appName
     private var etag: String? = null
@@ -123,6 +123,9 @@ open class UnleashFetcher(
     }
 
     private suspend fun fetchToggles(ctx: UnleashContext): FetchResponse {
+        if (proxyUrl == null) {
+            return FetchResponse(Status.FAILED, error = IllegalStateException("Proxy URL is not set"))
+        }
         val contextUrl = buildContextUrl(ctx)
         try {
             val request = Request.Builder().url(contextUrl)
@@ -208,7 +211,7 @@ open class UnleashFetcher(
     }
 
     private fun buildContextUrl(ctx: UnleashContext): HttpUrl {
-        var contextUrl = proxyUrl.newBuilder()
+        var contextUrl = proxyUrl!!.newBuilder()
             .addQueryParameter("appName", appName)
         if (ctx.userId != null) {
             contextUrl.addQueryParameter("userId", ctx.userId)

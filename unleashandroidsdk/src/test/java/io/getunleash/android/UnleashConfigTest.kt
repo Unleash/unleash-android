@@ -49,7 +49,7 @@ class UnleashConfigTest {
             .metricsStrategy.enabled(false)
             .build()
 
-        assertThat(config.proxyUrl).isEmpty()
-        assertThat(config.clientKey).isEmpty()
+        assertThat(config.proxyUrl).isNull()
+        assertThat(config.clientKey).isNull()
     }
 }

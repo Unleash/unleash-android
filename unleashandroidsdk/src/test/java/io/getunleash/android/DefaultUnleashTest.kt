@@ -19,6 +19,7 @@ import org.assertj.core.groups.Tuple
 import org.awaitility.Awaitility.await
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 import org.robolectric.shadows.ShadowLog
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -443,5 +444,43 @@ class DefaultUnleashTest : BaseTest() {
 
         await().atMost(2, TimeUnit.SECONDS).until { stateSet }
         assertThat(inspectableCache.toggles).hasSize(3)
+    }
+
+    @Test
+    fun `when polling is disable should still be able to poll on demand`() {
+        val server = MockWebServer()
+        server.enqueue(
+            MockResponse().setBody(
+                this::class.java.classLoader?.getResource("sample-response.json")!!.readText()
+            )
+        )
+
+        val inspectableCache = InspectableCache()
+        val unleash = DefaultUnleash(
+            androidContext = mock(Context::class.java),
+            unleashConfig = UnleashConfig.newBuilder("test-android-app")
+                .proxyUrl(server.url("").toString())
+                .clientKey("key-123")
+                .pollingStrategy.enabled(false)
+                .metricsStrategy.enabled(false)
+                .localStorageConfig.enabled(false)
+                .build(),
+            unleashContext = UnleashContext(userId = "123"),
+            cacheImpl = inspectableCache,
+            lifecycle = mock(Lifecycle::class.java),
+        )
+
+        var readyState = false
+        unleash.start(bootstrap = staticToggleList, eventListeners = listOf(object : UnleashReadyListener {
+            override fun onReady() {
+                readyState = true
+            }
+        }))
+        await().atMost(3, TimeUnit.SECONDS).until { readyState }
+        assertThat(inspectableCache.toggles).hasSize(staticToggleList.size)
+
+        unleash.refreshTogglesNow()
+        await().atMost(2, TimeUnit.SECONDS).until { inspectableCache.toggles.size == 8 }
+        assertThat(server.requestCount).isEqualTo(1)
     }
 }

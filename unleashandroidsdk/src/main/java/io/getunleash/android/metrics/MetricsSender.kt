@@ -26,8 +26,9 @@ class MetricsSender(
     companion object {
         private const val TAG: String = "MetricsSender"
     }
-    private val metricsUrl = config.proxyUrl.toHttpUrl().newBuilder().addPathSegment("client")
-        .addPathSegment("metrics").build()
+
+    private val metricsUrl = config.proxyUrl?.toHttpUrl()?.newBuilder()?.addPathSegment("client")
+        ?.addPathSegment("metrics")?.build()
     private var bucket: CountBucket = CountBucket(start = Date())
     private val throttler =
         Throttler(
@@ -37,6 +38,10 @@ class MetricsSender(
         )
 
     override suspend fun sendMetrics() {
+        if (metricsUrl == null) {
+            Log.d(TAG, "No proxy URL configured, skipping metrics reporting")
+            return
+        }
         if (bucket.isEmpty()) {
             Log.d(TAG, "No metrics to report")
             return

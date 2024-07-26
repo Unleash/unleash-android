@@ -6,15 +6,15 @@ import java.util.UUID
 
 /**
  * Represents configuration for Unleash.
- * @property proxyUrl HTTP(s) URL to the Unleash Proxy (Required).
- * @property clientKey the key added as the Authorization header sent to the unleash-proxy (Required)
+ * @property proxyUrl HTTP(s) URL to the Unleash Proxy (Optional).
+ * @property clientKey the key added as the Authorization header sent to the unleash-proxy (Optional)
  * @property appName: name of the underlying application. Will be used as default in the [io.getunleash.android.data.UnleashContext] call (Required).
  * @property pollingStrategy How to poll for features. (Optional - Defaults to [io.getunleash.android.data.DataStrategy] with poll interval set to 60 seconds).
  * @property metricsStrategy How to poll for metrics. (Optional - Defaults to [io.getunleash.android.data.DataStrategy] with poll interval set to 60 seconds).
  */
 data class UnleashConfig(
-    val proxyUrl: String,
-    val clientKey: String,
+    val proxyUrl: String?,
+    val clientKey: String?,
     val appName: String,
     val localStorageConfig: LocalStorageConfig = LocalStorageConfig(),
     val pollingStrategy: DataStrategy = DataStrategy(
@@ -36,8 +36,9 @@ data class UnleashConfig(
     val instanceId: String get() = Companion.instanceId
 
     fun getApplicationHeaders(strategy: DataStrategy): Map<String, String> {
+        val auth = clientKey ?: ""
         return strategy.httpCustomHeaders.plus(mapOf(
-            "Authorization" to clientKey,
+            "Authorization" to auth,
             "Content-Type" to "application/json",
             "UNLEASH-APPNAME" to appName,
             "User-Agent" to appName,
@@ -66,8 +67,8 @@ data class UnleashConfig(
                 throw IllegalStateException("You must either set proxyUrl and clientKey or disable both polling and metrics.")
             }
             return UnleashConfig(
-                proxyUrl = proxyUrl ?: "",
-                clientKey = clientKey ?: "",
+                proxyUrl = proxyUrl,
+                clientKey = clientKey,
                 appName = appName,
                 pollingStrategy = pollingStrategy.build(),
                 metricsStrategy = metricsStrategy.build(),
