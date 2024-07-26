@@ -37,15 +37,14 @@ implementation("io.getunleash:unleash-android:${unleash.sdk.version}")
 ```
 
 #### Minimum Android SDK
-- We are currently aiming for a minimum SDK level of 21. Keeping in tune with OkHttp's requirement.
+The minimum supported SDK level is 21, keeping in tune with OkHttp's requirement, but level 23 is recommended.
 
 #### Proguard
-For now, you'll need to have Proguard ignore our classes as well as fasterxml (Jackson)
-```
--keep public class io.getunleash.** {*;}
--keep class com.fasterxml.** { *; }
-```
+You shouldn't have to configure proguard for this library, but if you do, you can use the following configuration:
 
+```proguard
+-keep class io.getunleash.android.** { *; }
+```
 
 ### Step 2: Enable required permissions
 
