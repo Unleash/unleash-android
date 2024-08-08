@@ -7,7 +7,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
     id("org.jetbrains.dokka") version "1.9.20"
-    id("pl.allegro.tech.build.axion-release") version "1.18.2"
+    id("pl.allegro.tech.build.axion-release") version "1.18.4"
     jacoco
 }
 
