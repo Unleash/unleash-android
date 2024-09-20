@@ -1,6 +1,7 @@
 package io.getunleash.android.data
 
 import io.getunleash.android.UnleashConfig
+import okhttp3.OkHttpClient
 
 /**
  * @property enabled Whether the strategy is enabled or not. (Optional - Defaults to true)
@@ -8,6 +9,7 @@ import io.getunleash.android.UnleashConfig
  * @property delay How long to wait before starting the operation in milliseconds. (Optional - Defaults to 0)
  * @property pauseOnBackground Whether the operation should pause when the app is in background. (Optional - Defaults to true)
  * @property httpReadTimeout How long to wait for HTTP reads in milliseconds. (Optional - Defaults to 5000)
+ * @property httpWriteTimeout How long to wait for HTTP writes in milliseconds. (Optional - Defaults to 5000)
  * @property httpConnectionTimeout How long to wait for HTTP connection in milliseconds. (Optional - Defaults to 2000)
  * @property httpCacheSize Disk space (in bytes) set aside for http cache. (Optional - Defaults to 10MB)
  * @property httpCustomHeaders Enables users to override httpCustomHeaders. (Optional - Defaults to empty)
@@ -17,8 +19,9 @@ data class DataStrategy(
     val interval: Long = 60000,
     val delay: Long = 0,
     val pauseOnBackground: Boolean = true,
-    val httpConnectionTimeout: Long = 2000,
+    val httpConnectionTimeout: Long = 5000,
     val httpReadTimeout: Long = 5000,
+    val httpWriteTimeout: Long = 5000,
     val httpCacheSize: Long = 1024 * 1024 * 10,
     val httpCustomHeaders: Map<String, String> = emptyMap(),
 ) {

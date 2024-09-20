@@ -2,6 +2,7 @@ package io.getunleash.android
 
 import io.getunleash.android.backup.LocalStorageConfig
 import io.getunleash.android.data.DataStrategy
+import okhttp3.OkHttpClient
 import java.util.UUID
 
 /**
@@ -11,6 +12,7 @@ import java.util.UUID
  * @property appName: name of the underlying application. Will be used as default in the [io.getunleash.android.data.UnleashContext] call (Required).
  * @property pollingStrategy How to poll for features. (Optional - Defaults to [io.getunleash.android.data.DataStrategy] with poll interval set to 60 seconds).
  * @property metricsStrategy How to poll for metrics. (Optional - Defaults to [io.getunleash.android.data.DataStrategy] with poll interval set to 60 seconds).
+ * @property httpClient Custom http client to be used. (Optional - Use if you want to pass in custom SSL certificates).
  */
 data class UnleashConfig(
     val proxyUrl: String?,
@@ -24,7 +26,8 @@ data class UnleashConfig(
         pauseOnBackground = true,
     ),
     val delayedInitialization: Boolean = true,
-    val forceImpressionData: Boolean = false
+    val forceImpressionData: Boolean = false,
+    val httpClient: OkHttpClient? = null,
 ) {
     companion object {
         val instanceId: String = UUID.randomUUID().toString()
@@ -62,6 +65,7 @@ data class UnleashConfig(
             .newBuilder(parent = this)
         val localStorageConfig: LocalStorageConfig.Builder = LocalStorageConfig()
             .newBuilder(parent = this)
+        var httpClient: OkHttpClient? = null
         fun build(): UnleashConfig {
             if ((proxyUrl == null || clientKey == null) && (pollingStrategy.enabled || metricsStrategy.enabled)) {
                 throw IllegalStateException("You must either set proxyUrl and clientKey or disable both polling and metrics.")
@@ -74,7 +78,8 @@ data class UnleashConfig(
                 metricsStrategy = metricsStrategy.build(),
                 delayedInitialization = delayedInitialization,
                 forceImpressionData = forceImpressionData,
-                localStorageConfig = localStorageConfig.build()
+                localStorageConfig = localStorageConfig.build(),
+                httpClient = httpClient
             )
         }
 
@@ -86,5 +91,9 @@ data class UnleashConfig(
 
         fun forceImpressionData(forceImpressionData: Boolean) =
             apply { this.forceImpressionData = forceImpressionData }
+
+        fun httpClient(httpClient: OkHttpClient) = apply {
+            this.httpClient = httpClient
+        }
     }
 }
