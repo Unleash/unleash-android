@@ -35,7 +35,7 @@ jobs:
         if: github.event.inputs.release == 'major'
       - run: ./gradlew release -Prelease.versionIncrementer=incrementMinor
         if: github.event.inputs.release == 'minor'
-      - run: ./gradlew release -Prelease.versionIncrementer=incrementPatch
+      - run: ./gradlew release -Prelease.versionIncrementer=incrementPatch -Prelease.ignoreChanges=true
         if: github.event.inputs.release == 'patch'
-      - run: ./gradlew release -Prelease.versionIncrementer=incrementPrerelease -Prelease.versionIncrementer.initialPreReleaseIfNotOnPrerelease=-rc1
+      - run: ./gradlew release -Prelease.versionIncrementer=incrementPrerelease -Prelease.versionIncrementer.initialPreReleaseIfNotOnPrerelease=-rc1 -Prelease.ignoreChanges=true
         if: github.event.inputs.release == 'pre-release'
