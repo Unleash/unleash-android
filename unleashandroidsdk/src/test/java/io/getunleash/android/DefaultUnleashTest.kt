@@ -483,4 +483,37 @@ class DefaultUnleashTest : BaseTest() {
         await().atMost(2, TimeUnit.SECONDS).until { inspectableCache.toggles.size == 8 }
         assertThat(server.requestCount).isEqualTo(1)
     }
+
+    @Test
+    fun `when polling is disable you should eventually get the ready event after manually polling`() {
+        val server = MockWebServer()
+        server.enqueue(
+            MockResponse().setBody(
+                this::class.java.classLoader?.getResource("sample-response.json")!!.readText()
+            )
+        )
+
+        var readyState = false
+        val unleash = DefaultUnleash(
+            androidContext = mock(Context::class.java),
+            unleashConfig = UnleashConfig.newBuilder("test-android-app")
+                .proxyUrl(server.url("").toString())
+                .clientKey("key-123")
+                .pollingStrategy.enabled(false)
+                .metricsStrategy.enabled(false)
+                .localStorageConfig.enabled(false)
+                .delayedInitialization(false)
+                .build(),
+            unleashContext = UnleashContext(userId = "123"),
+            lifecycle = mock(Lifecycle::class.java),
+            eventListeners = listOf(object : UnleashReadyListener {
+                override fun onReady() {
+                    readyState = true
+                }
+            })
+        )
+        unleash.refreshTogglesNowAsync()
+        await().atMost(3, TimeUnit.SECONDS).until { readyState }
+        assertThat(server.requestCount).isEqualTo(1)
+    }
 }
