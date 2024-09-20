@@ -1,9 +1,10 @@
 name: Publish SDK
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_run:
+    workflows: ["Create a new release tag"]
+    types:
+      - completed
 
 jobs:
   deploy-release:
