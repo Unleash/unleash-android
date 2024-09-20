@@ -13,8 +13,11 @@ class ClientBuilder(private val unleashConfig: UnleashConfig, private val androi
         clientName: String,
         strategy: DataStrategy
     ): OkHttpClient {
-        val builder = OkHttpClient.Builder()
+        // either use the provided client or create a new one
+        val clientBuilder = unleashConfig.httpClient?.newBuilder() ?: OkHttpClient.Builder()
+        val builder = clientBuilder
             .readTimeout(strategy.httpReadTimeout, TimeUnit.MILLISECONDS)
+            .writeTimeout(strategy.httpWriteTimeout, TimeUnit.MILLISECONDS)
             .connectTimeout(strategy.httpConnectionTimeout, TimeUnit.MILLISECONDS)
         if (unleashConfig.localStorageConfig.enabled) {
             builder.cache(
