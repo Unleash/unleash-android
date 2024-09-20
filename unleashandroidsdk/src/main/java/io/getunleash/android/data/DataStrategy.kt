@@ -19,7 +19,7 @@ data class DataStrategy(
     val interval: Long = 60000,
     val delay: Long = 0,
     val pauseOnBackground: Boolean = true,
-    val httpConnectionTimeout: Long = 5000,
+    val httpConnectionTimeout: Long = 2000,
     val httpReadTimeout: Long = 5000,
     val httpWriteTimeout: Long = 5000,
     val httpCacheSize: Long = 1024 * 1024 * 10,

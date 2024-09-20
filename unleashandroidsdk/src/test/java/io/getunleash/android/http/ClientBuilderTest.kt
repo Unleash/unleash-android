@@ -64,6 +64,6 @@ class ClientBuilderTest : BaseTest() {
 
         verify(builder).readTimeout(5000, TimeUnit.MILLISECONDS)
         verify(builder).writeTimeout(5000, TimeUnit.MILLISECONDS)
-        verify(builder).connectTimeout(5000, TimeUnit.MILLISECONDS)
+        verify(builder).connectTimeout(2000, TimeUnit.MILLISECONDS)
     }
 }
