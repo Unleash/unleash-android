@@ -129,7 +129,7 @@ val toggles = listOf(
 instance.start(bootstrap = toggles)
 ```
 
-Alternatively, you can perform a query against the proxy using your HTTP client of choice and save the output as a json file. Then you can tell Unleash to use this file to setup toggle states.
+Alternatively, you can perform a query against the [frontend API](https://docs.getunleash.io/reference/front-end-api) using your HTTP client of choice and save the output as a json file. Then you can tell Unleash to use this file to setup toggle states.
 
 ```kotlin
 val toggles = File("/tmp/proxyresponse.json")
