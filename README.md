@@ -65,8 +65,8 @@ val unleash = DefaultUnleash(
     unleashConfig =  UnleashConfig.newBuilder(appName = "test-android-app")
         .proxyUrl("https://eu.app.unleash-hosted.com/demo/api/frontend")
         .clientKey("<client-side SDK API key>")
-        .pollingStrategy.interval(3000) // 3 secs is just for testing purposes, not recommended for production
-        .metricsStrategy.interval(3000) // 3 secs is just for testing purposes, not recommended for production
+        .pollingStrategy.interval(60000)
+        .metricsStrategy.interval(60000)
         .build()
 )
 
