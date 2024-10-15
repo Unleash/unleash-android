@@ -65,8 +65,8 @@ val unleash = DefaultUnleash(
     unleashConfig =  UnleashConfig.newBuilder(appName = "test-android-app")
         .proxyUrl("https://eu.app.unleash-hosted.com/demo/api/frontend")
         .clientKey("<client-side SDK API key>")
-        .pollingStrategy.interval(3000) // 3 secs is just for testing purposes, not recommended for production
-        .metricsStrategy.interval(3000) // 3 secs is just for testing purposes, not recommended for production
+        .pollingStrategy.interval(60000)
+        .metricsStrategy.interval(60000)
         .build()
 )
 
@@ -129,7 +129,7 @@ val toggles = listOf(
 instance.start(bootstrap = toggles)
 ```
 
-Alternatively, you can perform a query against the proxy using your HTTP client of choice and save the output as a json file. Then you can tell Unleash to use this file to setup toggle states.
+Alternatively, you can perform a query against the [frontend API](https://docs.getunleash.io/reference/front-end-api) using your HTTP client of choice and save the output as a json file. Then you can tell Unleash to use this file to set up toggle states.
 
 ```kotlin
 val toggles = File("/tmp/proxyresponse.json")
