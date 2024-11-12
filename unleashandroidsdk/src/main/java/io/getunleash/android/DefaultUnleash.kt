@@ -257,19 +257,26 @@ class DefaultUnleash(
     }
 
     override fun setContext(context: UnleashContext) {
+        if (started.get()) {
+            runBlocking {
+                withContext(Dispatchers.IO) {
+                    fetcher.refreshTogglesWithContext(context)
+                }
+            }
+        }
         unleashContextState.value = context
     }
 
     @Throws(TimeoutException::class)
     override fun setContextWithTimeout(context: UnleashContext, timeout: Long) {
-        unleashContextState.value = context
         if (started.get()) {
             runBlocking {
                 withTimeout(timeout) {
-                    fetcher.refreshToggles()
+                    fetcher.refreshTogglesWithContext(context)
                 }
             }
         }
+        unleashContextState.value = context
     }
 
     override fun setContextAsync(context: UnleashContext) {

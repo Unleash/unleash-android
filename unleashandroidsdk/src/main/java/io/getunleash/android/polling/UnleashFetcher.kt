@@ -52,7 +52,7 @@ open class UnleashFetcher(
     companion object {
         private const val TAG = "UnleashFetcher"
     }
-
+    private var contextForLastFetch: UnleashContext? = null
     private val proxyUrl = unleashConfig.proxyUrl?.toHttpUrl()
     private val applicationHeaders =
             unleashConfig.getApplicationHeaders(unleashConfig.pollingStrategy)
@@ -82,6 +82,10 @@ open class UnleashFetcher(
     fun startWatchingContext() {
         unleashScope.launch {
             unleashContext.distinctUntilChanged { old, new -> old == new }.collect {
+                if (it == contextForLastFetch) {
+                    Log.d(TAG, "Context unchanged, skipping refresh toggles")
+                    return@collect
+                }
                 withContext(coroutineContextForContextChange) {
                     Log.d(TAG, "Unleash context changed: $it")
                     refreshToggles()
@@ -93,7 +97,7 @@ open class UnleashFetcher(
     suspend fun refreshToggles(): ToggleResponse {
         if (throttler.performAction()) {
             Log.d(TAG, "Refreshing toggles")
-            val response = refreshTogglesWithContext(unleashContext.value)
+            val response = doFetchToggles(unleashContext.value)
             fetcherHeartbeatFlow.emit(HeartbeatEvent(response.status, response.error?.message))
             return response
         }
@@ -102,7 +106,20 @@ open class UnleashFetcher(
         return ToggleResponse(Status.THROTTLED)
     }
 
-    internal suspend fun refreshTogglesWithContext(ctx: UnleashContext): ToggleResponse {
+    suspend fun refreshTogglesWithContext(ctx: UnleashContext): ToggleResponse {
+        if (throttler.performAction()) {
+            Log.d(TAG, "Refreshing toggles")
+            val response = doFetchToggles(ctx)
+            fetcherHeartbeatFlow.emit(HeartbeatEvent(response.status, response.error?.message))
+            return response
+        }
+        Log.i(TAG, "Skipping refresh toggles due to throttling")
+        fetcherHeartbeatFlow.emit(HeartbeatEvent(Status.THROTTLED))
+        return ToggleResponse(Status.THROTTLED)
+    }
+
+    internal suspend fun doFetchToggles(ctx: UnleashContext): ToggleResponse {
+        contextForLastFetch = ctx
         val response = fetchToggles(ctx)
         if (response.isSuccess()) {
 
