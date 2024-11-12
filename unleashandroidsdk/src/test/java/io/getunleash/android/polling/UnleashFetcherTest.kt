@@ -77,12 +77,12 @@ class UnleashFetcherTest : BaseTest() {
         runBlocking {
             launch {
                 println("Setting context to 123")
-                unleashFetcher.refreshTogglesWithContext(UnleashContext(userId = "123"))
+                unleashFetcher.doFetchToggles(UnleashContext(userId = "123"))
             }
             delay(150)
             launch {
                 println("Setting context to 321")
-                unleashFetcher.refreshTogglesWithContext(UnleashContext(userId = "321"))
+                unleashFetcher.doFetchToggles(UnleashContext(userId = "321"))
             }
         }
 
