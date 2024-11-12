@@ -81,7 +81,7 @@ open class UnleashFetcher(
 
     fun startWatchingContext() {
         unleashScope.launch {
-            unleashContext.distinctUntilChanged { old, new -> old == new }.collect {
+            unleashContext.collect {
                 if (it == contextForLastFetch) {
                     Log.d(TAG, "Context unchanged, skipping refresh toggles")
                     return@collect
