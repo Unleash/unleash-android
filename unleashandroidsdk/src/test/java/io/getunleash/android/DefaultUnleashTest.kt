@@ -15,11 +15,12 @@ import io.getunleash.android.polling.Status
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.assertj.core.groups.Tuple
 import org.awaitility.Awaitility.await
+import org.junit.Assert
 import org.junit.Test
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
 import org.robolectric.shadows.ShadowLog
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -330,16 +331,16 @@ class DefaultUnleashTest : BaseTest() {
             togglesUpdated == 1
         }
         // change context to force a refresh
-        unleash.setContext(UnleashContext(userId = "2"))
+        unleash.setContextAsync(UnleashContext(userId = "2"))
         await().atMost(2, TimeUnit.SECONDS).until {
             togglesChecked == 1
         }
-        unleash.setContext(UnleashContext(userId = "3"))
+        unleash.setContextAsync(UnleashContext(userId = "3"))
         await().atMost(2, TimeUnit.SECONDS).until {
             togglesFailed == 1
         }
         // too fast request after an error should be throttled
-        unleash.setContext(UnleashContext(userId = "4"))
+        unleash.setContextAsync(UnleashContext(userId = "4"))
         await().atMost(2, TimeUnit.SECONDS).until {
             togglesThrottled == 1
         }
@@ -350,6 +351,61 @@ class DefaultUnleashTest : BaseTest() {
         assertThat(togglesThrottled).isEqualTo(1)
     }
 
+    @Test
+    fun `when set context call we only refresh once`() {
+        val server = MockWebServer()
+        server.enqueue(
+            MockResponse().setBody(
+                this::class.java.classLoader?.getResource("sample-response.json")!!.readText()
+            )
+        )
+        server.enqueue(
+            MockResponse().setResponseCode(304).setBody("")
+        )
+        server.enqueue(
+            MockResponse().setResponseCode(304).setBody("")
+        )
+        val unleash = DefaultUnleash(
+            androidContext = mock(Context::class.java),
+            unleashConfig = UnleashConfig.newBuilder("test-android-app")
+                .proxyUrl(server.url("").toString())
+                .clientKey("key-123")
+                .pollingStrategy.enabled(true)
+                .pollingStrategy.delay(20000) // delay enough so it won't trigger a new request
+                .metricsStrategy.enabled(false)
+                .localStorageConfig.enabled(false)
+                .build(),
+            unleashContext = UnleashContext(userId = "1"),
+            lifecycle = mock(Lifecycle::class.java),
+        )
+
+        var togglesUpdated = 0
+        var togglesChecked = 0
+
+        unleash.start(eventListeners = listOf(object : UnleashFetcherHeartbeatListener {
+            override fun togglesUpdated() {
+                togglesUpdated++
+            }
+
+            override fun togglesChecked() {
+                togglesChecked++
+            }
+
+            override fun onError(event: HeartbeatEvent) {
+                Assert.fail("Should not have errors")
+            }
+        }))
+
+        await().atMost(5, TimeUnit.SECONDS).until {
+            togglesUpdated == 1
+        }
+
+        // change context to force a refresh
+        unleash.setContext(UnleashContext(userId = "2"))
+        assertThat(togglesChecked).isEqualTo(1)
+        unleash.setContext(UnleashContext(userId = "3"))
+        assertThat(togglesChecked).isEqualTo(2)
+    }
 
     @Test
     fun `if unleash is not started, setting context does not poll, until start is called`() {

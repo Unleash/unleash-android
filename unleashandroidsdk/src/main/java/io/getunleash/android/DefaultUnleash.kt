@@ -258,9 +258,6 @@ class DefaultUnleash(
 
     override fun setContext(context: UnleashContext) {
         unleashContextState.value = context
-        if (started.get()) {
-            refreshTogglesNow()
-        }
     }
 
     @Throws(TimeoutException::class)

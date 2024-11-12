@@ -149,7 +149,7 @@ open class UnleashFetcher(
                                         "Failed to set new call while ${inFlightCall?.request()?.url} is in flight"
                                 )
                 )
-            } else if (inFlightCall != null && !inFlightCall.isCanceled()) {
+            } else if (inFlightCall != null && !inFlightCall.isCanceled() && !inFlightCall.isExecuted()) {
                 Log.d(
                         TAG,
                         "Cancelling previous ${inFlightCall.request().method} ${inFlightCall.request().url}"
