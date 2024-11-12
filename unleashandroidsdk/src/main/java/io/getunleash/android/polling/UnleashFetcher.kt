@@ -52,7 +52,7 @@ open class UnleashFetcher(
     companion object {
         private const val TAG = "UnleashFetcher"
     }
-    private var contextForLastFetch: UnleashContext? = null
+    @Volatile private var contextForLastFetch: UnleashContext? = null
     private val proxyUrl = unleashConfig.proxyUrl?.toHttpUrl()
     private val applicationHeaders =
             unleashConfig.getApplicationHeaders(unleashConfig.pollingStrategy)
