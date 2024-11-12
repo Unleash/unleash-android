@@ -186,6 +186,7 @@ tasks.withType<Test> {
         showExceptions = true
         showStackTraces = true
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        showStandardStreams = true
         events("passed", "skipped", "failed")
     }
     configure<JacocoTaskExtension> {

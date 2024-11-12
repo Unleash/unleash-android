@@ -11,6 +11,13 @@ import io.getunleash.android.errors.ServerException
 import io.getunleash.android.events.HeartbeatEvent
 import io.getunleash.android.http.Throttler
 import io.getunleash.android.unleashScope
+import java.io.Closeable
+import java.io.IOException
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -30,54 +37,51 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.internal.closeQuietly
-import java.io.Closeable
-import java.io.IOException
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicReference
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 /**
- * Http Client for fetching data from Unleash Proxy.
- * By default creates an OkHttpClient with readTimeout set to 2 seconds and a cache of 10 MBs
- * @param httpClient - the http client to use for fetching toggles from Unleash proxy
+ * Http Client for fetching data from Unleash Proxy. By default creates an OkHttpClient with
+ * readTimeout set to 2 seconds and a cache of 10 MBs
+ * @param httpClient
+ * - the http client to use for fetching toggles from Unleash proxy
  */
 open class UnleashFetcher(
-    unleashConfig: UnleashConfig,
-    private val httpClient: OkHttpClient,
-    private val unleashContext: StateFlow<UnleashContext>,
+        unleashConfig: UnleashConfig,
+        private val httpClient: OkHttpClient,
+        private val unleashContext: StateFlow<UnleashContext>,
 ) : Closeable {
     companion object {
         private const val TAG = "UnleashFetcher"
     }
 
     private val proxyUrl = unleashConfig.proxyUrl?.toHttpUrl()
-    private val applicationHeaders = unleashConfig.getApplicationHeaders(unleashConfig.pollingStrategy)
+    private val applicationHeaders =
+            unleashConfig.getApplicationHeaders(unleashConfig.pollingStrategy)
     private val appName = unleashConfig.appName
     private var etag: String? = null
-    private val featuresReceivedFlow = MutableSharedFlow<UnleashState>(
-        replay = 1,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST
-    )
-    private val fetcherHeartbeatFlow = MutableSharedFlow<HeartbeatEvent>(
-        extraBufferCapacity = 5,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST
-    )
+    private val featuresReceivedFlow =
+            MutableSharedFlow<UnleashState>(
+                    replay = 1,
+                    onBufferOverflow = BufferOverflow.DROP_OLDEST
+            )
+    private val fetcherHeartbeatFlow =
+            MutableSharedFlow<HeartbeatEvent>(
+                    extraBufferCapacity = 5,
+                    onBufferOverflow = BufferOverflow.DROP_OLDEST
+            )
     private val coroutineContextForContextChange: CoroutineContext = Dispatchers.IO
     private val currentCall = AtomicReference<Call?>(null)
     private val throttler =
-        Throttler(
-            TimeUnit.MILLISECONDS.toSeconds(unleashConfig.pollingStrategy.interval),
-            longestAcceptableIntervalSeconds = 300,
-            proxyUrl.toString()
-        )
+            Throttler(
+                    TimeUnit.MILLISECONDS.toSeconds(unleashConfig.pollingStrategy.interval),
+                    longestAcceptableIntervalSeconds = 300,
+                    proxyUrl.toString()
+            )
 
     fun getFeaturesReceivedFlow() = featuresReceivedFlow.asSharedFlow()
 
     fun startWatchingContext() {
         unleashScope.launch {
-            unleashContext.distinctUntilChanged { old, new -> old != new }.collect {
+            unleashContext.distinctUntilChanged { old, new -> old == new }.collect {
                 withContext(coroutineContextForContextChange) {
                     Log.d(TAG, "Unleash context changed: $it")
                     refreshToggles()
@@ -102,11 +106,11 @@ open class UnleashFetcher(
         val response = fetchToggles(ctx)
         if (response.isSuccess()) {
 
-            val toggles = response.config!!.toggles.groupBy { it.name }
-                .mapValues { (_, v) -> v.first() }
+            val toggles =
+                    response.config!!.toggles.groupBy { it.name }.mapValues { (_, v) -> v.first() }
             Log.d(
-                TAG,
-                "Fetched new state with ${toggles.size} toggles, emitting featuresReceivedFlow"
+                    TAG,
+                    "Fetched new state with ${toggles.size} toggles, emitting featuresReceivedFlow"
             )
             featuresReceivedFlow.emit(UnleashState(ctx, toggles))
             return ToggleResponse(response.status, toggles)
@@ -124,12 +128,14 @@ open class UnleashFetcher(
 
     private suspend fun fetchToggles(ctx: UnleashContext): FetchResponse {
         if (proxyUrl == null) {
-            return FetchResponse(Status.FAILED, error = IllegalStateException("Proxy URL is not set"))
+            return FetchResponse(
+                    Status.FAILED,
+                    error = IllegalStateException("Proxy URL is not set")
+            )
         }
         val contextUrl = buildContextUrl(ctx)
         try {
-            val request = Request.Builder().url(contextUrl)
-                .headers(applicationHeaders.toHeaders())
+            val request = Request.Builder().url(contextUrl).headers(applicationHeaders.toHeaders())
             if (etag != null) {
                 request.header("If-None-Match", etag!!)
             }
@@ -137,13 +143,16 @@ open class UnleashFetcher(
             val inFlightCall = currentCall.get()
             if (!currentCall.compareAndSet(inFlightCall, call)) {
                 return FetchResponse(
-                    Status.FAILED,
-                    error = IllegalStateException("Failed to set new call while ${inFlightCall?.request()?.url} is in flight")
+                        Status.FAILED,
+                        error =
+                                IllegalStateException(
+                                        "Failed to set new call while ${inFlightCall?.request()?.url} is in flight"
+                                )
                 )
             } else if (inFlightCall != null && !inFlightCall.isCanceled()) {
                 Log.d(
-                    TAG,
-                    "Cancelling previous ${inFlightCall.request().method} ${inFlightCall.request().url}"
+                        TAG,
+                        "Cancelling previous ${inFlightCall.request().method} ${inFlightCall.request().url}"
                 )
                 inFlightCall.cancel()
             }
@@ -159,23 +168,21 @@ open class UnleashFetcher(
                         res.body?.use { b ->
                             try {
                                 val proxyResponse: ProxyResponse =
-                                    proxyResponseAdapter.fromJson(b.string())!!
+                                        proxyResponseAdapter.fromJson(b.string())!!
                                 FetchResponse(Status.SUCCESS, proxyResponse)
                             } catch (e: Exception) {
                                 // If we fail to parse, just keep data
                                 FetchResponse(Status.FAILED, error = e)
                             }
-                        } ?: FetchResponse(Status.FAILED, error = NoBodyException())
+                        }
+                                ?: FetchResponse(Status.FAILED, error = NoBodyException())
                     }
-
                     res.code == 304 -> {
                         FetchResponse(Status.NOT_MODIFIED)
                     }
-
                     res.code == 401 -> {
                         FetchResponse(Status.FAILED, error = NotAuthorizedException())
                     }
-
                     else -> {
                         FetchResponse(Status.FAILED, error = ServerException(res.code))
                     }
@@ -188,31 +195,33 @@ open class UnleashFetcher(
 
     private suspend fun Call.await(): Response {
         return suspendCancellableCoroutine { continuation ->
-            enqueue(object : Callback {
-                override fun onResponse(call: Call, response: Response) {
-                    continuation.resume(response)
-                }
+            enqueue(
+                    object : Callback {
+                        override fun onResponse(call: Call, response: Response) {
+                            continuation.resume(response)
+                        }
 
-                override fun onFailure(call: Call, e: IOException) {
-                    // Don't bother with resuming the continuation if it is already cancelled.
-                    if (continuation.isCancelled) return
-                    continuation.resumeWithException(e)
-                }
-            })
+                        override fun onFailure(call: Call, e: IOException) {
+                            // Don't bother with resuming the continuation if it is already
+                            // cancelled.
+                            if (continuation.isCancelled) return
+                            continuation.resumeWithException(e)
+                        }
+                    }
+            )
 
             continuation.invokeOnCancellation {
                 try {
                     cancel()
                 } catch (ex: Throwable) {
-                    //Ignore cancel exception
+                    // Ignore cancel exception
                 }
             }
         }
     }
 
     private fun buildContextUrl(ctx: UnleashContext): HttpUrl {
-        var contextUrl = proxyUrl!!.newBuilder()
-            .addQueryParameter("appName", appName)
+        var contextUrl = proxyUrl!!.newBuilder().addQueryParameter("appName", appName)
         if (ctx.userId != null) {
             contextUrl.addQueryParameter("userId", ctx.userId)
         }

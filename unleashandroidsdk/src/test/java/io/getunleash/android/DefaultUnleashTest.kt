@@ -299,7 +299,7 @@ class DefaultUnleashTest : BaseTest() {
                 .proxyUrl(server.url("").toString())
                 .clientKey("key-123")
                 .pollingStrategy.enabled(true)
-                .pollingStrategy.delay(10000) // delay enough so it won't trigger a new request
+                .pollingStrategy.delay(20000) // delay enough so it won't trigger a new request
                 .metricsStrategy.enabled(false)
                 .localStorageConfig.enabled(false)
                 .build(),
@@ -327,26 +327,26 @@ class DefaultUnleashTest : BaseTest() {
         }))
 
         await().atMost(5, TimeUnit.SECONDS).until {
-            togglesUpdated > 0
+            togglesUpdated == 1
         }
         // change context to force a refresh
         unleash.setContext(UnleashContext(userId = "2"))
         await().atMost(2, TimeUnit.SECONDS).until {
-            togglesChecked > 0
+            togglesChecked == 1
         }
         unleash.setContext(UnleashContext(userId = "3"))
         await().atMost(2, TimeUnit.SECONDS).until {
-            togglesFailed > 0
+            togglesFailed == 1
         }
         // too fast request after an error should be throttled
         unleash.setContext(UnleashContext(userId = "4"))
         await().atMost(2, TimeUnit.SECONDS).until {
-            togglesThrottled > 0
+            togglesThrottled == 1
         }
 
         assertThat(togglesUpdated).isEqualTo(1)
         assertThat(togglesChecked).isEqualTo(1)
-        assertThat(togglesFailed).isEqualTo(1)
+        assertThat(togglesFailed).isEqualTo(1) 
         assertThat(togglesThrottled).isEqualTo(1)
     }
 
