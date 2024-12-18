@@ -6,7 +6,7 @@
 
 ## Getting started
 
-This is the Android SDK for [Unleash Frontend API](https://docs.getunleash.io/reference/front-end-api) provided by the [Unleash server](https://github.com/Unleash/unleash) or [Unleash Edge](https://github.com/Unleash/unleash-edge). It is a lightweight SDK that allows you to connect to the Unleash Proxy and fetch feature toggles.
+This is the Android SDK for [Unleash Frontend API](https://docs.getunleash.io/reference/front-end-api) provided by the [Unleash server](https://github.com/Unleash/unleash) or [Unleash Edge](https://github.com/Unleash/unleash-edge). It is a lightweight SDK that allows you to connect to the Unleash Frontend API and fetch feature toggles.
 
 This supersedes the [previous Unleash Android Proxy SDK](https://github.com/Unleash/unleash-android-proxy-sdk/) this one is a an Android library instead of a Java library. 
 
