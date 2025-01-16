@@ -12,7 +12,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        name: Checkout code
+        with:
+          fetch-depth: 0  # make sure you have full history and tags
+      - name: Checkout tag if available
+        run: |
+          TAG=$(git tag --points-at HEAD)
+          if [ -n "$TAG" ]; then
+            echo "Tag found: $TAG. Checking out tag..."
+            git checkout "$TAG"
+          else
+            echo "No tag found on this commit."
+          fi
       - name: Setup JDK
         uses: actions/setup-java@v4
         with:
