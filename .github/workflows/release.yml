@@ -15,13 +15,16 @@ jobs:
         with:
           fetch-depth: 0  # make sure you have full history and tags
       - name: Checkout tag if available
+        id: find_tag
         run: |
           TAG=$(git tag --points-at HEAD)
           if [ -n "$TAG" ]; then
             echo "Tag found: $TAG. Checking out tag..."
             git checkout "$TAG"
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
           else
             echo "No tag found on this commit."
+            echo "tag=" >> $GITHUB_OUTPUT
           fi
       - name: Setup JDK
         uses: actions/setup-java@v4
@@ -44,6 +47,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
-          prerelease: ${{ contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
+          tag_name: ${{ steps.find_tag.outputs.tag }}
+          release_name: ${{ steps.find_tag.outputs.tag }}
+          prerelease: ${{ contains(steps.find_tag.outputs.tag, 'beta') || contains(steps.find_tag.outputs.tag, 'rc') }}
