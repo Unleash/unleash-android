@@ -39,3 +39,8 @@ jobs:
         if: github.event.inputs.release == 'patch'
       - run: ./gradlew release -Prelease.versionIncrementer=incrementPrerelease -Prelease.versionIncrementer.initialPreReleaseIfNotOnPrerelease=-rc1 -Prelease.ignoreChanges=true
         if: github.event.inputs.release == 'pre-release'
+
+  publish-release:
+    needs: create-tag
+    uses: ./.github/workflows/release.yaml
+    secrets: inherit
