@@ -42,5 +42,5 @@ jobs:
 
   publish-release:
     needs: create-tag
-    uses: ./.github/workflows/release.yaml
+    uses: ./.github/workflows/release.yml
     secrets: inherit
