@@ -95,15 +95,7 @@ open class UnleashFetcher(
     }
 
     suspend fun refreshToggles(): ToggleResponse {
-        if (throttler.performAction()) {
-            Log.d(TAG, "Refreshing toggles")
-            val response = doFetchToggles(unleashContext.value)
-            fetcherHeartbeatFlow.emit(HeartbeatEvent(response.status, response.error?.message))
-            return response
-        }
-        Log.i(TAG, "Skipping refresh toggles due to throttling")
-        fetcherHeartbeatFlow.emit(HeartbeatEvent(Status.THROTTLED))
-        return ToggleResponse(Status.THROTTLED)
+        return this.refreshTogglesWithContext(unleashContext.value);
     }
 
     suspend fun refreshTogglesWithContext(ctx: UnleashContext): ToggleResponse {
@@ -113,6 +105,7 @@ open class UnleashFetcher(
             fetcherHeartbeatFlow.emit(HeartbeatEvent(response.status, response.error?.message))
             return response
         }
+        throttler.skipped() // count skipped requests
         Log.i(TAG, "Skipping refresh toggles due to throttling")
         fetcherHeartbeatFlow.emit(HeartbeatEvent(Status.THROTTLED))
         return ToggleResponse(Status.THROTTLED)
