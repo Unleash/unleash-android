@@ -22,6 +22,10 @@ android {
     namespace = "io.getunleash.android"
     compileSdk = 34
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         minSdk = 21
 
@@ -30,6 +34,8 @@ android {
         }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("proguard-rules.pro")
+
+        buildConfigField("String", "VERSION", "\"${project.version}\"")
     }
 
     buildTypes {
