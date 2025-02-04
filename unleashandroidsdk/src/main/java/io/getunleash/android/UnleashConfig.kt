@@ -44,11 +44,10 @@ data class UnleashConfig(
             "Authorization" to auth,
             "Content-Type" to "application/json",
             "UNLEASH-APPNAME" to appName,
-            "X-UNLEASH-APPNAME" to appName,
             "User-Agent" to appName,
             "UNLEASH-INSTANCEID" to instanceId,
-            "X-UNLEASH-CONNECTION-ID" to instanceId,
-            "X-UNLEASH-SDK" to "unleash-client-android:" + BuildConfig.VERSION,
+            "UNLEASH-CONNECTION-ID" to instanceId,
+            "UNLEASH-SDK" to "unleash-client-android:" + BuildConfig.VERSION,
         ))
     }
 
