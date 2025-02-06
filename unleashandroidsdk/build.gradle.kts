@@ -9,6 +9,7 @@ plugins {
     id("org.jetbrains.dokka") version "1.9.20"
     id("pl.allegro.tech.build.axion-release") version "1.18.2"
     jacoco
+    id("tech.yanand.maven-central-publish").version("1.3.0")
 }
 
 val tagVersion = System.getenv("GITHUB_REF")?.split('/')?.last()
@@ -199,4 +200,12 @@ tasks.withType<Test> {
         excludes = listOf("jdk.internal.*")
     }
     finalizedBy(jacocoTestReport)
+}
+
+val mavenCentralToken: String? by project
+
+mavenCentral {
+    authToken = mavenCentralToken
+    publishingType = "AUTOMATIC"
+    maxWait = 120
 }

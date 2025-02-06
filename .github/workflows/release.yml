@@ -41,7 +41,7 @@ jobs:
           ORG_GRADLE_PROJECT_signingPassphrase: ${{ secrets.GPG_PASSPHRASE }}
         with:
           job-id: release
-          arguments: publishToSonatype closeAndReleaseSonatypeStagingRepository
+          arguments: publishToMavenCentralPortal
       - name: Create Github release
         uses: actions/create-release@v1
         env:
