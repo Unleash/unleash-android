@@ -35,10 +35,9 @@ jobs:
       - uses: burrunan/gradle-cache-action@v1
         name: Deploy Release to Maven central
         env:
-          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SONATYPE_USERNAME }}
-          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SONATYPE_PASSWORD }}
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_PRIVATE_KEY }}
           ORG_GRADLE_PROJECT_signingPassphrase: ${{ secrets.GPG_PASSPHRASE }}
+          ORG_GRADLE_PROJECT_mavenCentralToken: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
         with:
           job-id: release
           arguments: publishToMavenCentralPortal
