@@ -6,13 +6,11 @@ import io.getunleash.android.data.UnleashState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.awaitility.Awaitility.await
 import org.junit.Test
 import org.robolectric.shadows.ShadowLog
 import java.io.File
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
 import kotlin.io.path.createTempDirectory
 
 class LocalBackupTest : BaseTest() {
