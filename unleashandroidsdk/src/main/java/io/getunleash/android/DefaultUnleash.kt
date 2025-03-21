@@ -125,8 +125,7 @@ class DefaultUnleash(
         eventListeners.forEach { addUnleashEventListener(it) }
         networkStatusHelper.registerNetworkListener(taskManager)
         if (unleashConfig.localStorageConfig.enabled) {
-            val localBackup = getLocalBackup()
-            localBackup.subscribeTo(cache.getUpdatesFlow())
+            initializeLocalBackup()
         }
         if (unleashConfig.pollingStrategy.enabled) {
             fetcher.startWatchingContext()
@@ -167,12 +166,12 @@ class DefaultUnleash(
         }
     }.toImmutableList()
 
-    private fun getLocalBackup(): LocalBackup {
-        val backupDir = CacheDirectoryProvider(unleashConfig.localStorageConfig, androidContext)
-            .getCacheDirectory(BACKUP_DIR_NAME)
-        val localBackup = LocalBackup(backupDir)
+    private fun initializeLocalBackup() {
         coroutineScope.launch {
             withContext(Dispatchers.IO) {
+                val backupDir = CacheDirectoryProvider(unleashConfig.localStorageConfig, androidContext)
+                    .getCacheDirectory(BACKUP_DIR_NAME)
+                val localBackup = LocalBackup(backupDir)
                 unleashContextState.asStateFlow().takeWhile { !ready.get() }.collect { ctx ->
                     Log.d(TAG, "Loading state from backup for $ctx")
                     localBackup.loadFromDisc(unleashContextState.value)?.let { state ->
@@ -182,11 +181,12 @@ class DefaultUnleash(
                         } else {
                             Log.d(TAG, "Ignoring backup, Unleash is already ready")
                         }
+                        // subscribe to state changes after loading from backup
+                        localBackup.subscribeTo(cache.getUpdatesFlow())
                     }
                 }
             }
         }
-        return localBackup
     }
 
     override fun isEnabled(toggleName: String, defaultValue: Boolean): Boolean {
