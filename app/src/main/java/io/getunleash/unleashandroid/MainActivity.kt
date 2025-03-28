@@ -114,12 +114,17 @@ class IsEnabledViewModel(initialFlag: String): ViewModel() {
     fun setFlagName(newFlagName: String) {
         _flagName.postValue(newFlagName)
         _isEnabled.postValue(unleash?.isEnabled(newFlagName) ?: false)
+        _variant.postValue(unleash?.getVariant(newFlagName)?.name ?: "")
     }
 
     val flagName: LiveData<String>
         get() = _flagName
 
     private val _isEnabled = MutableLiveData(unleash?.isEnabled(initialFlag) ?: false)
+    private val _variant = MutableLiveData(unleash?.getVariant(initialFlag)?.name ?: "")
+
+    val variant: LiveData<String>
+        get() = _variant
 
     val isEnabled: LiveData<Boolean>
         get() = _isEnabled
@@ -138,6 +143,11 @@ class IsEnabledViewModel(initialFlag: String): ViewModel() {
                     Log.i("MAIN", "Pushing value changed")
                     _isEnabled.postValue(newValue)
                 }
+                val newVariant = unleash.getVariant(flag)
+                if (newVariant.name != _variant.value) {
+                    Log.i("MAIN", "Pushing variant changed")
+                    _variant.postValue(newVariant.name)
+                }
             }
         }
         unleash.addUnleashEventListener(listener)
@@ -152,6 +162,7 @@ fun Greeting(
     modifier: Modifier = Modifier,
 ) {
     val isEnabled by isEnabledViewModel.isEnabled.observeAsState(false)
+    val variant by isEnabledViewModel.variant.observeAsState("")
     Text(
         text = "Hello $name",
         fontSize = 44.sp,
@@ -159,7 +170,7 @@ fun Greeting(
         color = colorResource(id = R.color.purple_500)
     )
     Text(
-        text = "${isEnabledViewModel.getFlagName()} is ${if (isEnabled) "enabled" else "disabled"}",
+        text = "${isEnabledViewModel.getFlagName()} is ${if (isEnabled) "enabled with variant $variant" else "disabled"}",
         fontSize = 38.sp,
         lineHeight = 38.sp,
         color = if (isEnabled) androidx.compose.ui.graphics.Color.Green else androidx.compose.ui.graphics.Color.Red,
