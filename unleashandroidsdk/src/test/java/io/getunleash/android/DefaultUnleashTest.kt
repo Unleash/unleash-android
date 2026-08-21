@@ -7,6 +7,7 @@ import io.getunleash.android.backup.TestLocalBackup
 import io.getunleash.android.data.ImpressionEvent
 import io.getunleash.android.data.Toggle
 import io.getunleash.android.data.UnleashContext
+import io.getunleash.android.data.Variant
 import io.getunleash.android.events.HeartbeatEvent
 import io.getunleash.android.events.UnleashFetcherHeartbeatListener
 import io.getunleash.android.events.UnleashImpressionEventListener
@@ -239,6 +240,126 @@ class DefaultUnleashTest : BaseTest() {
         assertThat(impressionEvents)
             .extracting("featureName")
             .containsExactlyInAnyOrder("with-impression-1", "with-impression-2", "with-impression-3")
+    }
+
+    @Test
+    fun `getVariant emits one impression event with variant name`() {
+        val unleash = DefaultUnleash(
+            androidContext = mock(Context::class.java),
+            unleashConfig = UnleashConfig.newBuilder("test-android-app")
+                .pollingStrategy.enabled(false)
+                .metricsStrategy.enabled(false)
+                .localStorageConfig.enabled(false)
+                .build(),
+            unleashContext = UnleashContext(userId = "123"),
+            lifecycle = mock(Lifecycle::class.java)
+        )
+
+        val impressionEvents = mutableListOf<ImpressionEvent>()
+        unleash.start(
+            eventListeners = listOf(object : UnleashImpressionEventListener {
+                override fun onImpression(event: ImpressionEvent) {
+                    impressionEvents.add(event)
+                }
+            }),
+            bootstrap = listOf(
+                Toggle(
+                    name = "with-variant-impression",
+                    enabled = true,
+                    impressionData = true,
+                    variant = Variant(name = "blue")
+                )
+            )
+        )
+
+        val variant = unleash.getVariant("with-variant-impression")
+
+        assertThat(variant.name).isEqualTo("blue")
+        await().during(200, TimeUnit.MILLISECONDS).atMost(1, TimeUnit.SECONDS).until {
+            impressionEvents.size == 1
+        }
+        assertThat(impressionEvents.single().featureName).isEqualTo("with-variant-impression")
+        assertThat(impressionEvents.single().variant).isEqualTo("blue")
+    }
+
+    @Test
+    fun `getVariant with default value emits one impression event with variant name`() {
+        val unleash = DefaultUnleash(
+            androidContext = mock(Context::class.java),
+            unleashConfig = UnleashConfig.newBuilder("test-android-app")
+                .pollingStrategy.enabled(false)
+                .metricsStrategy.enabled(false)
+                .localStorageConfig.enabled(false)
+                .build(),
+            unleashContext = UnleashContext(userId = "123"),
+            lifecycle = mock(Lifecycle::class.java)
+        )
+
+        val impressionEvents = mutableListOf<ImpressionEvent>()
+        unleash.start(
+            eventListeners = listOf(object : UnleashImpressionEventListener {
+                override fun onImpression(event: ImpressionEvent) {
+                    impressionEvents.add(event)
+                }
+            }),
+            bootstrap = listOf(
+                Toggle(
+                    name = "with-default-variant-impression",
+                    enabled = true,
+                    impressionData = true
+                )
+            )
+        )
+
+        val variant = unleash.getVariant("with-default-variant-impression", Variant(name = "fallback"))
+
+        assertThat(variant.name).isEqualTo("disabled")
+        await().during(200, TimeUnit.MILLISECONDS).atMost(1, TimeUnit.SECONDS).until {
+            impressionEvents.size == 1
+        }
+        assertThat(impressionEvents.single().featureName).isEqualTo("with-default-variant-impression")
+        assertThat(impressionEvents.single().variant).isEqualTo("disabled")
+    }
+
+    @Test
+    fun `getVariant emits impression when force impression data is enabled`() {
+        val unleash = DefaultUnleash(
+            androidContext = mock(Context::class.java),
+            unleashConfig = UnleashConfig.newBuilder("test-android-app")
+                .pollingStrategy.enabled(false)
+                .metricsStrategy.enabled(false)
+                .localStorageConfig.enabled(false)
+                .forceImpressionData(true)
+                .build(),
+            unleashContext = UnleashContext(userId = "123"),
+            lifecycle = mock(Lifecycle::class.java)
+        )
+
+        val impressionEvents = mutableListOf<ImpressionEvent>()
+        unleash.start(
+            eventListeners = listOf(object : UnleashImpressionEventListener {
+                override fun onImpression(event: ImpressionEvent) {
+                    impressionEvents.add(event)
+                }
+            }),
+            bootstrap = listOf(
+                Toggle(
+                    name = "forced-variant-impression",
+                    enabled = true,
+                    impressionData = false,
+                    variant = Variant(name = "green")
+                )
+            )
+        )
+
+        val variant = unleash.getVariant("forced-variant-impression")
+
+        assertThat(variant.name).isEqualTo("green")
+        await().during(200, TimeUnit.MILLISECONDS).atMost(1, TimeUnit.SECONDS).until {
+            impressionEvents.size == 1
+        }
+        assertThat(impressionEvents.single().featureName).isEqualTo("forced-variant-impression")
+        assertThat(impressionEvents.single().variant).isEqualTo("green")
     }
 
     @Test
