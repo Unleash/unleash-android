@@ -255,12 +255,13 @@ class DefaultUnleash(
 
     override fun getVariant(toggleName: String): Variant {
         val toggle = cache.get(toggleName)
-        val enabled = isEnabled(toggleName)
+        val enabled = toggle?.enabled ?: false
         val variant = if (enabled) (toggle?.variant ?: disabledVariant) else disabledVariant
-        val impressionData = toggle?.impressionData ?: unleashConfig.forceImpressionData
+        val impressionData = unleashConfig.forceImpressionData || toggle?.impressionData ?: false
         if (impressionData) {
             emit(ImpressionEvent(toggleName, enabled, unleashContextState.value, variant.name))
         }
+        metrics.count(toggleName, enabled)
         metrics.countVariant(toggleName, variant)
         return variant
     }
@@ -271,12 +272,13 @@ class DefaultUnleash(
     )
     override fun getVariant(toggleName: String, defaultValue: Variant): Variant {
         val toggle = cache.get(toggleName)
-        val enabled = isEnabled(toggleName)
+        val enabled = toggle?.enabled ?: false
         val variant = if (enabled) (toggle?.variant ?: defaultValue) else defaultValue
-        val impressionData = toggle?.impressionData ?: unleashConfig.forceImpressionData
+        val impressionData = unleashConfig.forceImpressionData || toggle?.impressionData ?: false
         if (impressionData) {
             emit(ImpressionEvent(toggleName, enabled, unleashContextState.value, variant.name))
         }
+        metrics.count(toggleName, enabled)
         metrics.countVariant(toggleName, variant)
         return variant
     }
